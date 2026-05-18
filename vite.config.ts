@@ -23,22 +23,10 @@ export default defineConfig(({ mode }) => ({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/nominatim/, ''),
       },
-      '/api/restaurants': {
+      '/api': {
         target: 'http://localhost:3001',
         changeOrigin: true,
       },
-        '/api/health': {
-          target: 'http://localhost:3001',
-          changeOrigin: true,
-        },
-        '/api/operations': {
-          target: 'http://localhost:3001',
-          changeOrigin: true,
-        },
-        '/api/holidays': {
-          target: 'http://localhost:3001',
-          changeOrigin: true,
-        },
     },
   },
   build: {

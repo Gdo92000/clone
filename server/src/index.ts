@@ -14,6 +14,7 @@ import { authMiddleware } from './middleware/auth';
 import { ALLOWED_ORIGINS } from './config';
 import { errorHandler } from './lib/errors';
 import { restaurantSchema } from '../../shared/validations/restaurant';
+import categoriesRoutes from './routes/categories';
 
 const app = new Hono();
 
@@ -78,6 +79,7 @@ api.post('/restaurants', zValidator('json', restaurantSchema), async (c) => {
   return c.json({ success: true, id }, 201);
 });
 
+api.route('/categories', categoriesRoutes);
 api.route('/operations', operationsRoutes);
 api.route('/holidays', holidaysRoutes);
 

@@ -1,4 +1,4 @@
-const BASE_URL = (import.meta.env as Record<string, string | undefined>)['VITE_API_URL'] ?? 'http://localhost:3001/api';
+const BASE_URL = (import.meta.env as Record<string, string | undefined>)['VITE_API_URL'] ?? '/api';
 import { getToken, clearAuth } from '../services/authService';
 import { ROUTES } from '../lib/routes';
 
