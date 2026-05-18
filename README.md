@@ -1,75 +1,63 @@
-# React + TypeScript + Vite
+# Flux Delivery - Plataforma SaaS de Delivery
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Plataforma completa de delivery multi-perfil com frontend React + Vite e backend Hono + Drizzle ORM + PostgreSQL.
 
-Currently, two official plugins are available:
+## Perfis
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Cliente** — navega, pede, acompanha entrega
+- **Lojista** — gerencia filiais, cardápio, pedidos, horários
+- **Admin** — operacional: empresas, cidades, auditoria
+- **Superadmin** — SaaS: planos, addons, billing, feature flags
+- **Entregador** — entregas disponíveis, rota, ganhos
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+| Camada | Tecnologia |
+|--------|-----------|
+| Frontend | React 19, Vite 8, TypeScript 6 |
+| Roteamento | React Router 7 |
+| Estado | TanStack React Query 5 |
+| Estilos | Tailwind CSS 4 + tailwind-variants |
+| Ícones | Lucide React |
+| Backend | Hono 4, @hono/node-server |
+| ORM | Drizzle ORM 0.45 |
+| Validação | Zod 4 |
+| Banco | PostgreSQL (Supabase) |
+| Auth | JWT (bcryptjs + hono/jwt) |
+| Build | tsc -b + vite build |
 
-Note: This will impact Vite dev & build performances.
+## Repositório
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+npm install       # instala dependências
+npm run dev       # frontend + server concurrently
+npm run build     # build de produção
+npm run lint      # ESLint
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Estrutura
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+```
+src/               # Frontend React
+  components/      # UI, address, commerce, location, navigation
+  hooks/           # React Query hooks + custom hooks
+  modules/         # admin, auth, courier, enterprise, experience, merchant, saas, superadmin
+  pages/           # Páginas públicas
+  services/        # API calls, fakeApi, geocode
+  providers/       # Toast (Sonner), React Query
+  lib/             # Routes, toast, utils
+  context/         # LocationContext
+  layouts/         # PublicLayout, DashboardLayout
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+server/            # Backend Hono
+  src/
+    db/            # Drizzle schema + conexão
+    routes/        # auth, holidays, operations
+    middleware/    # JWT auth middleware
+    services/      # Business logic (operations)
+    lib/           # Error handler
+    validations/   # Zod schemas (shared)
+
+shared/            # Schemas compartilhados
+  validations/     # operations, restaurant, address
 ```
