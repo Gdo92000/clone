@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { Icon } from '../../../components/ui/Icon';
 import { Button } from '../../../components/ui/Button';
-import { useToast } from '../../../components/ui/Toast';
+import { infoToast, successToast } from '../../../lib/toast';
 import { globalCoupons, type GlobalCoupon } from '../superadminData';
 import { clsx } from 'clsx';
 
@@ -14,7 +14,6 @@ const emptyForm: CouponForm = {
 };
 
 export function CouponsPage() {
-  const { show, ToastContainer } = useToast();
   const [coupons, setCoupons] = useState<GlobalCoupon[]>(globalCoupons);
   const [search, setSearch] = useState('');
   const [showInactive, setShowInactive] = useState(false);
@@ -37,17 +36,17 @@ export function CouponsPage() {
     if (!form.code.trim() || !form.description.trim()) return;
     if (editingId) {
       setCoupons((prev) => prev.map((c) => c.id === editingId ? { ...c, ...form, currentUses: c.currentUses } : c));
-      show('Cupom atualizado com sucesso!', 'success');
+      successToast('Cupom atualizado com sucesso!');
     } else {
       setCoupons((prev) => [...prev, { ...form, id: `c${Date.now()}`, currentUses: 0 }]);
-      show('Cupom criado com sucesso!', 'success');
+      successToast('Cupom criado com sucesso!');
     }
     resetForm();
   };
 
   const remove = (id: string) => {
     setCoupons((prev) => prev.filter((c) => c.id !== id));
-    show('Cupom removido.', 'info');
+    infoToast('Cupom removido.');
   };
 
   const toggleActive = (id: string) => { setCoupons((prev) => prev.map((c) => c.id === id ? { ...c, isActive: !c.isActive } : c)); };
@@ -165,7 +164,6 @@ export function CouponsPage() {
         </div>
       )}
 
-      {ToastContainer}
     </>
   );
 }

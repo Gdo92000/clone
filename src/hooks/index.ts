@@ -6,7 +6,6 @@ export type { CepAddress, UseCepLookupOptions, UseCepLookupReturn } from './useC
 export type { Coordinates, GeolocationError, UseGeolocationReturn } from './useGeolocation';
 export { useRestaurantFilter, useRestaurantSearch } from './useRestaurantFilter';
 export { useCart } from './useCart';
-export type { Establishment } from '../services/establishmentService';
 export type { NearbyRestaurant } from './useNearbyRestaurants';
 export {
   useBranchStatus,
