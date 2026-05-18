@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently -n client,server -c cyan,green \"vite --host\" \"tsx watch server/src/index.ts\"",
+    "dev": "concurrently -n client,server -c cyan,green \"vite --host\" \"tsx watch --env-file .env server/src/index.ts\"",
     "dev:client": "vite --host",
     "dev:server": "tsx watch server/src/index.ts",
     "build": "tsc -b && vite build",
