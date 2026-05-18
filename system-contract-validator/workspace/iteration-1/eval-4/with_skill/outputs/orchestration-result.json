@@ -1,0 +1,46 @@
+{
+  "timestamp": "2025-01-11T10:50:00.000Z",
+  "orchestration_status": "COMPLIANT",
+  "task_type": "multi_phase",
+  "orchestrator_used": true,
+  "phases": [
+    {
+      "phase": "CLASSIFICATION",
+      "agent": "orchestrator",
+      "status": "COMPLETED",
+      "duration_ms": 1500
+    },
+    {
+      "phase": "ROUTING", 
+      "agent": "orchestrator",
+      "status": "COMPLETED",
+      "duration_ms": 800
+    },
+    {
+      "phase": "INFERENCE",
+      "agent": "domain-specialist",
+      "status": "COMPLETED", 
+      "duration_ms": 3200
+    },
+    {
+      "phase": "CONSOLIDATION",
+      "agent": "orchestrator",
+      "status": "COMPLETED",
+      "cas_used": true,
+      "duration_ms": 600
+    },
+    {
+      "phase": "VALIDATION",
+      "agent": "test-engineer",
+      "status": "COMPLETED",
+      "duration_ms": 1200
+    }
+  ],
+  "total_duration_ms": 7300,
+  "rt_violations": [],
+  "mfor_compliance": "PASSED",
+  "recommendations": [
+    "Orquestração funcionando corretamente",
+    "Manter delegação adequada de agentes especializados"
+  ]
+}

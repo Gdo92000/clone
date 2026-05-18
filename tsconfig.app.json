@@ -1,0 +1,110 @@
+{
+  "compilerOptions": {
+    /* =========================================================
+     * BUILD / CACHE
+     * ========================================================= */
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "noEmit": true,
+
+    /* =========================================================
+     * TARGET / RUNTIME
+     * ========================================================= */
+    "target": "ES2023",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+
+    /* =========================================================
+     * MODULE SYSTEM
+     * ========================================================= */
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "moduleDetection": "force",
+    "verbatimModuleSyntax": true,
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+
+    /* =========================================================
+     * JSX / REACT
+     * ========================================================= */
+    "jsx": "react-jsx",
+
+    /* =========================================================
+     * TYPES
+     * ========================================================= */
+    "types": ["vite/client"],
+
+    "ignoreDeprecations": "6.0",
+
+    /* =========================================================
+     * PATH ALIASES
+     * ========================================================= */
+    "ignoreDeprecations": "6.0",
+
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@/api/*": ["src/api/*"],
+      "@/components/*": ["src/components/*"],
+      "@/hooks/*": ["src/hooks/*"],
+      "@/services/*": ["src/services/*"],
+      "@/repositories/*": ["src/repositories/*"],
+      "@/useCases/*": ["src/useCases/*"],
+      "@/mappers/*": ["src/mappers/*"],
+      "@/models/*": ["src/models/*"],
+      "@/dto/*": ["src/dto/*"],
+      "@/providers/*": ["src/providers/*"],
+      "@/storage/*": ["src/storage/*"],
+      "@/modules/*": ["src/modules/*"],
+      "@/utils/*": ["src/utils/*"],
+      "@/types/*": ["src/types/*"]
+    },
+
+    /* =========================================================
+     * STRICT ENTERPRISE MODE
+     * ========================================================= */
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "strictBuiltinIteratorReturn": true,
+
+    /* =========================================================
+     * SAFETY / API CONTRACTS
+     * ========================================================= */
+    "exactOptionalPropertyTypes": true,
+    "noUncheckedIndexedAccess": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitOverride": true,
+    "useUnknownInCatchVariables": true,
+
+    /* =========================================================
+     * CODE QUALITY
+     * ========================================================= */
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+
+    /* =========================================================
+     * CONSISTENCY
+     * ========================================================= */
+    "forceConsistentCasingInFileNames": true,
+
+    /* =========================================================
+     * PERFORMANCE
+     * ========================================================= */
+    "skipLibCheck": true
+  },
+
+  "include": ["src"],
+
+  "exclude": [
+    "dist",
+    "build",
+    "coverage",
+    "node_modules"
+  ]
+}

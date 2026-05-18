@@ -1,0 +1,28 @@
+{
+  "timestamp": "2025-01-11T10:47:00.000Z",
+  "integrity_status": "VIOLATION",
+  "invariants_violated": ["LAMBDA", "GAMMA"],
+  "invariantes_status": {
+    "OMEGA": "OK",
+    "PSI": "OK",
+    "LAMBDA": "VIOLATED",
+    "GAMMA": "VIOLATED",
+    "XI": "OK",
+    "SIGMA": "OK",
+    "PI": "OK",
+    "THETA": "OK",
+    "KAPPA": "OK",
+    "DELTA": "OK",
+    "RHO": "OK",
+    "OMEGA2": "OK",
+    "OMEGA3": "OK",
+    "IOTA": "OK",
+    "PHI": "OK"
+  },
+  "rt_violations": ["RT-ARCH"],
+  "severity": "HIGH",
+  "recommendations": [
+    "Corrigir violações do invariante LAMBDA: arquivo com mais de 500 linhas (>300)",
+    "Corrigir violações do invariante GAMMA: múltiplos artefatos no mesmo arquivo"
+  ]
+}

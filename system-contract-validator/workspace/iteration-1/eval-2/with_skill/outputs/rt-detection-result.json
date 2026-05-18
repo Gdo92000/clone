@@ -1,0 +1,39 @@
+{
+  "timestamp": "2025-01-11T10:48:00.000Z",
+  "rt_violations_detected": [
+    {
+      "code": "RT-INF",
+      "description": "Inferência fora do gateway central",
+      "severity": "CRITICAL",
+      "detected_in": "user_direct_llm_call",
+      "action": "STOP-WORK"
+    },
+    {
+      "code": "RT-GEN", 
+      "description": "Uso de agente generalista fora do estado IDLE",
+      "severity": "CRITICAL",
+      "detected_in": "agent_classification",
+      "action": "STOP-WORK"
+    },
+    {
+      "code": "RT-PIPE",
+      "description": "Etapa do pipeline pulada",
+      "severity": "CRITICAL", 
+      "detected_in": "workflow_validation",
+      "action": "SOFT-BLOCK"
+    }
+  ],
+  "total_violations": 3,
+  "severity_distribution": {
+    "CRITICAL": 2,
+    "HIGH": 1,
+    "MEDIUM": 0,
+    "LOW": 0
+  },
+  "recommendations": [
+    "Implementar gateway central para inferências LLM",
+    "Utilizar apenas agentes especializados para tarefas operacionais",
+    "Garantir pipeline obrigatório completo",
+    "Adicionar validação automática de etapas"
+  ]
+}

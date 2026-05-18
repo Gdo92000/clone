@@ -1,0 +1,12 @@
+export { MerchantBranchesPage } from './pages/MerchantBranchesPage';
+export { MerchantAnalyticsPage } from './pages/MerchantAnalyticsPage';
+export { MerchantCampaignsPage } from './pages/MerchantCampaignsPage';
+export { MerchantCatalogPage } from './pages/MerchantCatalogPage';
+export { MerchantFinancePage } from './pages/MerchantFinancePage';
+export { MerchantDashboardPage } from './pages/MerchantDashboardPage';
+export { MerchantLoginPage } from './pages/MerchantLoginPage';
+export { MerchantOrdersPage } from './pages/MerchantOrdersPage';
+export { MerchantSettingsPage } from './pages/MerchantSettingsPage';
+export { MerchantCouponsPage } from './pages/MerchantCouponsPage';
+export { MerchantSubscriptionPage } from './pages/MerchantSubscriptionPage';
+export { MerchantTeamPage } from './pages/MerchantTeamPage';

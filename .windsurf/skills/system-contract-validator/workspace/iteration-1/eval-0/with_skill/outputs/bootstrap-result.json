@@ -1,0 +1,40 @@
+{
+  "timestamp": "2025-01-11T10:45:00.000Z",
+  "total_files": 12,
+  "present_files": [
+    {
+      "file": ".agent/core/system-contract.md",
+      "size": 810,
+      "modified": "2025-01-11T10:39:00.000Z"
+    },
+    {
+      "file": ".agent/core/bootstrap.md",
+      "size": 0,
+      "modified": "2025-01-11T10:39:00.000Z"
+    },
+    {
+      "file": ".agent/agents/orchestrator.md",
+      "size": 0,
+      "modified": "2025-01-11T10:39:00.000Z"
+    }
+  ],
+  "missing_files": [
+    ".agent/ARCHITECTURE.md",
+    ".agent/core/sec-action-table.md",
+    ".agent/core/rule-evaluation-engine.md",
+    "ARQUITETURA.md",
+    ".agent/core/execution-state-machine.md",
+    ".agent/core/execution-gate.md",
+    ".agent/core/agent-runtime.md",
+    ".agent/core/response-interceptor.md",
+    "AGENTS.md"
+  ],
+  "invalid_files": [],
+  "integrity_status": "VIOLATION",
+  "rt_violations": ["RT-PIPE"],
+  "severity": "CRITICAL",
+  "recommendations": [
+    "Criar arquivos core faltantes imediatamente",
+    "Executar STOP-WORK até que todos os arquivos estejam presentes"
+  ]
+}

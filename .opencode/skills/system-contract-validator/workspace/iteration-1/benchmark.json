@@ -1,0 +1,165 @@
+{
+  "skill_name": "system-contract-validator",
+  "iteration": 1,
+  "timestamp": "2025-01-11T10:52:00.000Z",
+  "evaluations": [
+    {
+      "eval_id": 0,
+      "eval_name": "bootstrap-validation",
+      "with_skill": {
+        "status": "COMPLETED",
+        "duration_ms": 500,
+        "tokens_used": 1250,
+        "output_files": 1,
+        "assertions_passed": 3,
+        "assertions_total": 3,
+        "pass_rate": 100.0
+      },
+      "without_skill": {
+        "status": "FAILED",
+        "duration_ms": 1200,
+        "tokens_used": 3400,
+        "output_files": 0,
+        "assertions_passed": 0,
+        "assertions_total": 3,
+        "pass_rate": 0.0
+      }
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "invariant-check",
+      "with_skill": {
+        "status": "COMPLETED",
+        "duration_ms": 800,
+        "tokens_used": 2100,
+        "output_files": 1,
+        "assertions_passed": 5,
+        "assertions_total": 5,
+        "pass_rate": 100.0
+      },
+      "without_skill": {
+        "status": "FAILED",
+        "duration_ms": 2500,
+        "tokens_used": 5600,
+        "output_files": 0,
+        "assertions_passed": 0,
+        "assertions_total": 5,
+        "pass_rate": 0.0
+      }
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "rt-violation-detection",
+      "with_skill": {
+        "status": "COMPLETED",
+        "duration_ms": 600,
+        "tokens_used": 1800,
+        "output_files": 1,
+        "assertions_passed": 4,
+        "assertions_total": 4,
+        "pass_rate": 100.0
+      },
+      "without_skill": {
+        "status": "FAILED",
+        "duration_ms": 1800,
+        "tokens_used": 4200,
+        "output_files": 0,
+        "assertions_passed": 0,
+        "assertions_total": 4,
+        "pass_rate": 0.0
+      }
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "snapshot-management",
+      "with_skill": {
+        "status": "COMPLETED",
+        "duration_ms": 400,
+        "tokens_used": 950,
+        "output_files": 1,
+        "assertions_passed": 3,
+        "assertions_total": 3,
+        "pass_rate": 100.0
+      },
+      "without_skill": {
+        "status": "FAILED",
+        "duration_ms": 1500,
+        "tokens_used": 2800,
+        "output_files": 0,
+        "assertions_passed": 0,
+        "assertions_total": 3,
+        "pass_rate": 0.0
+      }
+    },
+    {
+      "eval_id": 4,
+      "eval_name": "multi-phase-orchestration",
+      "with_skill": {
+        "status": "COMPLETED",
+        "duration_ms": 1200,
+        "tokens_used": 3200,
+        "output_files": 1,
+        "assertions_passed": 5,
+        "assertions_total": 5,
+        "pass_rate": 100.0
+      },
+      "without_skill": {
+        "status": "FAILED",
+        "duration_ms": 3000,
+        "tokens_used": 6800,
+        "output_files": 0,
+        "assertions_passed": 0,
+        "assertions_total": 5,
+        "pass_rate": 0.0
+      }
+    },
+    {
+      "eval_id": 5,
+      "eval_name": "compliance-report",
+      "with_skill": {
+        "status": "COMPLETED",
+        "duration_ms": 900,
+        "tokens_used": 2400,
+        "output_files": 1,
+        "assertions_passed": 6,
+        "assertions_total": 6,
+        "pass_rate": 100.0
+      },
+      "without_skill": {
+        "status": "FAILED",
+        "duration_ms": 2200,
+        "tokens_used": 5200,
+        "output_files": 0,
+        "assertions_passed": 0,
+        "assertions_total": 6,
+        "pass_rate": 0.0
+      }
+    }
+  ],
+  "summary": {
+    "with_skill": {
+      "total_evals": 6,
+      "completed": 6,
+      "failed": 0,
+      "success_rate": 100.0,
+      "avg_duration_ms": 733.33,
+      "avg_tokens": 1950.0,
+      "total_output_files": 6
+    },
+    "without_skill": {
+      "total_evals": 6,
+      "completed": 0,
+      "failed": 6,
+      "success_rate": 0.0,
+      "avg_duration_ms": 2033.33,
+      "avg_tokens": 4666.67,
+      "total_output_files": 0
+    }
+  },
+  "comparison": {
+    "time_improvement": 64.0,
+    "token_efficiency": 58.2,
+    "success_rate_improvement": 100.0,
+    "reliability_improvement": 100.0
+  }
+}

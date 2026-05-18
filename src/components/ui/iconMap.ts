@@ -1,0 +1,36 @@
+import {
+  AlertTriangle, ArrowRight, ArrowUpRight, Award,
+  Bell, Building2,
+  Calendar, Check, CheckCircle, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Clock, CreditCard, Crosshair, Crown,
+  Database, DollarSign,
+  FileCode, FileSpreadsheet, FileText, Flag,
+  Headset, Heart, House,
+  ImageOff, Info,
+  LayoutDashboard, List, Loader,
+  Map, MapPin, Megaphone, Menu, Minus, Monitor, Moon,
+  Package, PackagePlus, Pen, Pencil, Percent, Plus, Puzzle,
+  Receipt, RefreshCw,
+  Search, SearchX, Shield, ShoppingBag, Star, Store, Sun,
+  Tag, Trash2, TrendingUp, Truck,
+  User, Users, UtensilsCrossed,
+  X, XCircle,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+
+export const iconMap: Record<string, LucideIcon> = {
+  AlertTriangle, ArrowRight, ArrowUpRight, Award,
+  Bell, Building2,
+  Calendar, Check, CheckCircle, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Clock, CreditCard, Crosshair, Crown,
+  Database, DollarSign,
+  FileCode, FileSpreadsheet, FileText, Flag,
+  Headset, Heart, House,
+  ImageOff, Info,
+  LayoutDashboard, List, Loader,
+  Map, MapPin, Megaphone, Menu, Minus, Monitor, Moon,
+  Package, PackagePlus, Pen, Pencil, Percent, Plus, Puzzle,
+  Receipt, RefreshCw,
+  Search, SearchX, Shield, ShoppingBag, Star, Store, Sun,
+  Tag, Trash2, TrendingUp, Truck,
+  User, Users, UtensilsCrossed,
+  X, XCircle,
+};

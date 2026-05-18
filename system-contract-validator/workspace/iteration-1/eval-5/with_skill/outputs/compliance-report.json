@@ -1,0 +1,37 @@
+{
+  "timestamp": "2025-01-11T10:51:00.000Z",
+  "integrity_status": "MONITORING",
+  "layers_affected": ["L6", "L5", "L4"],
+  "invariantes_violated": ["OMEGA", "PSI"],
+  "rt_violations": ["RT-ARCH", "RT-PIPE"],
+  "severity": "HIGH",
+  "compliance_score": 75.5,
+  "executive_summary": {
+    "status": "PARCIAL_COMPLIANCE",
+    "critical_issues": 2,
+    "high_issues": 2,
+    "recommendations_immediate": [
+      "Corrigir violações de domínio (OMEGA)",
+      "Restaurar pipeline completo (RT-PIPE)",
+      "Implementar separação UI vs lógica de negócio (PSI)"
+    ],
+    "timeline_correction": "24-48h"
+  },
+  "detailed_analysis": {
+    "l6_integrity": "VIOLATION - arquivos core faltando",
+    "l5_architecture": "VIOLATION - bounded contexts cruzados",
+    "l4_services": "OK - serviços isolados",
+    "invariantes_status": {
+      "OMEGA": "VIOLATED",
+      "PSI": "VIOLATED", 
+      "LAMBDA": "OK",
+      "GAMMA": "OK"
+    }
+  },
+  "action_plan": [
+    "1. Criar arquivos core faltantes",
+    "2. Implementar validação de bounded contexts",
+    "3. Separar responsabilidades UI vs lógica de negócio",
+    "4. Executar revalidação completa em 48h"
+  ]
+}

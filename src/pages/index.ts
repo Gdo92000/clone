@@ -1,0 +1,12 @@
+export { AddressBookPage } from './AddressBookPage';
+export { CartPage } from './CartPage';
+export { CheckoutPage } from './CheckoutPage';
+export { CityRestaurantsPage } from './CityRestaurantsPage';
+export { HomePage } from './HomePage';
+export { ItemDetailPage } from './ItemDetailPage';
+export { OrderHistoryPage } from './OrderHistoryPage';
+export { ProfilePage } from './ProfilePage';
+export { RestaurantDetailPage } from './RestaurantDetailPage';
+export { RestaurantListPage } from './RestaurantListPage';
+export { SearchPage } from './SearchPage';
+export { TrackingPage } from './TrackingPage';

@@ -1,0 +1,53 @@
+﻿{
+	"$schema": "https://opencode.ai/config.json",
+
+	"instructions": [
+		".agent/core/system-contract.md",
+		".agent/core/bootstrap.md",
+		".agent/agents/orchestrator.md",
+		".agent/ARCHITECTURE.md",
+		".agent/core/sec-action-table.md",
+		".agent/core/rule-evaluation-engine.md",
+		"ARQUITETURA.md",
+		".agent/core/execution-state-machine.md",
+		".agent/core/execution-gate.md",
+		".agent/core/agent-runtime.md",
+		".agent/core/response-interceptor.md",
+		"AGENTS.md"
+	],
+
+	"compaction": {
+		"auto": true,
+		"prune": true,
+		"reserved": 10000
+	},
+
+	"watcher": {
+		"ignore": ["node_modules/**", "dist/**", ".git/**"]
+	},
+	"mcp": {
+    "stitch": {
+      "type": "remote",
+      "url": "https://stitch.googleapis.com/mcp",
+      "enabled": true
+    },
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "ctx7sk-54e312a6-153d-45e3-923f-e801478fc817"
+      },
+      "enabled": true
+    },
+    "playwright": {
+      "type": "local",
+      "command": ["npx", "-y", "@playwright/mcp@latest"],
+      "enabled": true
+    },
+    "shadcn-ui": {
+      "type": "local",
+      "command": ["npx", "-y", "@jpisnice/shadcn-ui-mcp-server"],
+      "enabled": true
+    }
+  }
+}
