@@ -6,7 +6,7 @@ import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { eq } from 'drizzle-orm';
 import { db } from './db';
-import { restaurants } from './db/schema';
+import { restaurants, menuItems } from './db/schema';
 import operationsRoutes from './routes/operations';
 import holidaysRoutes from './routes/holidays';
 import authRoutes from './routes/auth';
@@ -15,6 +15,10 @@ import { ALLOWED_ORIGINS } from './config';
 import { errorHandler } from './lib/errors';
 import { restaurantSchema } from '../../shared/validations/restaurant';
 import categoriesRoutes from './routes/categories';
+import menuItemsRoutes from './routes/menu-items';
+import companiesRoutes from './routes/companies';
+import branchesRoutes from './routes/branches';
+import ordersRoutes from './routes/orders';
 
 const app = new Hono();
 
@@ -46,6 +50,12 @@ api.get('/restaurants/:id', zValidator('param', idParam), async (c) => {
   const restaurant = await db.select().from(restaurants).where(eq(restaurants.id, id)).limit(1);
   if (!restaurant.length) return c.json({ error: 'Not found' }, 404);
   return c.json(restaurant[0]);
+});
+
+api.get('/restaurants/:id/menu-items', zValidator('param', idParam), async (c) => {
+  const { id } = c.req.valid('param');
+  const items = await db.select().from(menuItems).where(eq(menuItems.restaurant_id, id));
+  return c.json(items);
 });
 
 api.post('/restaurants', zValidator('json', restaurantSchema), async (c) => {
@@ -80,6 +90,10 @@ api.post('/restaurants', zValidator('json', restaurantSchema), async (c) => {
 });
 
 api.route('/categories', categoriesRoutes);
+api.route('/menu-items', menuItemsRoutes);
+api.route('/companies', companiesRoutes);
+api.route('/branches', branchesRoutes);
+api.route('/orders', ordersRoutes);
 api.route('/operations', operationsRoutes);
 api.route('/holidays', holidaysRoutes);
 
