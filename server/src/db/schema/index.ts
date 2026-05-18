@@ -5,5 +5,4 @@ export * from './commerce';
 export * from './saas';
 export * from './ops';
 export * from './operations';
-export * from './relations';
 export * from './indexes';
