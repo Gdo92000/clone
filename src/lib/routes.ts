@@ -61,8 +61,6 @@ export const ROUTES = {
   REVIEWS: '/reviews',
   ONBOARDING: '/onboarding',
   PAYMENT_METHODS: '/payment-methods',
-
-  DEMO: '/demo',
 } as const;
 
 export function restaurantDetailHref(restaurantId: string): string {
@@ -105,7 +103,6 @@ export const ROUTE_AREA: Record<string, string> = {
   onboarding: 'public',
   nearby: 'public',
   'payment-methods': 'public',
-  demo: 'public',
   superadmin: 'superadmin',
   admin: 'admin',
   merchant: 'merchant',

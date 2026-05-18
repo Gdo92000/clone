@@ -10,7 +10,6 @@ import type { DashboardNavItem } from './layouts/DashboardLayout';
 import { FeatureRoute } from './modules/saas';
 import { ProtectedRoute, SessionPage } from './modules/auth';
 import { ROUTES, getRouteArea } from './lib/routes';
-import DemoPresentationPage from './modules/demo/pages/DemoPresentationPage';
 
 // ── Public pages (lazy) ──
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -290,8 +289,6 @@ function App() {
                 <Route path={ROUTES.REVIEWS} element={<Suspense fallback={routeFallback}><ReviewsPage /></Suspense>} />
                 <Route path={ROUTES.ONBOARDING} element={<Suspense fallback={routeFallback}><OnboardingPage /></Suspense>} />
                 <Route path={ROUTES.PAYMENT_METHODS} element={<Suspense fallback={routeFallback}><PaymentMethodsPage /></Suspense>} />
-
-                <Route path={ROUTES.DEMO} element={<DemoPresentationPage />} />
 
                 <Route path="*" element={
                   <div className="min-h-screen flex items-center justify-center">
