@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../../../components/ui/Button';
+import { login as authLogin } from '../../../services/authService';
 import { errorToast } from '../../../lib/toast';
 import { ROUTES } from '../../../lib/routes';
 
@@ -11,7 +12,7 @@ export function MerchantLoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!email.trim()) {
@@ -24,10 +25,14 @@ export function MerchantLoginPage() {
     }
 
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await authLogin({ email, password });
       void navigate(ROUTES.MERCHANT);
-    }, 800);
+    } catch (err) {
+      errorToast(err instanceof Error ? err.message : 'Erro ao entrar');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -42,7 +47,7 @@ export function MerchantLoginPage() {
               Entrar no portal do lojista
             </h1>
             <p className="mt-2 text-sm text-text-secondary">
-              Acesso mockado pronto para conectar com autenticacao do backend.
+              Acesse sua conta para gerenciar pedidos, cardápio e operações.
             </p>
           </div>
 

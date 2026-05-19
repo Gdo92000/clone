@@ -1,21 +1,17 @@
-import { usePersistentState } from './usePersistentState';
-import { saasAddons, companySubscriptions } from '../modules/saas/saasData';
-import type { CompanySubscription, SaasAddon } from '../modules/saas/types';
-
-function mergeById<T extends { id: string }>(persisted: T[], defaults: T[]) {
-  const persistedIds = new Set(persisted.map((item) => item.id));
-  return [...persisted, ...defaults.filter((item) => !persistedIds.has(item.id))];
-}
-
-function mergeSubscriptions(persisted: CompanySubscription[]) {
-  return persisted.map((sub) => {
-    const def = companySubscriptions.find((d) => d.companyId === sub.companyId);
-    return def ? { ...sub, addonIds: Array.from(new Set([...sub.addonIds, ...def.addonIds])) } : sub;
-  });
-}
+import { useQuery } from '@tanstack/react-query';
+import { getAddons, getSubscriptions } from '../repositories/subscriptionRepository';
+import type { SaasAddon, CompanySubscription } from '../modules/saas/types';
 
 export function useSubscriptions() {
-  const [addons, setAddons] = usePersistentState<SaasAddon[]>('saas.addons', saasAddons);
-  const [subscriptions, setSubscriptions] = usePersistentState<CompanySubscription[]>('saas.subscriptions', companySubscriptions);
-  return { addons: mergeById(addons, saasAddons), setAddons, subscriptions: mergeSubscriptions(subscriptions), setSubscriptions };
+  const addons = useQuery<SaasAddon[]>({
+    queryKey: ['saas', 'addons'],
+    queryFn: getAddons,
+    staleTime: 1000 * 60 * 10,
+  });
+  const subscriptions = useQuery<CompanySubscription[]>({
+    queryKey: ['saas', 'subscriptions'],
+    queryFn: getSubscriptions,
+    staleTime: 1000 * 60 * 10,
+  });
+  return { addons: addons.data ?? [], subscriptions: subscriptions.data ?? [] };
 }

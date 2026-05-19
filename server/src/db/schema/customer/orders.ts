@@ -1,8 +1,7 @@
 import { pgEnum, pgTable, text, numeric, integer, jsonb, timestamp, index } from 'drizzle-orm/pg-core';
 import { users } from './users';
 import { addresses } from './addresses';
-import { restaurants } from '../core/restaurants';
-import { menuItems } from '../core/menu-items';
+import { restaurants, menuItems } from '../core';
 
 export const orderStatus = pgEnum('order_status', ['confirmed', 'preparing', 'ready', 'dispatched', 'delivered', 'cancelled']);
 export const deliveryType = pgEnum('delivery_type', ['delivery', 'pickup']);

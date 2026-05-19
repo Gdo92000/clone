@@ -12,7 +12,8 @@ export const ROUTES = {
   ORDERS: '/orders',
   PROFILE: '/profile',
   ADDRESSES: '/addresses',
-  SESSION: '/session',
+  LOGIN: '/login',
+  SUPERADMIN_LOGIN: '/superadmin/login',
 
   MERCHANT_LOGIN: '/merchant/login',
   MERCHANT: '/merchant',
@@ -94,7 +95,7 @@ export const ROUTE_AREA: Record<string, string> = {
   orders: 'public',
   profile: 'public',
   addresses: 'public',
-  session: 'public',
+  login: 'public',
   favorites: 'public',
   notifications: 'public',
   promotions: 'public',

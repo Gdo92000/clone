@@ -5,6 +5,7 @@ import { formatCurrency } from '../../merchant/format';
 import { useAuthSession } from '../../auth';
 import { useAuditLog } from '../../enterprise';
 import { PageHeader } from '../../../components/ui/PageHeader';
+import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
 
 const billingLabels: Record<BillingStatus, string> = {
   trial: 'Trial',
@@ -15,7 +16,7 @@ const billingLabels: Record<BillingStatus, string> = {
 };
 
 export function SubscriptionsPage() {
-  const { data: companies = [] } = useCompanies();
+  const { data: companies = [], isLoading, error } = useCompanies();
   const { plans, addons, subscriptions, setSubscriptions } = useSaasWorkspace();
   const { currentUser } = useAuthSession();
   const { recordAudit } = useAuditLog();
@@ -63,6 +64,7 @@ export function SubscriptionsPage() {
 
   return (
     <><PageHeader title="Assinaturas por empresa" />
+      <FxQueryBoundary isLoading={isLoading} isError={!!error} error={error}>
       <section className="space-y-4">
         {subscriptions.map((subscription) => {
           const company = companies.find((item) => item.id === subscription.companyId);
@@ -125,6 +127,7 @@ export function SubscriptionsPage() {
           );
         })}
       </section>
+      </FxQueryBoundary>
     </>
   );
 

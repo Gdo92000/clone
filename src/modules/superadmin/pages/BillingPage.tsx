@@ -4,9 +4,10 @@ import { useSaasWorkspace } from '../../saas';
 import { useAuthSession } from '../../auth';
 import { useAuditLog } from '../../enterprise';
 import { PageHeader } from '../../../components/ui/PageHeader';
+import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
 
 export function BillingPage() {
-  const { data: companies = [] } = useCompanies();
+  const { data: companies = [], isLoading, error } = useCompanies();
   const { invoices, setSubscriptions } = useSaasWorkspace();
   const { currentUser } = useAuthSession();
   const { recordAudit } = useAuditLog();
@@ -28,6 +29,7 @@ export function BillingPage() {
 
   return (
     <><PageHeader title="Billing e faturas" />
+      <FxQueryBoundary isLoading={isLoading} isError={!!error} error={error}>
       <section className="space-y-3">
         {invoices.map((invoice) => {
           const company = companies.find((item) => item.id === invoice.companyId);
@@ -58,6 +60,7 @@ export function BillingPage() {
           );
         })}
       </section>
+      </FxQueryBoundary>
     </>
   );
 

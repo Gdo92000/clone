@@ -31,8 +31,7 @@ export function CityRestaurantsPage() {
      if (protection.canSearch && !loading) {
        search();
      }
-     // eslint-disable-next-line react-hooks/exhaustive-deps
-   }, [radiusKm, protection.canSearch]);
+    }, [radiusKm, protection.canSearch]);
 
   const handleRadiusChange = (value: (typeof radiusOptions)[number]) => {
     setRadiusKm(value);

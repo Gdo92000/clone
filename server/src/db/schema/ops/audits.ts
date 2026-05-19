@@ -1,8 +1,9 @@
 import { pgTable, text, jsonb, timestamp, index } from 'drizzle-orm/pg-core';
+import { users } from '../customer/users';
 
 export const auditEvents = pgTable('audit_events', {
   id: text('id').primaryKey(),
-  actor_id: text('actor_id').notNull(),
+  actor_id: text('actor_id').references(() => users.id).notNull(),
   action: text('action').notNull(),
   target: text('target').notNull(),
   metadata: jsonb('metadata'),

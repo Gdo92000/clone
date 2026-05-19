@@ -22,33 +22,6 @@ interface Address {
   isDefault: boolean;
 }
 
-const mockAddresses: Address[] = [
-  {
-    id: '1',
-    label: 'Casa',
-    street: 'Av. Brasil',
-    number: '1234',
-    complement: 'Apto 101',
-    neighborhood: 'Centro',
-    city: 'Franca',
-    state: 'SP',
-    zipCode: '00000-000',
-    isDefault: true,
-  },
-  {
-    id: '2',
-    label: 'Trabalho',
-    street: 'Rua das Flores',
-    number: '567',
-    complement: 'Andar 15',
-    neighborhood: 'Jardins',
-    city: 'Franca',
-    state: 'SP',
-    zipCode: '00000-000',
-    isDefault: false,
-  },
-];
-
 const emptyForm = {
   label: 'Casa',
   street: '',
@@ -61,7 +34,7 @@ const emptyForm = {
 };
 
 export function AddressBookPage() {
-  const [addresses, setAddresses] = useState<Address[]>(mockAddresses);
+  const [addresses, setAddresses] = useState<Address[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [showAutocomplete, setShowAutocomplete] = useState(true);

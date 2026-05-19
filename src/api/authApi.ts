@@ -4,6 +4,11 @@ import type { LoginResponseDTO, AuthUserDTO } from '../dto/authDto';
 export const authApi = {
   login: (email: string, password: string) =>
     post<LoginResponseDTO>('/auth/login', { email, password }),
+  register: (name: string, email: string, password: string) =>
+    post<{ success: boolean; id: string }>('/auth/register', { name, email, password }),
+  refresh: (refreshToken: string) =>
+    post<{ accessToken: string; expiresIn: number }>('/auth/refresh', { refreshToken }),
   logout: () => post<void>('/auth/logout'),
+  me: () => get<AuthUserDTO>('/auth/me'),
   getUsers: () => get<AuthUserDTO[]>('/users'),
 };

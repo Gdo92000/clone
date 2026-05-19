@@ -81,7 +81,7 @@ export function ProfilePage() {
             <p className="text-sm text-text-secondary">usuario@email.com</p>
           </div>
           <button
-            onClick={() => navigate(ROUTES.SESSION)}
+            onClick={() => navigate(ROUTES.LOGIN)}
             className="text-sm font-medium text-brand-primary hover:text-brand-primary-hover"
           >
             Editar

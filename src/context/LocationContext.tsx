@@ -1,4 +1,4 @@
-  
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import type { Coordinates } from '../hooks/useGeolocation';
 import { getRegisteredCityCoverages, findRegisteredCityCoverage } from '../services/cityCoverageService';

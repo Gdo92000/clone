@@ -1,8 +1,11 @@
-import { usePersistentState } from './usePersistentState';
-import { saasPlans } from '../modules/saas/saasData';
+import { useQuery } from '@tanstack/react-query';
+import { getPlans } from '../repositories/subscriptionRepository';
 import type { SaasPlan } from '../modules/saas/types';
 
 export function usePlans() {
-  const [plans, setPlans] = usePersistentState<SaasPlan[]>('saas.plans', saasPlans);
-  return { plans, setPlans };
+  return useQuery<SaasPlan[]>({
+    queryKey: ['saas', 'plans'],
+    queryFn: getPlans,
+    staleTime: 1000 * 60 * 10,
+  });
 }

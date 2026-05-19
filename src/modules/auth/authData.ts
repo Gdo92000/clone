@@ -1,4 +1,4 @@
-import type { AuthUser, PermissionKey, UserRole } from './types';
+import type { PermissionKey, UserRole } from './types';
 
 export const roleLabels: Record<UserRole, string> = {
   superadmin: 'Superadmin',
@@ -40,75 +40,4 @@ export const rolePermissions: Record<UserRole, PermissionKey[]> = {
   customer: ['checkout.use'],
 };
 
-export const authUsers: AuthUser[] = [
-  {
-    id: 'user-superadmin',
-    name: 'Clara Mendes',
-    email: 'superadmin@ifoodclone.com',
-    role: 'superadmin',
-    avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=160&h=160&fit=crop',
-    active: true,
-  },
-  {
-    id: 'user-admin',
-    name: 'Rafael Nunes',
-    email: 'admin@ifoodclone.com',
-    role: 'admin',
-    avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=160&h=160&fit=crop',
-    active: true,
-  },
-  {
-    id: 'user-owner-1',
-    name: 'Marcos Brescian',
-    email: 'dono@brescian.com',
-    role: 'company_owner',
-    companyId: 'company-1',
-    avatarUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=160&h=160&fit=crop',
-    active: true,
-  },
-  {
-    id: 'user-manager-1',
-    name: 'Paula Rocha',
-    email: 'gerente@brescian.com',
-    role: 'branch_manager',
-    companyId: 'company-1',
-    branchId: 'branch-1',
-    avatarUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=160&h=160&fit=crop',
-    active: true,
-  },
-  {
-    id: 'user-attendant-1',
-    name: 'Joao Lima',
-    email: 'atendente@brescian.com',
-    role: 'attendant',
-    companyId: 'company-1',
-    branchId: 'branch-1',
-    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=160&h=160&fit=crop',
-    active: true,
-  },
-  {
-    id: 'user-finance-1',
-    name: 'Renata Alves',
-    email: 'financeiro@brescian.com',
-    role: 'finance',
-    companyId: 'company-1',
-    avatarUrl: 'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?w=160&h=160&fit=crop',
-    active: true,
-  },
-  {
-    id: 'user-courier-1',
-    name: 'Diego Santos',
-    email: 'entregador@ifoodclone.com',
-    role: 'courier',
-    avatarUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=160&h=160&fit=crop',
-    active: true,
-  },
-  {
-    id: 'user-customer-1',
-    name: 'Maria Fernanda',
-    email: 'cliente@email.com',
-    role: 'customer',
-    avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=160&h=160&fit=crop',
-    active: true,
-  },
-];
+

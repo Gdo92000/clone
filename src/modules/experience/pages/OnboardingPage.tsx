@@ -25,7 +25,7 @@ export function OnboardingPage() {
         <div className="mt-6 rounded-lg bg-surface-background p-4">
           <h2 className="font-semibold text-text-primary">{steps[step]}</h2>
           <p className="mt-2 text-sm text-text-secondary">
-            Etapa mockada para validar a jornada antes do backend.
+            Etapa de configuração inicial para sua loja.
           </p>
         </div>
         <div className="mt-4 flex gap-2">

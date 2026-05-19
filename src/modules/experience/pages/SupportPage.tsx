@@ -1,35 +1,42 @@
 import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '../../../components/ui/Button';
-import { usePersistentState } from '../../../hooks/usePersistentState';
-import { supportTickets } from '../experienceData';
+import { consumerApi } from '../../../api/consumerApi';
+import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
 import { ExperienceLayout } from '../components/ExperienceLayout';
 import { successToast, errorToast } from '../../../lib/toast';
 
 export function SupportPage() {
-  const [tickets, setTickets] = usePersistentState('support.tickets', supportTickets);
+  const queryClient = useQueryClient();
+  const { data: tickets = [], isLoading } = useQuery({
+    queryKey: ['my-tickets'],
+    queryFn: () => consumerApi.getMyTickets(),
+  });
   const [title, setTitle] = useState('');
   const [saving, setSaving] = useState(false);
 
-  const createTicket = () => {
+  const createTicket = async () => {
     if (!title.trim()) {
       errorToast('Descreva o problema antes de abrir o chamado.');
       return;
     }
 
     setSaving(true);
-    setTimeout(() => {
-      setTickets((current) => [
-        { id: `SUP-${Date.now()}`, title: title.trim(), status: 'Aberto', owner: 'Cliente' },
-        ...current,
-      ]);
+    try {
+      await consumerApi.createSupportTicket({ title: title.trim(), message: title.trim() });
       setTitle('');
-      setSaving(false);
       successToast('Chamado aberto com sucesso!');
-    }, 500);
+      await queryClient.invalidateQueries({ queryKey: ['my-tickets'] });
+    } catch (err) {
+      errorToast(err instanceof Error ? err.message : 'Erro ao abrir chamado');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <ExperienceLayout title="Ajuda e suporte">
+      <FxQueryBoundary isLoading={isLoading} isError={false}>
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-[0.8fr_1.2fr]">
         <div className="rounded-xl border border-border-default bg-surface-elevated p-4">
           <h2 className="font-semibold text-text-primary">Novo chamado</h2>
@@ -53,7 +60,7 @@ export function SupportPage() {
               <p className="text-text-secondary">Nenhum chamado aberto.</p>
             </div>
           ) : (
-            tickets.map((ticket) => (
+            tickets.map((ticket: any) => (
               <article key={ticket.id} className="rounded-xl border border-border-default bg-surface-elevated p-4">
                 <p className="font-semibold text-text-primary">{ticket.title}</p>
                 <p className="mt-1 text-sm text-text-secondary">{ticket.id} - {ticket.owner} - {ticket.status}</p>
@@ -62,6 +69,7 @@ export function SupportPage() {
           )}
         </div>
       </section>
+      </FxQueryBoundary>
     </ExperienceLayout>
   );
 }

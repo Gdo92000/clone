@@ -1,29 +1,66 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '../../../components/ui/Button';
-import { usePersistentState } from '../../../hooks/usePersistentState';
 import { MerchantLayout } from '../components/MerchantLayout';
 import { useBranches } from '../../../hooks/useMerchantData';
+import { merchantApi } from '../../../api/merchantApi';
+import { successToast, errorToast } from '../../../lib/toast';
 
 export function MerchantSettingsPage() {
+  const queryClient = useQueryClient();
   const { data: branches = [] } = useBranches();
-  const [branchId, setBranchId] = useState(branches[0]?.id ?? '');
-  const [settings, setSettings] = usePersistentState('merchant.settings', {
-    openingTime: '18:00',
-    closingTime: '23:30',
-    preparationTime: '35',
-    minimumOrder: '25',
-    acceptsDelivery: true,
-    acceptsPickup: true,
-    pixKey: 'financeiro@francafood.com.br',
+  const [branchId, setBranchId] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!branchId && branches.length > 0) setBranchId(branches[0]!.id);
+  }, [branches, branchId]);
+
+  const { data: remoteSettings } = useQuery({
+    queryKey: ['branch-settings', branchId],
+    queryFn: () => merchantApi.getSettingsByBranch(branchId),
+    enabled: !!branchId,
   });
-  const [saved, setSaved] = useState(false);
 
-  const selectedBranch = branches.find((branch) => branch.id === branchId);
+  const [settings, setSettings] = useState({
+    opening_time: '18:00',
+    closing_time: '23:30',
+    preparation_time: '35',
+    minimum_order: '25',
+    accepts_delivery: true,
+    accepts_pickup: true,
+    pix_key: '',
+  });
 
-  const saveSettings = () => {
-    setSaved(true);
-    window.setTimeout(() => { setSaved(false); }, 1800);
+  useEffect(() => {
+    if (remoteSettings && 'branch_id' in remoteSettings) {
+      setSettings({
+        opening_time: remoteSettings.opening_time,
+        closing_time: remoteSettings.closing_time,
+        preparation_time: remoteSettings.preparation_time,
+        minimum_order: remoteSettings.minimum_order,
+        accepts_delivery: remoteSettings.accepts_delivery,
+        accepts_pickup: remoteSettings.accepts_pickup,
+        pix_key: remoteSettings.pix_key ?? '',
+      });
+    }
+  }, [remoteSettings]);
+
+  const saveSettings = async () => {
+    if (!branchId) return;
+    setSaving(true);
+    try {
+      await merchantApi.updateSettings(branchId, settings);
+      successToast('Configuracoes salvas com sucesso');
+      await queryClient.invalidateQueries({ queryKey: ['branch-settings', branchId] });
+    } catch {
+      errorToast('Erro ao salvar configuracoes');
+    } finally {
+      setSaving(false);
+    }
   };
+
+  const selectedBranch = branches.find((b) => b.id === branchId);
 
   return (
     <MerchantLayout
@@ -52,8 +89,8 @@ export function MerchantSettingsPage() {
               <span className="text-sm font-medium text-text-primary">Abertura</span>
               <input
                 type="time"
-                value={settings.openingTime}
-                onChange={(event) => { setSettings({ ...settings, openingTime: event.target.value }); }}
+                value={settings.opening_time}
+                onChange={(event) => { setSettings({ ...settings, opening_time: event.target.value }); }}
                 className="mt-1 h-10 w-full rounded-lg border border-border-default bg-surface-background px-3 text-sm"
               />
             </label>
@@ -62,8 +99,8 @@ export function MerchantSettingsPage() {
               <span className="text-sm font-medium text-text-primary">Fechamento</span>
               <input
                 type="time"
-                value={settings.closingTime}
-                onChange={(event) => { setSettings({ ...settings, closingTime: event.target.value }); }}
+                value={settings.closing_time}
+                onChange={(event) => { setSettings({ ...settings, closing_time: event.target.value }); }}
                 className="mt-1 h-10 w-full rounded-lg border border-border-default bg-surface-background px-3 text-sm"
               />
             </label>
@@ -71,8 +108,8 @@ export function MerchantSettingsPage() {
             <label className="block">
               <span className="text-sm font-medium text-text-primary">Preparo medio</span>
               <input
-                value={settings.preparationTime}
-                onChange={(event) => { setSettings({ ...settings, preparationTime: event.target.value }); }}
+                value={settings.preparation_time}
+                onChange={(event) => { setSettings({ ...settings, preparation_time: event.target.value }); }}
                 inputMode="numeric"
                 className="mt-1 h-10 w-full rounded-lg border border-border-default bg-surface-background px-3 text-sm"
               />
@@ -81,8 +118,8 @@ export function MerchantSettingsPage() {
             <label className="block">
               <span className="text-sm font-medium text-text-primary">Pedido minimo</span>
               <input
-                value={settings.minimumOrder}
-                onChange={(event) => { setSettings({ ...settings, minimumOrder: event.target.value }); }}
+                value={settings.minimum_order}
+                onChange={(event) => { setSettings({ ...settings, minimum_order: event.target.value }); }}
                 inputMode="decimal"
                 className="mt-1 h-10 w-full rounded-lg border border-border-default bg-surface-background px-3 text-sm"
               />
@@ -94,8 +131,8 @@ export function MerchantSettingsPage() {
               <span className="text-sm font-medium text-text-primary">Aceita entrega</span>
               <input
                 type="checkbox"
-                checked={settings.acceptsDelivery}
-                onChange={(event) => { setSettings({ ...settings, acceptsDelivery: event.target.checked }); }}
+                checked={settings.accepts_delivery}
+                onChange={(event) => { setSettings({ ...settings, accepts_delivery: event.target.checked }); }}
               />
             </label>
 
@@ -103,8 +140,8 @@ export function MerchantSettingsPage() {
               <span className="text-sm font-medium text-text-primary">Aceita retirada</span>
               <input
                 type="checkbox"
-                checked={settings.acceptsPickup}
-                onChange={(event) => { setSettings({ ...settings, acceptsPickup: event.target.checked }); }}
+                checked={settings.accepts_pickup}
+                onChange={(event) => { setSettings({ ...settings, accepts_pickup: event.target.checked }); }}
               />
             </label>
           </div>
@@ -112,19 +149,16 @@ export function MerchantSettingsPage() {
           <label className="mt-4 block">
             <span className="text-sm font-medium text-text-primary">Chave Pix</span>
             <input
-              value={settings.pixKey}
-              onChange={(event) => { setSettings({ ...settings, pixKey: event.target.value }); }}
+              value={settings.pix_key}
+              onChange={(event) => { setSettings({ ...settings, pix_key: event.target.value }); }}
               className="mt-1 h-10 w-full rounded-lg border border-border-default bg-surface-background px-3 text-sm"
             />
           </label>
 
           <div className="mt-4 flex flex-wrap items-center gap-3">
-            <Button onClick={saveSettings}>Salvar configuracoes</Button>
-            {saved && (
-              <span className="text-sm font-medium text-feedback-success">
-                Configuracoes salvas no mock local
-              </span>
-            )}
+            <Button onClick={saveSettings} loading={saving} disabled={saving}>
+              {saving ? 'Salvando...' : 'Salvar configuracoes'}
+            </Button>
           </div>
         </div>
 

@@ -1,5 +1,5 @@
 import { pgEnum, pgTable, text, integer, boolean, timestamp, index } from 'drizzle-orm/pg-core';
-import { branches } from '../merchant/branches';
+import { branches } from '../merchant';
 
 export const weekDay = pgEnum('week_day', [
   'monday',

@@ -3,8 +3,10 @@ import {
   businessHours, businessHourPeriods,
   holidayRules, holidayOverrides, holidayOverridePeriods,
   specialDates, specialDatePeriods,
+  authSessions, auditLogs,
 } from './index';
 import { branches } from '../merchant';
+import { users } from '../customer';
 
 export const businessHoursRelations = relations(businessHours, ({ one, many }) => ({
   branch: one(branches, {
@@ -56,5 +58,19 @@ export const specialDatePeriodsRelations = relations(specialDatePeriods, ({ one 
   specialDate: one(specialDates, {
     fields: [specialDatePeriods.special_date_id],
     references: [specialDates.id],
+  }),
+}));
+
+export const authSessionsRelations = relations(authSessions, ({ one }) => ({
+  user: one(users, {
+    fields: [authSessions.user_id],
+    references: [users.id],
+  }),
+}));
+
+export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
+  user: one(users, {
+    fields: [auditLogs.user_id],
+    references: [users.id],
   }),
 }));

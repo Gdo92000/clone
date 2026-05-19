@@ -1,10 +1,27 @@
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { Icon } from '../../../components/ui/Icon';
 import { Button } from '../../../components/ui/Button';
-import { infoToast, successToast } from '../../../lib/toast';
-import { globalCoupons, type GlobalCoupon } from '../superadminData';
+import { errorToast, infoToast, successToast } from '../../../lib/toast';
+import { globalCouponApi } from '../../../api';
+import { useGlobalCoupons } from '../../../hooks/useSuperadminData';
 import { clsx } from 'clsx';
+import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
+
+interface GlobalCoupon {
+  id: string;
+  code: string;
+  description: string;
+  discountType: 'percentage' | 'fixed';
+  discountValue: number;
+  minOrder: number;
+  maxUses: number;
+  currentUses: number;
+  validFrom: string;
+  validUntil: string;
+  isActive: boolean;
+}
 
 type CouponForm = Omit<GlobalCoupon, 'id' | 'currentUses'>;
 
@@ -14,17 +31,21 @@ const emptyForm: CouponForm = {
 };
 
 export function CouponsPage() {
-  const [coupons, setCoupons] = useState<GlobalCoupon[]>(globalCoupons);
+  const queryClient = useQueryClient();
+  const { data: coupons = [], isLoading, error } = useGlobalCoupons();
   const [search, setSearch] = useState('');
   const [showInactive, setShowInactive] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<CouponForm>(emptyForm);
+  const [mutating, setMutating] = useState(false);
 
   const filtered = coupons.filter((c) => {
     const match = c.code.toLowerCase().includes(search.toLowerCase()) || c.description.toLowerCase().includes(search.toLowerCase());
     return match && (showInactive || c.isActive);
   });
+
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ['global-coupons'] });
 
   const resetForm = () => { setForm(emptyForm); setShowForm(false); setEditingId(null); };
 
@@ -32,30 +53,57 @@ export function CouponsPage() {
 
   const openEdit = (c: GlobalCoupon) => { setForm({ code: c.code, description: c.description, discountType: c.discountType, discountValue: c.discountValue, minOrder: c.minOrder, maxUses: c.maxUses, validFrom: c.validFrom, validUntil: c.validUntil, isActive: c.isActive }); setEditingId(c.id); setShowForm(true); };
 
-  const save = () => {
+  const save = async () => {
     if (!form.code.trim() || !form.description.trim()) return;
-    if (editingId) {
-      setCoupons((prev) => prev.map((c) => c.id === editingId ? { ...c, ...form, currentUses: c.currentUses } : c));
-      successToast('Cupom atualizado com sucesso!');
-    } else {
-      setCoupons((prev) => [...prev, { ...form, id: `c${Date.now()}`, currentUses: 0 }]);
-      successToast('Cupom criado com sucesso!');
+    setMutating(true);
+    try {
+      if (editingId) {
+        await globalCouponApi.update(editingId, form);
+        successToast('Cupom atualizado com sucesso!');
+      } else {
+        await globalCouponApi.create(form);
+        successToast('Cupom criado com sucesso!');
+      }
+      resetForm();
+      await invalidate();
+    } catch (err) {
+      errorToast(err instanceof Error ? err.message : 'Erro ao salvar');
+    } finally {
+      setMutating(false);
     }
-    resetForm();
   };
 
-  const remove = (id: string) => {
-    setCoupons((prev) => prev.filter((c) => c.id !== id));
-    infoToast('Cupom removido.');
+  const remove = async (id: string) => {
+    setMutating(true);
+    try {
+      await globalCouponApi.delete(id);
+      infoToast('Cupom removido.');
+      await invalidate();
+    } catch (err) {
+      errorToast(err instanceof Error ? err.message : 'Erro ao remover');
+    } finally {
+      setMutating(false);
+    }
   };
 
-  const toggleActive = (id: string) => { setCoupons((prev) => prev.map((c) => c.id === id ? { ...c, isActive: !c.isActive } : c)); };
+  const toggleActive = async (coupon: GlobalCoupon) => {
+    setMutating(true);
+    try {
+      await globalCouponApi.update(coupon.id, { isActive: !coupon.isActive });
+      await invalidate();
+    } catch (err) {
+      errorToast(err instanceof Error ? err.message : 'Erro ao alternar');
+    } finally {
+      setMutating(false);
+    }
+  };
   const usagePercent = (c: GlobalCoupon) => Math.round((c.currentUses / c.maxUses) * 100);
 
   return (
     <>
       <PageHeader title="Cupons promocionais" actions={<Button variant="solid" intent="primary" size="sm" onClick={openNew}>Novo cupom</Button>} />
 
+      <FxQueryBoundary isLoading={isLoading} isError={!!error} error={error instanceof Error ? error : null}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
         <div className="relative max-w-xs">
           <Icon name="Search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" />
@@ -119,7 +167,7 @@ export function CouponsPage() {
               </div>
             </div>
             <div className="flex gap-2 pt-2">
-              <Button variant="solid" intent="primary" className="flex-1" onClick={save} disabled={!form.code.trim() || !form.description.trim()}>Salvar</Button>
+              <Button variant="solid" intent="primary" className="flex-1" loading={mutating} disabled={!form.code.trim() || !form.description.trim()} onClick={save}>Salvar</Button>
               <Button variant="outline" intent="secondary" className="flex-1" onClick={resetForm}>Cancelar</Button>
             </div>
           </div>
@@ -149,9 +197,9 @@ export function CouponsPage() {
             </div>
             <p className="text-xs text-text-tertiary mt-1">{usagePercent(coupon)}% utilizado</p>
             <div className="flex gap-2 mt-4 pt-3 border-t border-border-default">
-              <Button variant="outline" intent="secondary" size="sm" className="flex-1" onClick={() => { toggleActive(coupon.id); }}>{coupon.isActive ? 'Pausar' : 'Ativar'}</Button>
-              <Button variant="outline" intent="secondary" size="sm" className="flex-1" onClick={() => { openEdit(coupon); }}>Editar</Button>
-              <button onClick={() => { remove(coupon.id); }} className="p-2 rounded-lg hover:bg-surface-background transition-colors" title="Excluir"><Icon name="Trash2" size={16} className="text-text-tertiary hover:text-feedback-error" /></button>
+              <Button variant="outline" intent="secondary" size="sm" className="flex-1" disabled={mutating} onClick={() => { toggleActive(coupon); }}>{coupon.isActive ? 'Pausar' : 'Ativar'}</Button>
+              <Button variant="outline" intent="secondary" size="sm" className="flex-1" disabled={mutating} onClick={() => { openEdit(coupon); }}>Editar</Button>
+              <button onClick={() => { remove(coupon.id); }} disabled={mutating} className="p-2 rounded-lg hover:bg-surface-background transition-colors disabled:opacity-50" title="Excluir"><Icon name="Trash2" size={16} className="text-text-tertiary hover:text-feedback-error" /></button>
             </div>
           </article>
         ))}
@@ -163,7 +211,7 @@ export function CouponsPage() {
           <p className="text-text-secondary mt-3">Nenhum cupom encontrado</p>
         </div>
       )}
-
+      </FxQueryBoundary>
     </>
   );
 }

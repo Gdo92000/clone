@@ -10,6 +10,9 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "db:generate": "drizzle-kit generate --config=server/drizzle.config.ts",
     "db:migrate": "drizzle-kit migrate --config=server/drizzle.config.ts",
     "db:studio": "drizzle-kit studio --config=server/drizzle.config.ts"
@@ -26,6 +29,7 @@
     "drizzle-orm": "^0.45.2",
     "drizzle-zod": "^0.8.3",
     "hono": "^4.12.18",
+    "ioredis": "^5.10.1",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.14.0",
     "postcss": "^8.5.14",
@@ -43,6 +47,10 @@
     "@babel/core": "^7.29.0",
     "@eslint/js": "^10.0.1",
     "@rolldown/plugin-babel": "^0.2.3",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/babel__core": "^7.20.5",
     "@types/leaflet": "^1.9.21",
     "@types/node": "^24.12.4",
@@ -63,9 +71,11 @@
     "eslint-plugin-sonarjs": "^4.0.3",
     "eslint-plugin-unused-imports": "^4.4.1",
     "globals": "^17.5.0",
+    "jsdom": "^29.1.1",
     "tsx": "^4.22.0",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.58.2",
-    "vite": "^8.0.10"
+    "vite": "^8.0.10",
+    "vitest": "^4.1.6"
   }
 }

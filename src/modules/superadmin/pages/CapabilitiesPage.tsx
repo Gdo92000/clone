@@ -1,12 +1,14 @@
 import { capabilityCatalog, featureLabels, useSaasWorkspace } from '../../saas';
 import { formatCurrency } from '../../merchant/format';
 import { PageHeader } from '../../../components/ui/PageHeader';
+import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
 
 export function CapabilitiesPage() {
   const { addons, subscriptions, plans } = useSaasWorkspace();
 
   return (
-    <><PageHeader title="Catalogo de capabilities" />
+    <>      <PageHeader title="Catalogo de capabilities" />
+      <FxQueryBoundary isLoading={false} isError={false}>
       <section className="grid grid-cols-1 gap-3 md:grid-cols-3">
         <article className="rounded-xl border border-border-default bg-surface-elevated p-4">
           <p className="text-sm text-text-secondary">Capabilities</p>
@@ -63,6 +65,7 @@ export function CapabilitiesPage() {
           );
         })}
       </section>
+      </FxQueryBoundary>
     </>
   );
 

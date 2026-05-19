@@ -1,5 +1,5 @@
 import { pgTable, text, time, boolean, integer, timestamp, index } from 'drizzle-orm/pg-core';
-import { branches } from '../merchant/branches';
+import { branches } from '../merchant';
 
 export const specialDates = pgTable('special_dates', {
   id: text('id').primaryKey(),

@@ -7,12 +7,15 @@ import { useBranches, useCompanies } from '../../../hooks/useMerchantData';
 import { usePlanLimits } from '../../enterprise';
 import { useAuditLog } from '../../enterprise';
 import { PageHeader } from '../../../components/ui/PageHeader';
+import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
 
 const roles = Object.keys(roleLabels) as UserRole[];
 
 export function UsersPage() {
-  const { data: companies = [] } = useCompanies();
-  const { data: branches = [] } = useBranches();
+  const { data: companies = [], isLoading: companiesLoading, error: companiesError } = useCompanies();
+  const { data: branches = [], isLoading: branchesLoading, error: branchesError } = useBranches();
+  const isLoading = companiesLoading || branchesLoading;
+  const error = companiesError ?? branchesError;
   const { currentUser, setUsers, users } = useAuthSession();
   const { recordAudit } = useAuditLog();
   const limits = usePlanLimits('company-1');
@@ -61,6 +64,7 @@ export function UsersPage() {
 
   return (
     <><PageHeader title="Usuarios e RBAC" />
+      <FxQueryBoundary isLoading={isLoading} isError={error !== null} error={error}>
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-[0.75fr_1.25fr]">
         <div className="rounded-xl border border-border-default bg-surface-elevated p-4">
           <h2 className="font-semibold text-text-primary">Convidar usuario</h2>
@@ -84,7 +88,7 @@ export function UsersPage() {
                  <option key={branch.id} value={branch.id}>{branch.name}</option>
                ))}
              </select>
-            <Button fullWidth onClick={inviteUser}>Enviar convite mockado</Button>
+            <Button fullWidth onClick={inviteUser}>Enviar convite</Button>
           </div>
         </div>
 
@@ -112,6 +116,7 @@ export function UsersPage() {
           ))}
         </div>
       </section>
+      </FxQueryBoundary>
     </>
   );
 

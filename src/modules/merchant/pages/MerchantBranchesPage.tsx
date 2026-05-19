@@ -7,6 +7,7 @@ import { usePlanLimits } from '../../enterprise';
 import { geocodeEstablishment } from '../../../services/geocodeSearchService';
 import { FxCepInput } from '../../../components/ui/FxCepInput';
 import { AddressAutocomplete } from '../../../components/address/AddressAutocomplete';
+import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
 import type { CepAddress } from '../../../hooks';
 
 const emptyBranch = {
@@ -21,8 +22,8 @@ const emptyBranch = {
 };
 
 export function MerchantBranchesPage() {
-  const { data: branches = [], isLoading: branchesLoading } = useBranches();
-  const { data: companies = [], isLoading: companiesLoading } = useCompanies();
+  const { data: branches = [], isLoading: branchesLoading, isError: branchesError } = useBranches();
+  const { data: companies = [], isLoading: companiesLoading, isError: companiesError } = useCompanies();
   const [companyId, setCompanyId] = useState(companies[0]?.id ?? '');
   const [form, setForm] = useState(emptyBranch);
   const [showAutocomplete, setShowAutocomplete] = useState(true);
@@ -95,6 +96,7 @@ export function MerchantBranchesPage() {
   }
 
   return (
+    <FxQueryBoundary isLoading={false} isError={branchesError || companiesError}>
     <MerchantLayout
       title="Empresas e filiais"
       actions={
@@ -292,5 +294,6 @@ export function MerchantBranchesPage() {
         </div>
       </section>
     </MerchantLayout>
+    </FxQueryBoundary>
   );
 }

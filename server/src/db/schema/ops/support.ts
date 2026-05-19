@@ -1,5 +1,5 @@
 import { pgEnum, pgTable, text, timestamp, index } from 'drizzle-orm/pg-core';
-import { users } from '../customer/users';
+import { users } from '../customer';
 
 export const ticketStatus = pgEnum('ticket_status', ['open', 'in_progress', 'resolved', 'closed']);
 

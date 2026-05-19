@@ -1,4 +1,4 @@
-export { auditEvents, demoCategories, demoCompanyProfiles, demoCustomers, demoProducts } from './enterpriseData';
+export { demoCategories, demoCompanyProfiles, demoCustomers, demoProducts } from './enterpriseData';
 export { filterDemoProducts } from './searchEnterprise';
 export { useAuditLog } from './useAuditLog';
 export { usePlanLimits } from './usePlanLimits';

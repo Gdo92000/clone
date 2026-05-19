@@ -1,6 +1,6 @@
 import { pgTable, text, integer, timestamp, index } from 'drizzle-orm/pg-core';
 import { users } from './users';
-import { restaurants } from '../core/restaurants';
+import { restaurants } from '../core';
 import { orders } from './orders';
 
 export const reviews = pgTable('reviews', {

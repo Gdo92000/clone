@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { MerchantLayout } from '../components/MerchantLayout';
 import { Button } from '../../../components/ui/Button';
 import { useBusinessHours, useUpdateBusinessHours, useBranchStatus } from '../../../hooks/useOperations';
@@ -42,9 +42,12 @@ export function MerchantHoursPage() {
   const updateHours = useUpdateBusinessHours(selectedBranch || undefined);
 
   const [week, setWeek] = useState<DayForm[]>(defaultWeek);
-  const [loaded, setLoaded] = useState(false);
 
-  if (hours && !loaded) {
+  useEffect(() => {
+    if (!hours) {
+      setWeek(defaultWeek);
+      return;
+    }
     const mapped: DayForm[] = WEEKDAYS.map((d) => {
       const existing = hours.find((h) => h.weekday === d.key);
       if (!existing) return { weekday: d.key, isClosed: d.key === 'sunday', is24h: false, periods: [{ openTime: '08:00', closeTime: '22:00' }] };
@@ -58,8 +61,7 @@ export function MerchantHoursPage() {
       };
     });
     setWeek(mapped);
-    setLoaded(true);
-  }
+  }, [hours, selectedBranch]);
 
   const updateDay = useCallback((weekday: string, patch: Partial<DayForm>) => {
     setWeek((prev) => prev.map((d) => d.weekday === weekday ? { ...d, ...patch } : d));
@@ -119,7 +121,7 @@ export function MerchantHoursPage() {
       actions={
          <select
            value={selectedBranch}
-           onChange={(e) => { setSelectedBranch(e.target.value); setLoaded(false); }}
+           onChange={(e) => { setSelectedBranch(e.target.value); }}
            className="h-10 rounded-lg border border-border-default bg-surface-background px-3 text-sm"
          >
            {branches.map((b) => (
@@ -155,7 +157,7 @@ export function MerchantHoursPage() {
         </div>
       )}
 
-      {isLoading && !loaded ? (
+      {isLoading ? (
         <div className="flex items-center justify-center py-12">
           <span className="block h-6 w-6 border-2 border-brand-primary border-t-transparent rounded-full animate-spin" />
         </div>

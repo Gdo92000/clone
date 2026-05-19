@@ -1,9 +1,9 @@
-import { useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { Button } from '../../../components/ui/Button';
-import { usePersistentState } from '../../../hooks/usePersistentState';
 import { formatCurrency } from '../../merchant/format';
 import { PageHeader } from '../../../components/ui/PageHeader';
-import { getCourierDeliveries } from '../courierData';
+import { useCourierDeliveries } from '../../../hooks/useCourierData';
+import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
 import { DELIVERY_STATUS_LABELS, DELIVERY_STATUS_FLOW } from '../../../types';
 
 interface DeliveryItem {
@@ -17,25 +17,29 @@ interface DeliveryItem {
 }
 
 export function CourierDeliveriesPage() {
-  const [deliveries, setDeliveries] = usePersistentState<DeliveryItem[]>('courier.deliveries', []);
-  const loadedRef = useRef(false);
+  const { data: hookData = [], isLoading, error } = useCourierDeliveries();
+  const [advancements, setAdvancements] = useState<Record<string, number>>({});
 
-  useEffect(() => {
-    if (loadedRef.current) return;
-    loadedRef.current = true;
-    void getCourierDeliveries().then(setDeliveries);
-  }, [setDeliveries]);
+  const deliveries: DeliveryItem[] = hookData.map((o, idx) => {
+    const progress = advancements[o.id] ?? 0;
+    const statuses: string[] = ['available', 'in_route', 'delivered'];
+    return {
+      id: `ENT-${1024 - idx}`,
+      orderId: o.id,
+      customerName: o.customerName,
+      address: o.customerAddress,
+      status: statuses[Math.min(progress, statuses.length - 1)]!,
+      earnings: idx === 0 ? 8.5 : 10.25,
+      distanceKm: idx === 0 ? 3.4 : 5.1,
+    };
+  });
 
-  const advanceStatus = (deliveryId: string) => {
-    setDeliveries((current) =>
-      current.map((delivery) => {
-        const next = DELIVERY_STATUS_FLOW[delivery.status as keyof typeof DELIVERY_STATUS_FLOW];
-        return delivery.id === deliveryId && next ? { ...delivery, status: next } : delivery;
-      })
-    );
+  const advanceStatus = (orderId: string) => {
+    setAdvancements((prev) => ({ ...prev, [orderId]: (prev[orderId] ?? 0) + 1 }));
   };
 
   return (
+    <FxQueryBoundary isLoading={isLoading} isError={error !== null} error={error}>
     <><PageHeader title="Entregas" />
       <section className="space-y-3">
         {deliveries.map((delivery) => (
@@ -57,7 +61,7 @@ export function CourierDeliveriesPage() {
                 {DELIVERY_STATUS_LABELS[delivery.status as keyof typeof DELIVERY_STATUS_LABELS]}
               </span>
               {DELIVERY_STATUS_FLOW[delivery.status as keyof typeof DELIVERY_STATUS_FLOW] && (
-                <Button size="sm" onClick={() => { advanceStatus(delivery.id); }}>
+                <Button size="sm" onClick={() => { advanceStatus(delivery.orderId); }}>
                   Avancar entrega
                 </Button>
               )}
@@ -66,5 +70,6 @@ export function CourierDeliveriesPage() {
         ))}
       </section>
     </>
+    </FxQueryBoundary>
   );
 }

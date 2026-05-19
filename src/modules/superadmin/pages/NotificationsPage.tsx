@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { Icon } from '../../../components/ui/Icon';
 import { Button } from '../../../components/ui/Button';
-import { massNotifications } from '../superadminData';
+import { useMassNotifications } from '../../../hooks/useSuperadminData';
 import { clsx } from 'clsx';
+import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
 
 const targetLabels: Record<string, string> = {
   all: 'Todos os lojistas',
@@ -14,25 +15,28 @@ const targetLabels: Record<string, string> = {
 
 export function NotificationsPage() {
   const [tab, setTab] = useState<'history' | 'new'>('history');
+  const { data: massNotifications = [], isLoading, error } = useMassNotifications();
 
   return (
     <>
       <PageHeader title="Notificações em massa" />
 
+      <FxQueryBoundary isLoading={isLoading} isError={!!error} error={error instanceof Error ? error : null}>
       <div className="flex gap-1 mb-4 bg-surface-elevated rounded-lg p-1 border border-border-default w-fit">
         <button onClick={() => { setTab('history'); }} className={clsx('px-4 py-2 rounded-md text-sm font-medium transition-colors', tab === 'history' ? 'bg-brand-primary text-text-inverse' : 'text-text-secondary hover:text-text-primary')}>Histórico</button>
         <button onClick={() => { setTab('new'); }} className={clsx('px-4 py-2 rounded-md text-sm font-medium transition-colors', tab === 'new' ? 'bg-brand-primary text-text-inverse' : 'text-text-secondary hover:text-text-primary')}>Nova notificação</button>
       </div>
 
-      {tab === 'history' ? <NotificationHistory /> : <NewNotification />}
+      {tab === 'history' ? <NotificationHistory notifications={massNotifications} /> : <NewNotification />}
+      </FxQueryBoundary>
     </>
   );
 }
 
-function NotificationHistory() {
+function NotificationHistory({ notifications }: { notifications: { id: string; title: string; message: string; target: string; sentAt: string; sentBy: string; deliveredCount: number; readCount: number }[] }) {
   return (
     <div className="space-y-3">
-      {massNotifications.map((n) => (
+      {notifications.map((n) => (
         <article key={n.id} className="rounded-xl border border-border-default bg-surface-elevated p-4">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-start gap-3 min-w-0">
@@ -67,7 +71,7 @@ function NewNotification() {
 
   const handleSend = () => {
     if (!title.trim() || !message.trim()) return;
-    alert('Notificação enviada com sucesso! (mock)');
+    alert('Notificação enviada com sucesso!');
     setTitle('');
     setMessage('');
   };

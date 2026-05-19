@@ -1,17 +1,33 @@
-import { notifications } from '../experienceData';
+import { useQuery } from '@tanstack/react-query';
+import { consumerApi } from '../../../api/consumerApi';
+import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
 import { ExperienceLayout } from '../components/ExperienceLayout';
 
 export function NotificationsPage() {
+  const { data: notifications = [], isLoading } = useQuery({
+    queryKey: ['my-notifications'],
+    queryFn: () => consumerApi.getMyNotifications(),
+  });
+
   return (
     <ExperienceLayout title="Central de notificacoes">
+      <FxQueryBoundary isLoading={isLoading} isError={false}>
       <section className="space-y-3">
-        {notifications.map((item) => (
-          <article key={item.id} className="rounded-xl border border-border-default bg-surface-elevated p-4">
-            <p className="font-semibold text-text-primary">{item.title}</p>
-            <p className="mt-1 text-sm text-text-secondary">{item.body}</p>
-          </article>
-        ))}
+        {notifications.length === 0 ? (
+          <div className="rounded-xl border border-border-default bg-surface-elevated p-8 text-center">
+            <p className="text-text-primary font-semibold">Nenhuma notificação</p>
+            <p className="mt-2 text-sm text-text-secondary">Em breve você receberá notificações aqui</p>
+          </div>
+        ) : (
+          notifications.map((item: any) => (
+            <article key={item.id} className="rounded-xl border border-border-default bg-surface-elevated p-4">
+              <p className="font-semibold text-text-primary">{item.title}</p>
+              <p className="mt-1 text-sm text-text-secondary">{item.body}</p>
+            </article>
+          ))
+        )}
       </section>
+      </FxQueryBoundary>
     </ExperienceLayout>
   );
 }

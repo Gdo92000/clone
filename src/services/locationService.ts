@@ -192,26 +192,4 @@ export function formatDistance(km: number): string {
   return `${km.toFixed(1)}km`;
 }
 
-export const SUPPORTED_CITIES = [
-  { name: 'Franca', state: 'Sao Paulo', lat: -20.5386, lng: -47.4008, radiusKm: 18 },
-  { name: 'Ribeirão Preto', state: 'Sao Paulo', lat: -21.1775, lng: -47.8102, radiusKm: 18 },
-  { name: 'São Paulo', state: 'São Paulo', lat: -23.5505, lng: -46.6338, radiusKm: 50 },
-  { name: 'Rio de Janeiro', state: 'Rio de Janeiro', lat: -22.9068, lng: -43.1729, radiusKm: 40 },
-  { name: 'Belo Horizonte', state: 'Minas Gerais', lat: -19.9167, lng: -43.9345, radiusKm: 35 },
-  { name: 'Salvador', state: 'Bahia', lat: -12.9714, lng: -38.5014, radiusKm: 30 },
-  { name: 'Brasília', state: 'Distrito Federal', lat: -15.8267, lng: -47.9218, radiusKm: 30 },
-  { name: 'Curitiba', state: 'Paraná', lat: -25.4284, lng: -49.2733, radiusKm: 35 },
-  { name: 'Fortaleza', state: 'Ceará', lat: -3.7172, lng: -38.5433, radiusKm: 30 },
-  { name: 'Recife', state: 'Pernambuco', lat: -8.0476, lng: -34.877, radiusKm: 30 },
-  { name: 'Porto Alegre', state: 'Rio Grande do Sul', lat: -30.0346, lng: -51.2177, radiusKm: 35 },
-  { name: 'Campinas', state: 'São Paulo', lat: -22.9099, lng: -47.0626, radiusKm: 25 },
-] as const;
 
-export function findSupportedCity(cityName: string): (typeof SUPPORTED_CITIES)[number] | null {
-  const normalizedName = cityName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  
-  return SUPPORTED_CITIES.find(
-    (city) =>
-      city.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') === normalizedName
-  ) ?? null;
-}

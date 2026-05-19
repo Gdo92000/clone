@@ -1,17 +1,13 @@
-import { usePersistentState } from '../../hooks/usePersistentState';
-import { auditEvents } from './enterpriseData';
-import type { AuditEvent } from './types';
+import { useQuery } from '@tanstack/react-query';
+import { auditApi } from '../../api/superadminApi';
 
 export function useAuditLog() {
-  const [events, setEvents] = usePersistentState<AuditEvent[]>('enterprise.auditEvents', auditEvents);
+  const { data: events = [] } = useQuery({
+    queryKey: ['audit-events'],
+    queryFn: () => auditApi.list(),
+  });
 
-  const recordAudit = (actorId: string, action: string, target: string) => {
-    const createdAt = new Date().toLocaleString('pt-BR');
-    setEvents((current) => [
-      { id: `audit-${Date.now()}`, actorId, action, target, createdAt },
-      ...current,
-    ]);
-  };
+  const recordAudit = (..._args: unknown[]) => {};
 
   return { events, recordAudit };
 }

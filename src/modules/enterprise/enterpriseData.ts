@@ -1,4 +1,4 @@
-import type { AuditEvent, DemoCategory, DemoCompanyProfile, DemoCustomer, DemoProduct } from './types';
+import type { DemoCategory, DemoCompanyProfile, DemoCustomer, DemoProduct } from './types';
 
 export const demoCategories: DemoCategory[] = [
   { id: 'cat-mexican', name: 'Mexicana', cuisine: 'mexicana', imageUrl: 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=600&h=400&fit=crop', tags: ['picante', 'tacos'] },
@@ -120,19 +120,4 @@ export const demoCustomers: DemoCustomer[] = [
   },
 ];
 
-export const auditEvents: AuditEvent[] = [
-  {
-    id: 'audit-1',
-    actorId: 'user-superadmin',
-    action: 'Ativou addon Analytics Pro',
-    target: 'company-1',
-    createdAt: '2026-05-10 09:20',
-  },
-  {
-    id: 'audit-2',
-    actorId: 'user-superadmin',
-    action: 'Criou feature flag featured_home',
-    target: 'branch-3',
-    createdAt: '2026-05-10 09:28',
-  },
-];
+

@@ -1,5 +1,5 @@
 import { pgEnum, pgTable, text, numeric, integer, boolean, timestamp } from 'drizzle-orm/pg-core';
-import { branches } from '../merchant/branches';
+import { branches } from '../merchant';
 
 export const discountType = pgEnum('discount_type', ['percentage', 'fixed']);
 

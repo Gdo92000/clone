@@ -2,11 +2,27 @@ import { useState } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { Icon } from '../../../components/ui/Icon';
 import { Button } from '../../../components/ui/Button';
-import { commissionPlans, type CommissionPlan } from '../superadminData';
+import { usePersistentState } from '../../../hooks/usePersistentState';
 import { clsx } from 'clsx';
+import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
+
+interface CommissionPlan {
+  id: string;
+  name: string;
+  marketplaceFee: number;
+  deliveryFee: number;
+  paymentFee: number;
+  additionalFees: { label: string; percentage: number }[];
+}
+
+const DEFAULT_PLANS: CommissionPlan[] = [
+  { id: 'basic', name: 'Básico', marketplaceFee: 12, deliveryFee: 8, paymentFee: 3.5, additionalFees: [{ label: 'Marketing', percentage: 2 }] },
+  { id: 'pro', name: 'Profissional', marketplaceFee: 8, deliveryFee: 5, paymentFee: 2.5, additionalFees: [{ label: 'Marketing', percentage: 1.5 }] },
+  { id: 'enterprise', name: 'Enterprise', marketplaceFee: 5, deliveryFee: 3, paymentFee: 1.5, additionalFees: [] },
+];
 
 export function CommissionsPage() {
-  const [plans, setPlans] = useState<CommissionPlan[]>(commissionPlans);
+  const [plans, setPlans] = usePersistentState<CommissionPlan[]>('superadmin.commissionPlans', DEFAULT_PLANS);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<CommissionPlan | null>(null);
   const [saved, setSaved] = useState(false);
@@ -36,6 +52,7 @@ export function CommissionsPage() {
   return (
     <>
       <PageHeader title="Comissões por plano" actions={<Button variant="solid" intent="primary" size="sm" onClick={saveDefaults}>{saved ? 'Salvo!' : 'Salvar padrão'}</Button>} />
+      <FxQueryBoundary isLoading={false} isError={false}>
       <p className="text-sm text-text-secondary mb-4 -mt-3">
         Defina as taxas de comissão cobradas por plano. Valores em percentual (%).
       </p>
@@ -136,6 +153,7 @@ export function CommissionsPage() {
           </li>
         </ul>
       </section>
+      </FxQueryBoundary>
     </>
   );
 }

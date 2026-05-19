@@ -1,5 +1,6 @@
 import { pgEnum, pgTable, text, numeric, integer, timestamp, index } from 'drizzle-orm/pg-core';
 import { branches } from './branches';
+import { deliveryType, paymentMethod } from '../customer/orders';
 
 export const merchantOrderStatus = pgEnum('merchant_order_status', [
   'new',
@@ -18,8 +19,8 @@ export const merchantOrders = pgTable('merchant_orders', {
   customer_address: text('customer_address').notNull(),
   customer_phone: text('customer_phone'),
   status: merchantOrderStatus('status').notNull().default('new'),
-  payment_method: text('payment_method').notNull(),
-  delivery_type: text('delivery_type').notNull().default('delivery'),
+  payment_method: paymentMethod('payment_method').notNull(),
+  delivery_type: deliveryType('delivery_type').notNull().default('delivery'),
   total: numeric('total', { precision: 10, scale: 2 }).notNull(),
   notes: text('notes'),
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),

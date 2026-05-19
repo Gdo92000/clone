@@ -75,3 +75,7 @@ export function useUpdateOrderStatus() {
 export function useCoupons() {
   return useQuery({ queryKey: ['merchant', 'coupons'], queryFn: getCoupons, staleTime: STALE_MEDIUM });
 }
+
+export function useCampaigns() {
+  return useQuery({ queryKey: ['merchant', 'campaigns'], queryFn: () => import('../api').then((m) => m.merchantApi.getCampaigns()), staleTime: STALE_MEDIUM });
+}

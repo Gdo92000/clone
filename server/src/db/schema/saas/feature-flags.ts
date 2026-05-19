@@ -1,7 +1,6 @@
 import { pgTable, text, boolean, timestamp } from 'drizzle-orm/pg-core';
-import { companies } from '../merchant/companies';
-import { branches } from '../merchant/branches';
-import { users } from '../customer/users';
+import { companies, branches } from '../merchant';
+import { users } from '../customer';
 
 export const feature_flags = pgTable('feature_flags', {
   id: text('id').primaryKey(),

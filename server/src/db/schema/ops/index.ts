@@ -1,4 +1,5 @@
 export { notificationTarget, notifications } from './notifications';
+export { userNotifications } from './user-notifications';
 export { coverageCities } from './coverage';
 export { auditEvents } from './audits';
 export { ticketStatus, supportTickets } from './support';

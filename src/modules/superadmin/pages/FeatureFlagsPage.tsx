@@ -6,12 +6,15 @@ import { useBranches, useCompanies } from '../../../hooks/useMerchantData';
 import { featureLabels, resolveFeatureAccess, useSaasWorkspace } from '../../saas';
 import type { FeatureFlagOverride, FeatureKey } from '../../saas';
 import { PageHeader } from '../../../components/ui/PageHeader';
+import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
 
 const featureOptions = Object.entries(featureLabels) as [FeatureKey, string][];
 
 export function FeatureFlagsPage() {
-  const { data: companies = [] } = useCompanies();
-  const { data: branches = [] } = useBranches();
+  const { data: companies = [], isLoading: companiesLoading, error: companiesError } = useCompanies();
+  const { data: branches = [], isLoading: branchesLoading, error: branchesError } = useBranches();
+  const isLoading = companiesLoading || branchesLoading;
+  const error = companiesError ?? branchesError;
   const { plans, addons, subscriptions, overrides, setOverrides } = useSaasWorkspace();
   const { currentUser, users } = useAuthSession();
   const { recordAudit } = useAuditLog();
@@ -52,6 +55,7 @@ export function FeatureFlagsPage() {
 
   return (
     <><PageHeader title="Feature flags" />
+      <FxQueryBoundary isLoading={isLoading} isError={error !== null} error={error}>
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-[0.75fr_1.25fr]">
         <div className="rounded-xl border border-border-default bg-surface-elevated p-4">
           <h2 className="font-semibold text-text-primary">Controle manual</h2>
@@ -161,6 +165,7 @@ export function FeatureFlagsPage() {
           </div>
         </div>
       </section>
+      </FxQueryBoundary>
     </>
   );
 

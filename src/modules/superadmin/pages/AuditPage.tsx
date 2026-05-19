@@ -1,13 +1,15 @@
 import { useAuthSession } from '../../auth';
 import { useAuditLog } from '../../enterprise';
 import { PageHeader } from '../../../components/ui/PageHeader';
+import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
 
 export function AuditPage() {
   const { users } = useAuthSession();
   const { events } = useAuditLog();
 
   return (
-    <><PageHeader title="Auditoria" />
+    <>      <PageHeader title="Auditoria" />
+      <FxQueryBoundary isLoading={false} isError={false}>
       <section className="space-y-3">
         {events.map((event) => {
           const actor = users.find((user) => user.id === event.actorId);
@@ -21,6 +23,7 @@ export function AuditPage() {
           );
         })}
       </section>
+      </FxQueryBoundary>
     </>
   );
 

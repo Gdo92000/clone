@@ -1,13 +1,11 @@
 import { storageService } from '../storage/storageService';
-import { login as mockLogin, logout as mockLogout } from '../repositories/authRepository';
 import { authApi } from '../api';
 import { authUserDtoToModel } from '../mappers/authMapper';
 import type { AuthUser } from '../modules/auth/types';
 
 const TOKEN_KEY = 'auth-token';
+const REFRESH_TOKEN_KEY = 'auth-refresh-token';
 const USER_KEY = 'auth-user';
-
-const useMock = __USE_MOCK__;
 
 export interface LoginInput {
   email: string;
@@ -15,31 +13,32 @@ export interface LoginInput {
 }
 
 export async function login(input: LoginInput): Promise<AuthUser> {
-  let user: AuthUser;
-  let token: string;
+  const result = await authApi.login(input.email, input.password);
+  const user = authUserDtoToModel(result.user);
 
-  if (useMock) {
-    user = await mockLogin(input.email, input.password);
-    token = 'mock-jwt-token';
-  } else {
-    const result = await authApi.login(input.email, input.password);
-    user = authUserDtoToModel(result.user);
-    token = result.token;
-  }
-
-  storageService.set(TOKEN_KEY, token);
+  storageService.set(TOKEN_KEY, result.token);
+  if (result.refreshToken) storageService.set(REFRESH_TOKEN_KEY, result.refreshToken);
   storageService.set(USER_KEY, user);
   return user;
 }
 
 export async function logout(): Promise<void> {
-  if (!useMock) await mockLogout();
+  try { await authApi.logout(); } catch { /* best-effort */ }
   storageService.remove(TOKEN_KEY);
+  storageService.remove(REFRESH_TOKEN_KEY);
   storageService.remove(USER_KEY);
 }
 
 export function getToken(): string | null {
   return storageService.getItem(TOKEN_KEY);
+}
+
+export function getRefreshToken(): string | null {
+  return storageService.getItem(REFRESH_TOKEN_KEY);
+}
+
+export function setToken(token: string): void {
+  storageService.set(TOKEN_KEY, token);
 }
 
 export function getStoredUser(): AuthUser | null {
@@ -52,5 +51,6 @@ export function isAuthenticated(): boolean {
 
 export function clearAuth(): void {
   storageService.remove(TOKEN_KEY);
+  storageService.remove(REFRESH_TOKEN_KEY);
   storageService.remove(USER_KEY);
 }

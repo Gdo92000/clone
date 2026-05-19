@@ -16,47 +16,9 @@ interface Order {
   items: number;
 }
 
-const mockOrders: Order[] = [
-  {
-    id: 'PED-2024-0847',
-    restaurantName: 'Pizza Brescian',
-    restaurantImage: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&h=300&fit=crop',
-    date: '15 Jan 2024',
-    status: 'delivered',
-    total: 68.70,
-    items: 3,
-  },
-  {
-    id: 'PED-2024-0712',
-    restaurantName: 'Burger King',
-    restaurantImage: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop',
-    date: '12 Jan 2024',
-    status: 'delivered',
-    total: 45.90,
-    items: 2,
-  },
-  {
-    id: 'PED-2024-0655',
-    restaurantName: 'China in Box',
-    restaurantImage: 'https://images.unsplash.com/photo-1585032226651-759b368d7246?w=400&h=300&fit=crop',
-    date: '08 Jan 2024',
-    status: 'cancelled',
-    total: 52.30,
-    items: 4,
-  },
-  {
-    id: 'PED-2024-0598',
-    restaurantName: 'Sushi House',
-    restaurantImage: 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=400&h=300&fit=crop',
-    date: '02 Jan 2024',
-    status: 'delivered',
-    total: 124.50,
-    items: 5,
-  },
-];
-
 export function OrderHistoryPage() {
   const navigate = useNavigate();
+  const orders: Order[] = [];
   const handleOrderClick = (order: Order) => { void navigate(trackingHref(order.id)); };
 
   return (
@@ -65,8 +27,8 @@ export function OrderHistoryPage() {
 
       <main>
         <div className="fx-container py-4 space-y-3">
-          {mockOrders.length > 0 ? (
-            mockOrders.map((order) => (
+          {orders.length > 0 ? (
+            orders.map((order) => (
               <button
                  key={order.id}
                  onClick={() => { handleOrderClick(order); }}

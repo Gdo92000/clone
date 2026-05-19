@@ -4,11 +4,12 @@ import { MerchantStatusBadge } from '../components/MerchantStatusBadge';
 import { Icon } from '../../../components/ui/Icon';
 import { formatCurrency } from '../format';
 import { useBranches, useMenuItems, useOrders } from '../../../hooks/useMerchantData';
+import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
 
 export function MerchantDashboardPage() {
-  const { data: branches = [] } = useBranches();
-  const { data: menuItems = [] } = useMenuItems();
-  const { data: orders = [] } = useOrders();
+  const { data: branches = [], isLoading: branchesLoading, isError: branchesError } = useBranches();
+  const { data: menuItems = [], isLoading: menuItemsLoading, isError: menuItemsError } = useMenuItems();
+  const { data: orders = [], isLoading: ordersLoading, isError: ordersError } = useOrders();
 
   const revenue = orders.reduce((sum, order) => sum + order.total, 0);
   const activeOrders = orders.filter(
@@ -18,6 +19,7 @@ export function MerchantDashboardPage() {
 
   return (
     <MerchantLayout title="Visao geral">
+      <FxQueryBoundary isLoading={branchesLoading || menuItemsLoading || ordersLoading} isError={branchesError || menuItemsError || ordersError}>
       <section className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
         <MerchantStatCard label="Faturamento hoje" value={formatCurrency(revenue)} detail="Mock local" icon={<Icon name="DollarSign" size={24} />} />
          <MerchantStatCard label="Pedidos ativos" value={String(activeOrders.length)} detail="Em preparo ou entrega" icon={<Icon name="ShoppingBag" size={24} />} />
@@ -55,6 +57,7 @@ export function MerchantDashboardPage() {
           </div>
         </div>
       </section>
+      </FxQueryBoundary>
     </MerchantLayout>
   );
 }

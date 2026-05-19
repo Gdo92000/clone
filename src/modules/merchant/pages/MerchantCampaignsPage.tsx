@@ -1,8 +1,11 @@
 import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '../../../components/ui/Button';
-import { usePersistentState } from '../../../hooks/usePersistentState';
 import { usePlanLimits } from '../../enterprise';
 import { MerchantLayout } from '../components/MerchantLayout';
+import { merchantApi } from '../../../api';
+import { errorToast, successToast } from '../../../lib/toast';
+import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
 
 interface Campaign {
   id: string;
@@ -11,25 +14,29 @@ interface Campaign {
   status: 'active' | 'paused';
 }
 
-const initialCampaigns: Campaign[] = [
-  { id: 'campaign-1', name: 'Frete gratis Centro', discount: 'Frete gratis', status: 'active' },
-];
-
 export function MerchantCampaignsPage() {
-  const [campaigns, setCampaigns] = usePersistentState<Campaign[]>('merchant.campaigns', initialCampaigns);
+  const queryClient = useQueryClient();
+  const { data: campaigns = [], isLoading, error } = useQuery<Campaign[]>({
+    queryKey: ['merchant-campaigns'],
+    queryFn: () => merchantApi.getCampaigns(),
+  });
   const [name, setName] = useState('');
+  const [mutating, setMutating] = useState(false);
   const limits = usePlanLimits('company-1');
 
-  const addCampaign = () => {
-    if (!name.trim() || !limits.canCreateCampaign) {
-      return;
+  const addCampaign = async () => {
+    if (!name.trim() || !limits.canCreateCampaign) return;
+    setMutating(true);
+    try {
+      await merchantApi.createCampaign({ name: name.trim(), discount: '10%', status: 'active' });
+      successToast('Campanha criada com sucesso!');
+      setName('');
+      await queryClient.invalidateQueries({ queryKey: ['merchant-campaigns'] });
+    } catch (err) {
+      errorToast(err instanceof Error ? err.message : 'Erro ao criar campanha');
+    } finally {
+      setMutating(false);
     }
-
-    setCampaigns((current) => [
-      { id: `campaign-${Date.now()}`, name: name.trim(), discount: '10%', status: 'active' },
-      ...current,
-    ]);
-    setName('');
   };
 
   return (
@@ -48,8 +55,9 @@ export function MerchantCampaignsPage() {
             placeholder="Nome da campanha"
             className="mt-4 h-10 w-full rounded-lg border border-border-default bg-surface-background px-3 text-sm"
           />
-          <Button className="mt-3" onClick={addCampaign} disabled={!limits.canCreateCampaign}>Criar campanha</Button>
+          <Button className="mt-3" loading={mutating} onClick={addCampaign} disabled={!limits.canCreateCampaign}>Criar campanha</Button>
         </div>
+        <FxQueryBoundary isLoading={isLoading} isError={!!error} error={error instanceof Error ? error : null}>
         <div className="space-y-3">
           {campaigns.map((campaign) => (
             <article key={campaign.id} className="rounded-xl border border-border-default bg-surface-elevated p-4">
@@ -58,6 +66,7 @@ export function MerchantCampaignsPage() {
             </article>
           ))}
         </div>
+        </FxQueryBoundary>
       </section>
     </MerchantLayout>
   );

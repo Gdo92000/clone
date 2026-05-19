@@ -4,6 +4,7 @@ import { formatCurrency } from '../../merchant/format';
 import { featureLabels, useSaasWorkspace } from '../../saas';
 import type { FeatureKey, SaasAddon } from '../../saas';
 import { PageHeader } from '../../../components/ui/PageHeader';
+import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
 
 const featureOptions = Object.entries(featureLabels) as [FeatureKey, string][];
 
@@ -36,7 +37,8 @@ export function AddonsPage() {
   };
 
   return (
-    <><PageHeader title="Addons compraveis" />
+    <>      <PageHeader title="Addons compraveis" />
+      <FxQueryBoundary isLoading={false} isError={false}>
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-[0.75fr_1.25fr]">
         <div className="rounded-xl border border-border-default bg-surface-elevated p-4">
           <h2 className="font-semibold text-text-primary">Novo addon</h2>
@@ -85,6 +87,7 @@ export function AddonsPage() {
           ))}
         </div>
       </section>
+      </FxQueryBoundary>
     </>
   );
 

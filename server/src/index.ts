@@ -10,55 +10,97 @@ import { restaurants, menuItems } from './db/schema';
 import operationsRoutes from './routes/operations';
 import holidaysRoutes from './routes/holidays';
 import authRoutes from './routes/auth';
+import globalCouponsRoutes from './routes/global-coupons';
+import merchantCouponsRoutes from './routes/merchant-coupons';
+import campaignsRoutes from './routes/campaigns';
+import plansRoutes from './routes/plans';
+import subscriptionsRoutes from './routes/subscriptions';
+import invoicesRoutes from './routes/invoices';
+import adminUsersRoutes from './routes/admin-users';
+import addonsRoutes from './routes/addons';
+import featureFlagsRoutes from './routes/feature-flags';
+import capabilitiesRoutes from './routes/capabilities';
+import notificationsRoutes from './routes/notifications';
+import auditEventsRoutes from './routes/audit-events';
+import supportTicketsRoutes from './routes/support-tickets';
+import userNotificationsRoutes from './routes/user-notifications';
+import branchSettingsRoutes from './routes/branch-settings';
 import { authMiddleware } from './middleware/auth';
+import { requirePermission } from './middleware/permission';
+import { requestId } from './middleware/requestId';
+import { securityHeaders } from './middleware/securityHeaders';
 import { ALLOWED_ORIGINS } from './config';
 import { errorHandler } from './lib/errors';
+import { startSessionCleanup } from './services/cleanupAuthSessions';
+import * as coverageCityService from './services/coverageCityService';
 import { restaurantSchema } from '../../shared/validations/restaurant';
 import categoriesRoutes from './routes/categories';
 import menuItemsRoutes from './routes/menu-items';
 import companiesRoutes from './routes/companies';
 import branchesRoutes from './routes/branches';
 import ordersRoutes from './routes/orders';
+import coverageCitiesRoutes from './routes/coverage-cities';
+import consumerReviewsRoutes from './routes/consumer-reviews';
+import consumerSupportRoutes from './routes/consumer-support';
+import consumerOrdersRoutes from './routes/consumer-orders';
+import { reviews } from './db/schema';
+import type { TokenPayload } from './auth/types';
 
 const app = new Hono();
 
-app.use('*', cors({ origin: ALLOWED_ORIGINS, credentials: true }));
+app.use('*', requestId);
+app.use('*', securityHeaders);
+app.use('*', cors({
+  origin: (origin) => {
+    if (!origin) return origin;
+    if (ALLOWED_ORIGINS.includes(origin)) return origin;
+    return undefined;
+  },
+  credentials: true,
+}));
 app.use('*', logger());
 
 app.onError(errorHandler);
 
 // Public routes
 app.get('/api/health', (c) => {
-  return c.json({ status: 'ok', timestamp: new Date().toISOString() });
+  return c.json({ status: 'ok', timestamp: new Date().toISOString(), requestId: c.get('requestId') });
 });
 
 app.route('/api/auth', authRoutes);
 
-// Protected routes (require JWT)
-const api = new Hono();
-api.use('*', authMiddleware);
-
 const idParam = z.object({ id: z.string().min(1).max(64) });
 
-api.get('/restaurants', async (c) => {
+app.get('/api/restaurants', async (c) => {
   const all = await db.select().from(restaurants);
   return c.json(all);
 });
 
-api.get('/restaurants/:id', zValidator('param', idParam), async (c) => {
+app.get('/api/restaurants/:id', zValidator('param', idParam), async (c) => {
   const { id } = c.req.valid('param');
   const restaurant = await db.select().from(restaurants).where(eq(restaurants.id, id)).limit(1);
   if (!restaurant.length) return c.json({ error: 'Not found' }, 404);
   return c.json(restaurant[0]);
 });
 
-api.get('/restaurants/:id/menu-items', zValidator('param', idParam), async (c) => {
+app.get('/api/restaurants/:id/menu-items', zValidator('param', idParam), async (c) => {
   const { id } = c.req.valid('param');
   const items = await db.select().from(menuItems).where(eq(menuItems.restaurant_id, id));
   return c.json(items);
 });
 
-api.post('/restaurants', zValidator('json', restaurantSchema), async (c) => {
+app.route('/api/categories', categoriesRoutes);
+app.route('/api/menu-items', menuItemsRoutes);
+app.route('/api/coverage-cities', coverageCitiesRoutes);
+app.route('/api/reviews', consumerReviewsRoutes);
+app.route('/api/plans', plansRoutes);
+app.route('/api/capabilities', capabilitiesRoutes);
+
+// Protected routes (require JWT)
+const api = new Hono();
+api.use('*', authMiddleware);
+
+api.post('/restaurants', zValidator('json', restaurantSchema), requirePermission(['superadmin', 'admin']), async (c) => {
   const data = c.req.valid('json');
   const id = crypto.randomUUID();
   const slug = data.name
@@ -89,18 +131,60 @@ api.post('/restaurants', zValidator('json', restaurantSchema), async (c) => {
   return c.json({ success: true, id }, 201);
 });
 
-api.route('/categories', categoriesRoutes);
-api.route('/menu-items', menuItemsRoutes);
 api.route('/companies', companiesRoutes);
 api.route('/branches', branchesRoutes);
 api.route('/orders', ordersRoutes);
 api.route('/operations', operationsRoutes);
 api.route('/holidays', holidaysRoutes);
+api.route('/global-coupons', globalCouponsRoutes);
+api.route('/merchant-coupons', merchantCouponsRoutes);
+api.route('/campaigns', campaignsRoutes);
+api.route('/plans', plansRoutes);
+api.route('/subscriptions', subscriptionsRoutes);
+api.route('/invoices', invoicesRoutes);
+api.route('/admin/users', adminUsersRoutes);
+api.route('/addons', addonsRoutes);
+api.route('/feature-flags', featureFlagsRoutes);
+api.route('/capabilities', capabilitiesRoutes);
+api.route('/notifications', notificationsRoutes);
+api.route('/audit-events', auditEventsRoutes);
+api.route('/support-tickets', supportTicketsRoutes);
+api.route('/support-tickets', consumerSupportRoutes);
+api.route('/me/orders', consumerOrdersRoutes);
+api.route('/me/notifications', userNotificationsRoutes);
+api.route('/branch-settings', branchSettingsRoutes);
+
+const reviewCreateSchema = z.object({
+  restaurant_id: z.string().min(1).max(64),
+  order_id: z.string().min(1).max(64).optional(),
+  rating: z.number().int().min(1).max(5),
+  comment: z.string().max(1000).optional(),
+});
+
+api.post('/reviews', zValidator('json', reviewCreateSchema), async (c) => {
+  const payload = c.get('jwtPayload') as TokenPayload | undefined;
+  if (!payload) return c.json({ error: 'Unauthorized' }, 401);
+  const data = c.req.valid('json');
+  const id = crypto.randomUUID();
+  await db.insert(reviews).values({
+    id,
+    user_id: payload.sub,
+    restaurant_id: data.restaurant_id,
+    order_id: data.order_id ?? null,
+    rating: data.rating,
+    comment: data.comment ?? null,
+    created_at: new Date(),
+  } as typeof reviews.$inferInsert);
+  return c.json({ success: true, id }, 201);
+});
 
 app.route('/api', api);
+
+startSessionCleanup();
+coverageCityService.seedFromRestaurants().catch(() => {});
 
 export default app;
 
 const port = Number(process.env.PORT) || 3001;
 serve({ fetch: app.fetch, port });
-console.log(`Server running on http://localhost:${port}`);
+  console.log(`Server running on http://localhost:${port}`); // eslint-disable-line no-console

@@ -2,13 +2,37 @@ import { useState } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { Icon } from '../../../components/ui/Icon';
 import { Button } from '../../../components/ui/Button';
-import { foodCategories, type FoodCategory } from '../superadminData';
+import { usePersistentState } from '../../../hooks/usePersistentState';
 import { clsx } from 'clsx';
+import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
+
+interface FoodCategory {
+  id: string;
+  name: string;
+  icon: string;
+  slug: string;
+  storeCount: number;
+  isActive: boolean;
+}
+
+const DEFAULT_CATEGORIES: FoodCategory[] = [
+  { id: 'cat1', name: 'Pizza', icon: '\u{1F355}', slug: 'pizza', storeCount: 28, isActive: true },
+  { id: 'cat2', name: 'Hambúrguer', icon: '\u{1F354}', slug: 'hamburger', storeCount: 35, isActive: true },
+  { id: 'cat3', name: 'Sushi', icon: '\u{1F363}', slug: 'sushi', storeCount: 15, isActive: true },
+  { id: 'cat4', name: 'Brasileira', icon: '\u{1F356}', slug: 'brazilian', storeCount: 42, isActive: true },
+  { id: 'cat5', name: 'Italiana', icon: '\u{1F35D}', slug: 'italian', storeCount: 18, isActive: true },
+  { id: 'cat6', name: 'Asiática', icon: '\u{1F961}', slug: 'asian', storeCount: 12, isActive: true },
+  { id: 'cat7', name: 'Mexicana', icon: '\u{1F32E}', slug: 'mexican', storeCount: 9, isActive: true },
+  { id: 'cat8', name: 'Doces', icon: '\u{1F370}', slug: 'desserts', storeCount: 22, isActive: true },
+  { id: 'cat9', name: 'Bebidas', icon: '\u{1F964}', slug: 'drinks', storeCount: 14, isActive: true },
+  { id: 'cat10', name: 'Saudável', icon: '\u{1F957}', slug: 'healthy', storeCount: 11, isActive: true },
+  { id: 'cat11', name: 'Café', icon: '\u2615', slug: 'coffee', storeCount: 7, isActive: false },
+];
 
 const emojiOptions = ['\u{1F355}', '\u{1F354}', '\u{1F363}', '\u{1F356}', '\u{1F35D}', '\u{1F961}', '\u{1F32E}', '\u{1F370}', '\u{1F964}', '\u{1F957}', '\u2615', '\u{1F953}', '\u{1F36B}', '\u{1F372}', '\u{1F359}', '\u{1F95E}'];
 
 export function CategoriesPage() {
-  const [categories, setCategories] = useState<FoodCategory[]>(foodCategories);
+  const [categories, setCategories] = usePersistentState<FoodCategory[]>('superadmin.categories', DEFAULT_CATEGORIES);
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -42,6 +66,7 @@ export function CategoriesPage() {
     <>
       <PageHeader title="Categorias de comida" actions={<Button variant="solid" intent="primary" size="sm" onClick={openNew}>Nova categoria</Button>} />
 
+      <FxQueryBoundary isLoading={false} isError={false}>
       <div className="relative max-w-xs mb-4">
         <Icon name="Search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" />
         <input type="text" value={search} onChange={(e) => { setSearch(e.target.value); }} placeholder="Buscar categoria..."
@@ -104,6 +129,7 @@ export function CategoriesPage() {
           <p className="text-text-secondary mt-3">Nenhuma categoria encontrada</p>
         </div>
       )}
+      </FxQueryBoundary>
     </>
   );
 }

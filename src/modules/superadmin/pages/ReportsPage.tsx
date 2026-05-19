@@ -1,31 +1,45 @@
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { Icon } from '../../../components/ui/Icon';
 import { Button } from '../../../components/ui/Button';
-import { reportData } from '../superadminData';
+import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
+import { useQuery } from '@tanstack/react-query';
+import { consumerApi } from '../../../api/consumerApi';
+
+function computeReport(orders: any[]) {
+  const totalOrders = orders.length;
+  const totalRevenue = orders.reduce((sum: number, o: any) => sum + (o.total ?? 0), 0);
+  const avgTicket = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+  const deliveryCount = orders.filter((o: any) => o.type === 'delivery' || o.type === 'entrega').length;
+  const deliveryPercent = totalOrders > 0 ? Math.round((deliveryCount / totalOrders) * 100) : 0;
+  return { totalOrders, totalRevenue, avgTicket, deliveryPercent, takeoutPercent: 100 - deliveryPercent };
+}
 
 export function ReportsPage() {
+  const { data: orders = [] } = useQuery({
+    queryKey: ['orders'],
+    queryFn: () => consumerApi.getMyOrders(),
+  });
+
+  const report = computeReport(orders);
+
   const formatCurrency = (value: number) =>
     `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   const metrics = [
-    { label: 'Total de pedidos', value: reportData.totalOrders.toLocaleString('pt-BR'), icon: 'ShoppingBag' },
-    { label: 'Receita total', value: formatCurrency(reportData.totalRevenue), icon: 'DollarSign' },
-    { label: 'Ticket médio', value: formatCurrency(reportData.avgTicket), icon: 'ArrowUpRight' },
-    { label: 'Lojas ativas', value: reportData.storesActive, icon: 'Store' },
+    { label: 'Total de pedidos', value: report.totalOrders.toLocaleString('pt-BR'), icon: 'ShoppingBag' },
+    { label: 'Receita total', value: formatCurrency(report.totalRevenue), icon: 'DollarSign' },
+    { label: 'Ticket médio', value: formatCurrency(report.avgTicket), icon: 'ArrowUpRight' },
+    { label: 'Lojas ativas', value: report.totalOrders > 0 ? '1' : '0', icon: 'Store' },
   ];
 
   const downloadCSV = () => {
     const rows: string[][] = [
       ['Métrica', 'Valor'],
-      ['Total de pedidos', String(reportData.totalOrders)],
-      ['Receita total', String(reportData.totalRevenue)],
-      ['Ticket médio', String(reportData.avgTicket)],
-      ['Lojas ativas', String(reportData.storesActive)],
-      ['Categoria top', reportData.topCategory],
-      ['Horário de pico', reportData.peakHour],
-      ['Dia de pico', reportData.peakDay],
-      ['Delivery %', String(reportData.deliveryVsTakeout.delivery)],
-      ['Retirada %', String(reportData.deliveryVsTakeout.takeout)],
+      ['Total de pedidos', String(report.totalOrders)],
+      ['Receita total', String(report.totalRevenue)],
+      ['Ticket médio', String(report.avgTicket)],
+      ['Delivery %', String(report.deliveryPercent)],
+      ['Retirada %', String(report.takeoutPercent)],
     ];
     const csv = rows.map((r) => r.join(',')).join('\n');
 
@@ -38,7 +52,7 @@ export function ReportsPage() {
   };
 
   const downloadJSON = () => {
-    const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = `relatorio-${new Date().toISOString().slice(0, 10)}.json`;
@@ -59,6 +73,7 @@ export function ReportsPage() {
         </div>
       } />
 
+      <FxQueryBoundary isLoading={false} isError={false}>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 mb-6">
         {metrics.map((m) => (
           <article key={m.label} className="rounded-xl border border-border-default bg-surface-elevated p-4 flex items-center gap-4">
@@ -80,19 +95,19 @@ export function ReportsPage() {
             <div>
               <div className="flex items-center justify-between text-sm mb-1">
                 <span className="text-text-primary font-medium">Delivery</span>
-                <span className="text-text-tertiary">{reportData.deliveryVsTakeout.delivery}%</span>
+                <span className="text-text-tertiary">{report.deliveryPercent}%</span>
               </div>
               <div className="h-2.5 rounded-full bg-surface-background overflow-hidden">
-                <div className="h-full rounded-full bg-brand-primary" style={{ width: `${reportData.deliveryVsTakeout.delivery}%` }} />
+                <div className="h-full rounded-full bg-brand-primary" style={{ width: `${report.deliveryPercent}%` }} />
               </div>
             </div>
             <div>
               <div className="flex items-center justify-between text-sm mb-1">
                 <span className="text-text-primary font-medium">Retirada</span>
-                <span className="text-text-tertiary">{reportData.deliveryVsTakeout.takeout}%</span>
+                <span className="text-text-tertiary">{report.takeoutPercent}%</span>
               </div>
               <div className="h-2.5 rounded-full bg-surface-background overflow-hidden">
-                <div className="h-full rounded-full bg-brand-secondary" style={{ width: `${reportData.deliveryVsTakeout.takeout}%` }} />
+                <div className="h-full rounded-full bg-brand-secondary" style={{ width: `${report.takeoutPercent}%` }} />
               </div>
             </div>
           </div>
@@ -104,29 +119,29 @@ export function ReportsPage() {
             <div className="flex items-center gap-3 p-3 rounded-lg bg-surface-background">
               <Icon name="TrendingUp" size={20} className="text-feedback-success" />
               <div>
-                <p className="font-medium text-text-primary">Categoria top: {reportData.topCategory}</p>
-                <p className="text-text-tertiary mt-0.5">Categoria com mais lojas cadastradas</p>
+                <p className="font-medium text-text-primary">Total de pedidos: {report.totalOrders}</p>
+                <p className="text-text-tertiary mt-0.5">Pedidos realizados na plataforma</p>
               </div>
             </div>
             <div className="flex items-center gap-3 p-3 rounded-lg bg-surface-background">
               <Icon name="Clock" size={20} className="text-feedback-info" />
               <div>
-                <p className="font-medium text-text-primary">Horário de pico: {reportData.peakHour}</p>
-                <p className="text-text-tertiary mt-0.5">Maior volume de pedidos do dia</p>
+                <p className="font-medium text-text-primary">Ticket médio: {formatCurrency(report.avgTicket)}</p>
+                <p className="text-text-tertiary mt-0.5">Valor médio por pedido</p>
               </div>
             </div>
             <div className="flex items-center gap-3 p-3 rounded-lg bg-surface-background">
               <Icon name="Calendar" size={20} className="text-feedback-warning" />
               <div>
-                <p className="font-medium text-text-primary">Dia de pico: {reportData.peakDay}</p>
-                <p className="text-text-tertiary mt-0.5">Dia da semana com mais pedidos</p>
+                <p className="font-medium text-text-primary">Receita total: {formatCurrency(report.totalRevenue)}</p>
+                <p className="text-text-tertiary mt-0.5">Faturamento acumulado</p>
               </div>
             </div>
             <div className="flex items-center gap-3 p-3 rounded-lg bg-surface-background">
               <Icon name="MapPin" size={20} className="text-brand-primary" />
               <div>
-                <p className="font-medium text-text-primary">78% dos pedidos são delivery</p>
-                <p className="text-text-tertiary mt-0.5">Apenas 22% optam por retirada</p>
+                <p className="font-medium text-text-primary">{report.deliveryPercent}% dos pedidos são delivery</p>
+                <p className="text-text-tertiary mt-0.5">{report.takeoutPercent}% optam por retirada</p>
               </div>
             </div>
           </div>
@@ -153,6 +168,7 @@ export function ReportsPage() {
           </button>
         </div>
       </section>
+      </FxQueryBoundary>
     </>
   );
 }

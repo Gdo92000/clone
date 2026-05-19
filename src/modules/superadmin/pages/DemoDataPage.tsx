@@ -2,6 +2,7 @@ import { Button } from '../../../components/ui/Button';
 import { FxImage } from '../../../components/ui/FxImage';
 import { demoCategories, demoCompanyProfiles, demoProducts } from '../../enterprise';
 import { PageHeader } from '../../../components/ui/PageHeader';
+import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
 
 export function DemoDataPage() {
   const resetDemo = () => {
@@ -12,7 +13,9 @@ export function DemoDataPage() {
   };
 
   return (
-    <><PageHeader title="Ambiente demo" />
+    <>
+      <PageHeader title="Ambiente demo" />
+      <FxQueryBoundary isLoading={false} isError={false}>
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <article className="rounded-xl border border-border-default bg-surface-elevated p-4">
           <p className="text-sm text-text-secondary">Categorias</p>
@@ -31,7 +34,7 @@ export function DemoDataPage() {
       <section className="rounded-xl border border-border-default bg-surface-elevated p-4">
         <h2 className="font-semibold text-text-primary">Reset completo</h2>
         <p className="mt-2 text-sm text-text-secondary">
-          Restaura sessoes, SaaS, auditoria, usuarios, pedidos, cardapio e suporte para os mocks iniciais.
+          Restaura sessões, SaaS, auditoria, usuários, pedidos, cardápio e suporte para o estado inicial.
         </p>
         <Button className="mt-4" intent="danger" onClick={resetDemo}>Resetar ambiente demo</Button>
       </section>
@@ -47,6 +50,7 @@ export function DemoDataPage() {
           </article>
         ))}
       </section>
+      </FxQueryBoundary>
     </>
   );
 

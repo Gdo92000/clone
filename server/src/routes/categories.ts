@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { db } from '../db';
-import { categories } from '../db/schema/core/categories';
+import { categories } from '../db/schema';
 
 const route = new Hono();
 

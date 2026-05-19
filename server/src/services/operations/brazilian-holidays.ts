@@ -1,11 +1,14 @@
+import crypto from 'node:crypto';
 import { db } from '../../db';
 import { holidayRules } from '../../db/schema/operations';
-import { eq, and, or } from 'drizzle-orm';
+import { eq, and, or, sql } from 'drizzle-orm';
 
 const TZ = 'America/Sao_Paulo';
 
 function getYear(): number {
-  return new Date(new Date().toLocaleString('en-US', { timeZone: TZ })).getFullYear();
+  const formatter = new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+  const parts = formatter.formatToParts(new Date());
+  return parseInt(parts.find(p => p.type === 'year')?.value ?? '2026', 10);
 }
 
 function easterDate(year: number): Date {
@@ -13,7 +16,6 @@ function easterDate(year: number): Date {
   const b = Math.floor(year / 100);
   const c = year % 100;
   const d = Math.floor(b / 4);
-  const e = b % 4;
   const f = Math.floor((b + 8) / 25);
   const g = Math.floor((b - f + 1) / 3);
   const h = (19 * a + b - d - g + 15) % 30;
@@ -99,7 +101,13 @@ export async function seedHolidaysForYear(year?: number): Promise<number> {
 }
 
 export async function isHoliday(dateStr: string, scope?: 'national' | 'state' | 'municipal', stateCode?: string): Promise<boolean> {
-  const conditions = [eq(holidayRules.date, dateStr)];
+  const monthDay = dateStr.substring(5);
+  const conditions = [
+    or(
+      eq(holidayRules.date, dateStr),
+      and(eq(holidayRules.is_recurring, true), sql`SUBSTRING(${holidayRules.date} FROM 6) = ${monthDay}`),
+    ),
+  ];
 
   if (scope) {
     conditions.push(eq(holidayRules.scope, scope));
@@ -118,10 +126,16 @@ export async function isHoliday(dateStr: string, scope?: 'national' | 'state' | 
 }
 
 export async function getHolidaysForDate(dateStr: string): Promise<{ name: string; scope: string }[]> {
+  const monthDay = dateStr.substring(5);
   const rows = await db
     .select({ name: holidayRules.name, scope: holidayRules.scope })
     .from(holidayRules)
-    .where(eq(holidayRules.date, dateStr));
+    .where(
+      or(
+        eq(holidayRules.date, dateStr),
+        and(eq(holidayRules.is_recurring, true), sql`SUBSTRING(${holidayRules.date} FROM 6) = ${monthDay}`),
+      ),
+    );
 
   return rows.map((r: { name: string; scope: string }) => ({ name: r.name, scope: r.scope }));
 }

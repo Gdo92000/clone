@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { FxNavbar } from '../components/navigation';
+import { FxQueryBoundary } from '../components/ui/FxQueryBoundary';
 import { Icon } from '../components/ui/Icon';
 import { FxRestaurantCard } from '../components/commerce/FxRestaurantCard';
 import { useRestaurants, useCategories } from '../hooks/useRestaurants';
@@ -44,8 +45,8 @@ export function RestaurantListPage() {
 
   const { city } = useLocationContext();
 
-  const { data: allRestaurants = [] } = useRestaurants();
-  const { data: categories = [] } = useCategories();
+  const { data: allRestaurants = [], isLoading: restaurantsLoading, error: restaurantsError } = useRestaurants();
+  const { data: categories = [], isLoading: categoriesLoading, error: categoriesError } = useCategories();
 
   const canShowNearby = showNearbyOnly && hasLocation && isWithinSupportedCity;
   const baseRestaurants = canShowNearby ? nearbyRestaurants : allRestaurants;
@@ -136,6 +137,7 @@ if (selectedCategory) {
       <FxNavbar onSearch={(q) => navigate(restaurantsSearchHref(q))} onCartClick={handleCartClick} />
 
       <main className="max-w-7xl mx-auto px-4 py-4 space-y-4">
+        <FxQueryBoundary isLoading={restaurantsLoading || categoriesLoading || nearbyLoading} isError={!!restaurantsError || !!categoriesError} error={restaurantsError ?? categoriesError ?? null}>
         {searchQuery && (
           <div className="flex items-center justify-between">
             <p className="text-text-secondary">
@@ -288,6 +290,7 @@ if (selectedCategory) {
             </div>
           </div>
         </button>
+      </FxQueryBoundary>
       </main>
 
     </div>

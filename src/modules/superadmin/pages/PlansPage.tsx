@@ -4,6 +4,7 @@ import { formatCurrency } from '../../merchant/format';
 import { featureLabels, useSaasWorkspace } from '../../saas';
 import type { FeatureKey, PlanId, SaasPlan } from '../../saas';
 import { PageHeader } from '../../../components/ui/PageHeader';
+import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
 
 const featureOptions = Object.entries(featureLabels) as [FeatureKey, string][];
 
@@ -66,7 +67,8 @@ export function PlansPage() {
   };
 
   return (
-    <><PageHeader title="Planos de assinatura" />
+    <>      <PageHeader title="Planos de assinatura" />
+      <FxQueryBoundary isLoading={false} isError={false}>
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-[0.75fr_1.25fr]">
         <div className="rounded-xl border border-border-default bg-surface-elevated p-4">
           <h2 className="font-semibold text-text-primary">Editar plano</h2>
@@ -152,6 +154,7 @@ export function PlansPage() {
           ))}
         </div>
       </section>
+      </FxQueryBoundary>
     </>
   );
 }

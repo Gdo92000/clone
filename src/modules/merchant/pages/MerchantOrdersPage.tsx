@@ -4,6 +4,7 @@ import { MerchantLayout } from '../components/MerchantLayout';
 import { MerchantStatusBadge } from '../components/MerchantStatusBadge';
 import { formatCurrency } from '../format';
 import { useOrders, useBranches, useUpdateOrderStatus } from '../../../hooks/useMerchantData';
+import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
 import type { MerchantOrderStatus } from '../types';
 
 const nextStatus: Partial<Record<MerchantOrderStatus, MerchantOrderStatus>> = {
@@ -15,8 +16,8 @@ const nextStatus: Partial<Record<MerchantOrderStatus, MerchantOrderStatus>> = {
 };
 
 export function MerchantOrdersPage() {
-  const { data: orders = [], isLoading: ordersLoading } = useOrders();
-  const { data: branches = [], isLoading: branchesLoading } = useBranches();
+  const { data: orders = [], isLoading: ordersLoading, isError: ordersError, error: ordersErr } = useOrders();
+  const { data: branches = [], isLoading: branchesLoading, isError: branchesError } = useBranches();
   const { mutateAsync: updateOrderStatusAsync, isPending: updateStatusPending } = useUpdateOrderStatus();
   const [branchId, setBranchId] = useState('all');
 
@@ -44,6 +45,7 @@ export function MerchantOrdersPage() {
   }
 
   return (
+    <FxQueryBoundary isLoading={false} isError={ordersError || branchesError} error={ordersErr}>
     <MerchantLayout
       title="Pedidos recebidos"
       actions={
@@ -109,5 +111,6 @@ export function MerchantOrdersPage() {
         })}
       </section>
     </MerchantLayout>
+    </FxQueryBoundary>
   );
 }

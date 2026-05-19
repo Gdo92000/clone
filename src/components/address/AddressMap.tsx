@@ -43,7 +43,6 @@ export function AddressMap({ latitude, longitude, className = '', height = '200p
       mapInstanceRef.current = null;
       markerRef.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

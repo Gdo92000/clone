@@ -2,9 +2,9 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import basicSsl from '@vitejs/plugin-basic-ssl'
 
-export default defineConfig(({ mode }) => ({
+export default defineConfig(() => ({
   define: {
-    __USE_MOCK__: JSON.stringify(mode === 'development' && process.env.VITE_MOCK === 'true'),
+    __USE_MOCK__: 'false',
   },
   plugins: [
     react(),

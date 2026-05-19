@@ -3,7 +3,7 @@ import { zValidator } from '@hono/zod-validator';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '../db';
-import { holidayRules } from '../db/schema/operations';
+import { holidayRules } from '../db/schema';
 import { seedHolidaysForYear, getHolidaysForDate } from '../services/operations';
 import { holidayRuleSchema } from '../../../shared/validations/operations';
 

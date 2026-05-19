@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FxImage } from '../components/ui/FxImage';
 import { FxNavbar } from '../components/navigation';
+import { FxQueryBoundary } from '../components/ui/FxQueryBoundary';
 import { FxRestaurantCard } from '../components/commerce/FxRestaurantCard';
 import { useLocationContext } from '../context/LocationContext';
 import { useRestaurants, useCategories } from '../hooks/useRestaurants';
@@ -23,8 +24,8 @@ export function HomePage() {
   const userNeighborhood = city?.neighborhood;
   const [searchQuery, setSearchQuery] = useState('');
 
-  const { data: restaurants = [] } = useRestaurants();
-  const { data: categories = [] } = useCategories();
+  const { data: restaurants = [], isLoading: restaurantsLoading, error: restaurantsError } = useRestaurants();
+  const { data: categories = [], isLoading: categoriesLoading, error: categoriesError } = useCategories();
 
   const cityName = city?.name ?? 'você';
 
@@ -82,6 +83,7 @@ export function HomePage() {
       <FxNavbar onCartClick={() => navigate(ROUTES.CART)} cartItemCount={cartItemCount} />
 
       <main className="max-w-7xl mx-auto px-4 py-6 space-y-10">
+        <FxQueryBoundary isLoading={restaurantsLoading || categoriesLoading} isError={!!restaurantsError || !!categoriesError} error={restaurantsError ?? categoriesError ?? null}>
         <section className="text-center">
           <h1 className="font-display text-2xl md:text-3xl font-extrabold text-text-primary mt-2">
             Peça sua comida favorita
@@ -218,6 +220,7 @@ export function HomePage() {
             Cadastrar agora
           </button>
         </section>
+      </FxQueryBoundary>
       </main>
     </div>
   );

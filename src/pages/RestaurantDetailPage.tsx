@@ -6,6 +6,7 @@ import type { MenuItem } from '../types';
 import { FxProductCard } from '../components/commerce/FxProductCard';
 import { FxDeliveryBadge } from '../components/commerce/FxDeliveryBadge';
 import { FxImage } from '../components/ui/FxImage';
+import { FxQueryBoundary } from '../components/ui/FxQueryBoundary';
 import { Icon } from '../components/ui/Icon';
 import { successToast } from '../lib/toast';
 import { ROUTES, restaurantItemHref } from '../lib/routes';
@@ -57,35 +58,7 @@ interface Review {
   itemsOrdered: string[];
 }
 
-const mockReviews: Review[] = [
-  {
-    id: '1',
-    userName: 'Carlos M.',
-    userInitials: 'CM',
-    rating: 5,
-    date: '2 dias atrás',
-    comment: 'Atendimento excelente! O lanche chegou quentinho e muito bem embalado. Recomendo demais!',
-    itemsOrdered: ['X-Burger Especial', 'Batata Frita M'],
-  },
-  {
-    id: '2',
-    userName: 'Ana Paula S.',
-    userInitials: 'AP',
-    rating: 4,
-    date: '1 semana atrás',
-    comment: 'Muito bom! Sé demorei um pouco mais do que o previsto, mas valeu a espera.',
-    itemsOrdered: ['Pizza Margherita', 'Refrigerante 2L'],
-  },
-  {
-    id: '3',
-    userName: 'Roberto L.',
-    userInitials: 'RL',
-    rating: 5,
-    date: '2 semanas atrás',
-    comment: 'Melhor hambúrguer do bairro! A carne ? suculenta e os pães são fresquinhos.',
-    itemsOrdered: ['X-Salada', 'Milk Shake Chocolate'],
-  },
-];
+const reviews: Review[] = [];
 
 export function RestaurantDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -94,8 +67,8 @@ export function RestaurantDetailPage() {
   const [showInfo, setShowInfo] = useState(false);
   const cartItemCount = 2;
 
-  const { data: restaurant } = useRestaurant(id);
-  const { data: menuItems = [] } = useMenuItems(id);
+  const { data: restaurant, isLoading: restaurantLoading, error: restaurantError } = useRestaurant(id);
+  const { data: menuItems = [], isLoading: menuItemsLoading, error: menuItemsError } = useMenuItems(id);
   const { data: openStatus, isLoading: statusLoading } = useBranchStatus(restaurant?.id);
   const { data: todayPeriods } = useTodayPeriods(restaurant?.id);
 
@@ -134,6 +107,7 @@ export function RestaurantDetailPage() {
   }
 
   return (
+    <FxQueryBoundary isLoading={restaurantLoading || menuItemsLoading} isError={!!restaurantError || !!menuItemsError} error={restaurantError ?? menuItemsError ?? null}>
     <div className="min-h-screen bg-surface-background pb-24">
       <div className="relative">
         <FxImage src={restaurant.bannerUrl} alt={restaurant.name} className="w-full h-48 sm:h-56 object-cover" />
@@ -280,12 +254,12 @@ export function RestaurantDetailPage() {
           )}
         </div>
 
-        {mockReviews.length > 0 && (
+        {reviews.length > 0 && (
           <div className="mt-12">
             <div className="flex items-center justify-between mb-5">
               <h2 className="font-display font-bold text-lg text-text-primary">Avaliações</h2>
             <button onClick={() => navigate(ROUTES.REVIEWS)} className="text-sm font-medium text-brand-primary hover:text-brand-primary-hover transition-colors">
-                 Ver todas ({mockReviews.length})
+                 Ver todas ({reviews.length})
                </button>
             </div>
 
@@ -302,7 +276,7 @@ export function RestaurantDetailPage() {
             </div>
 
             <div className="space-y-4">
-              {mockReviews.map((review) => (
+              {reviews.map((review) => (
                 <div key={review.id} className="p-4 rounded-xl bg-surface-elevated border border-border-default">
                   <div className="flex items-start gap-3">
                     <div className="w-10 h-10 rounded-full bg-brand-secondary flex items-center justify-center shrink-0">
@@ -351,6 +325,7 @@ export function RestaurantDetailPage() {
         </div>
       </div>
     </div>
+    </FxQueryBoundary>
   );
 }
 

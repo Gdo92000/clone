@@ -1,11 +1,10 @@
+import crypto from 'node:crypto';
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '../db';
-import { businessHours, businessHourPeriods } from '../db/schema/operations';
-import { holidayOverrides, holidayOverridePeriods } from '../db/schema/operations';
-import { specialDates, specialDatePeriods } from '../db/schema/operations';
+import { businessHours, businessHourPeriods, holidayOverrides, holidayOverridePeriods, specialDates, specialDatePeriods } from '../db/schema';
 import { getBranchOpenStatus, getTodayPeriods } from '../services/operations';
 import {
   weeklyHoursSchema,
@@ -38,16 +37,21 @@ operations.get('/:branchId/hours', zValidator('param', branchIdParam), async (c)
     .from(businessHours)
     .where(eq(businessHours.branch_id, branchId));
 
-  const result = [];
-  for (const hour of hours) {
-    const periods = await db
-      .select()
-      .from(businessHourPeriods)
-      .where(eq(businessHourPeriods.business_hour_id, hour.id))
-      .orderBy(businessHourPeriods.sort_order);
-    result.push({ ...hour, periods });
+  if (hours.length === 0) return c.json([]);
+
+  const allPeriods = await db
+    .select()
+    .from(businessHourPeriods)
+    .where(inArray(businessHourPeriods.business_hour_id, hours.map(h => h.id)))
+    .orderBy(businessHourPeriods.sort_order);
+
+  const periodsByHourId: Record<string, typeof allPeriods> = {};
+  for (const p of allPeriods) {
+    if (!periodsByHourId[p.business_hour_id]) periodsByHourId[p.business_hour_id] = [];
+    periodsByHourId[p.business_hour_id].push(p);
   }
 
+  const result = hours.map(hour => ({ ...hour, periods: periodsByHourId[hour.id] ?? [] }));
   return c.json(result);
 });
 
@@ -55,37 +59,39 @@ operations.put('/:branchId/hours', zValidator('param', branchIdParam), zValidato
   const { branchId } = c.req.valid('param');
   const { hours } = c.req.valid('json');
 
-  const existing = await db
-    .select({ id: businessHours.id })
-    .from(businessHours)
-    .where(eq(businessHours.branch_id, branchId));
+  await db.transaction(async (tx) => {
+    const existing = await tx
+      .select({ id: businessHours.id })
+      .from(businessHours)
+      .where(eq(businessHours.branch_id, branchId));
 
-  for (const row of existing) {
-    await db.delete(businessHourPeriods).where(eq(businessHourPeriods.business_hour_id, row.id));
-    await db.delete(businessHours).where(eq(businessHours.id, row.id));
-  }
-
-  for (const hour of hours) {
-    const hourId = crypto.randomUUID();
-    await db.insert(businessHours).values({
-      id: hourId,
-      branch_id: branchId,
-      weekday: hour.weekday,
-      is_closed: hour.isClosed,
-      is_24h: hour.is24h,
-      sort_order: hour.sortOrder,
-    });
-
-    for (const period of hour.periods) {
-      await db.insert(businessHourPeriods).values({
-        id: crypto.randomUUID(),
-        business_hour_id: hourId,
-        open_time: period.openTime,
-        close_time: period.closeTime,
-        sort_order: period.sortOrder,
-      });
+    for (const row of existing) {
+      await tx.delete(businessHourPeriods).where(eq(businessHourPeriods.business_hour_id, row.id));
+      await tx.delete(businessHours).where(eq(businessHours.id, row.id));
     }
-  }
+
+    for (const hour of hours) {
+      const hourId = crypto.randomUUID();
+      await tx.insert(businessHours).values({
+        id: hourId,
+        branch_id: branchId,
+        weekday: hour.weekday,
+        is_closed: hour.isClosed,
+        is_24h: hour.is24h,
+        sort_order: hour.sortOrder,
+      });
+
+      for (const period of hour.periods) {
+        await tx.insert(businessHourPeriods).values({
+          id: crypto.randomUUID(),
+          business_hour_id: hourId,
+          open_time: period.openTime,
+          close_time: period.closeTime,
+          sort_order: period.sortOrder,
+        });
+      }
+    }
+  });
 
   return c.json({ success: true, branchId });
 });
@@ -97,16 +103,21 @@ operations.get('/:branchId/holiday-overrides', zValidator('param', branchIdParam
     .from(holidayOverrides)
     .where(eq(holidayOverrides.branch_id, branchId));
 
-  const result = [];
-  for (const override of overrides) {
-    const periods = await db
-      .select()
-      .from(holidayOverridePeriods)
-      .where(eq(holidayOverridePeriods.holiday_override_id, override.id))
-      .orderBy(holidayOverridePeriods.sort_order);
-    result.push({ ...override, periods });
+  if (overrides.length === 0) return c.json([]);
+
+  const allPeriods = await db
+    .select()
+    .from(holidayOverridePeriods)
+    .where(inArray(holidayOverridePeriods.holiday_override_id, overrides.map(o => o.id)))
+    .orderBy(holidayOverridePeriods.sort_order);
+
+  const periodsByOverrideId: Record<string, typeof allPeriods> = {};
+  for (const p of allPeriods) {
+    if (!periodsByOverrideId[p.holiday_override_id]) periodsByOverrideId[p.holiday_override_id] = [];
+    periodsByOverrideId[p.holiday_override_id].push(p);
   }
 
+  const result = overrides.map(o => ({ ...o, periods: periodsByOverrideId[o.id] ?? [] }));
   return c.json(result);
 });
 
@@ -115,23 +126,25 @@ operations.post('/:branchId/holiday-overrides', zValidator('param', branchIdPara
   const data = c.req.valid('json');
 
   const overrideId = crypto.randomUUID();
-  await db.insert(holidayOverrides).values({
-    id: overrideId,
-    branch_id: branchId,
-    holiday_rule_id: data.holidayRuleId ?? null,
-    override_type: data.overrideType,
-    custom_date: data.customDate,
-  });
-
-  for (const period of data.periods) {
-    await db.insert(holidayOverridePeriods).values({
-      id: crypto.randomUUID(),
-      holiday_override_id: overrideId,
-      open_time: period.openTime,
-      close_time: period.closeTime,
-      sort_order: period.sortOrder,
+  await db.transaction(async (tx) => {
+    await tx.insert(holidayOverrides).values({
+      id: overrideId,
+      branch_id: branchId,
+      holiday_rule_id: data.holidayRuleId ?? null,
+      override_type: data.overrideType,
+      custom_date: data.customDate,
     });
-  }
+
+    for (const period of data.periods) {
+      await tx.insert(holidayOverridePeriods).values({
+        id: crypto.randomUUID(),
+        holiday_override_id: overrideId,
+        open_time: period.openTime,
+        close_time: period.closeTime,
+        sort_order: period.sortOrder,
+      });
+    }
+  });
 
   return c.json({ success: true, id: overrideId }, 201);
 });
@@ -150,16 +163,21 @@ operations.get('/:branchId/special-dates', zValidator('param', branchIdParam), a
     .from(specialDates)
     .where(eq(specialDates.branch_id, branchId));
 
-  const result = [];
-  for (const date of dates) {
-    const periods = await db
-      .select()
-      .from(specialDatePeriods)
-      .where(eq(specialDatePeriods.special_date_id, date.id))
-      .orderBy(specialDatePeriods.sort_order);
-    result.push({ ...date, periods });
+  if (dates.length === 0) return c.json([]);
+
+  const allPeriods = await db
+    .select()
+    .from(specialDatePeriods)
+    .where(inArray(specialDatePeriods.special_date_id, dates.map(d => d.id)))
+    .orderBy(specialDatePeriods.sort_order);
+
+  const periodsByDateId: Record<string, typeof allPeriods> = {};
+  for (const p of allPeriods) {
+    if (!periodsByDateId[p.special_date_id]) periodsByDateId[p.special_date_id] = [];
+    periodsByDateId[p.special_date_id].push(p);
   }
 
+  const result = dates.map(d => ({ ...d, periods: periodsByDateId[d.id] ?? [] }));
   return c.json(result);
 });
 
@@ -168,24 +186,26 @@ operations.post('/:branchId/special-dates', zValidator('param', branchIdParam), 
   const data = c.req.valid('json');
 
   const specialDateId = crypto.randomUUID();
-  await db.insert(specialDates).values({
-    id: specialDateId,
-    branch_id: branchId,
-    date: data.date,
-    label: data.label ?? null,
-    is_closed: data.isClosed,
-    is_24h: data.is24h,
-  });
-
-  for (const period of data.periods) {
-    await db.insert(specialDatePeriods).values({
-      id: crypto.randomUUID(),
-      special_date_id: specialDateId,
-      open_time: period.openTime,
-      close_time: period.closeTime,
-      sort_order: period.sortOrder,
+  await db.transaction(async (tx) => {
+    await tx.insert(specialDates).values({
+      id: specialDateId,
+      branch_id: branchId,
+      date: data.date,
+      label: data.label ?? null,
+      is_closed: data.isClosed,
+      is_24h: data.is24h,
     });
-  }
+
+    for (const period of data.periods) {
+      await tx.insert(specialDatePeriods).values({
+        id: crypto.randomUUID(),
+        special_date_id: specialDateId,
+        open_time: period.openTime,
+        close_time: period.closeTime,
+        sort_order: period.sortOrder,
+      });
+    }
+  });
 
   return c.json({ success: true, id: specialDateId }, 201);
 });

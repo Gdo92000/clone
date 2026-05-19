@@ -25,6 +25,17 @@ export interface MerchantMenuItemDTO {
   description: string;
 }
 
+export interface BranchSettingsDTO {
+  branch_id: string;
+  opening_time: string;
+  closing_time: string;
+  preparation_time: string;
+  minimum_order: string;
+  accepts_delivery: boolean;
+  accepts_pickup: boolean;
+  pix_key: string;
+}
+
 export interface MerchantOrderDTO {
   id: string;
   branch_id: string;

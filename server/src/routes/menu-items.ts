@@ -3,7 +3,7 @@ import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { eq } from 'drizzle-orm';
 import { db } from '../db';
-import { menuItems } from '../db/schema/core/menu-items';
+import { menuItems } from '../db/schema';
 
 const route = new Hono();
 

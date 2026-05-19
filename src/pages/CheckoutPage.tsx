@@ -6,15 +6,13 @@ import { FxOrderSummary } from '../components/commerce/FxOrderSummary';
 import { FxPageNavbar } from '../components/navigation/FxPageNavbar';
 import { Button } from '../components/ui/Button';
 import { ROUTES } from '../lib/routes';
+import { useCart } from '../hooks/useCart';
+import { FxQueryBoundary } from '../components/ui/FxQueryBoundary';
 
-
-const mockSubtotal = 68.70;
-const mockDeliveryFee = 5.90;
-const mockDiscount = 0;
-const mockTotal = mockSubtotal + mockDeliveryFee - mockDiscount;
 
 export function CheckoutPage() {
   const navigate = useNavigate();
+  const { subtotal, deliveryFee, discount, total } = useCart();
   const [address, setAddress] = useState<AddressData>({
     street: '', number: '', complement: '', neighborhood: '', city: 'Franca', state: 'SP', zipCode: '', reference: '',
   });
@@ -31,6 +29,7 @@ export function CheckoutPage() {
     <div className="min-h-screen bg-surface-background">
       <FxPageNavbar title="Checkout" backTo={ROUTES.CART} />
       <main className="max-w-lg mx-auto px-4 py-4 space-y-6">
+        <FxQueryBoundary isLoading={false} isError={false}>
         <section className="rounded-2xl bg-surface-elevated border border-border-default p-4 space-y-4">
           <h2 className="font-semibold text-text-primary">Endereço de entrega</h2>
           <FxAddressForm value={address} onChange={setAddress} />
@@ -49,12 +48,13 @@ export function CheckoutPage() {
           )}
         </section>
 
-        <FxOrderSummary subtotal={mockSubtotal} deliveryFee={mockDeliveryFee} discount={mockDiscount} total={mockTotal} />
+        <FxOrderSummary subtotal={subtotal} deliveryFee={deliveryFee} discount={discount} total={total} />
 
         <Button variant="solid" intent="primary" size="lg" className="w-full"
           disabled={!isAddressValid || !paymentMethod} onClick={handleConfirmOrder}>
           Confirmar pedido
         </Button>
+        </FxQueryBoundary>
       </main>
     </div>
   );

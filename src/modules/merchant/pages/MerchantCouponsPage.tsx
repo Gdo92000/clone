@@ -18,7 +18,6 @@ export function MerchantCouponsPage() {
 
     useEffect(() => {
       if (initialCoupons.length > 0) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setCoupons(initialCoupons);
       }
     }, [initialCoupons]);

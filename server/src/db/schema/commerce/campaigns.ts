@@ -1,5 +1,5 @@
 import { pgEnum, pgTable, text, numeric, timestamp } from 'drizzle-orm/pg-core';
-import { branches } from '../merchant/branches';
+import { branches } from '../merchant';
 
 export const campaignStatus = pgEnum('campaign_status', ['active', 'paused', 'finished']);
 

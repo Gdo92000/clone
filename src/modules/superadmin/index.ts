@@ -1,15 +1,1 @@
-export { AddonsPage } from './pages/AddonsPage';
-export { AuditPage } from './pages/AuditPage';
-export { BillingPage } from './pages/BillingPage';
-export { CapabilitiesPage } from './pages/CapabilitiesPage';
-export { CategoriesPage } from './pages/CategoriesPage';
-export { CommissionsPage } from './pages/CommissionsPage';
-export { CouponsPage } from './pages/CouponsPage';
-export { DemoDataPage } from './pages/DemoDataPage';
-export { FeatureFlagsPage } from './pages/FeatureFlagsPage';
-export { PlansPage } from './pages/PlansPage';
-export { NotificationsPage } from './pages/NotificationsPage';
-export { ReportsPage } from './pages/ReportsPage';
-export { SubscriptionsPage } from './pages/SubscriptionsPage';
-export { SuperadminDashboardPage } from './pages/SuperadminDashboardPage';
-export { UsersPage } from './pages/UsersPage';
+export { SuperadminLoginPage } from './pages/SuperadminLoginPage';

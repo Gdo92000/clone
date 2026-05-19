@@ -5,6 +5,7 @@ import { FxPageNavbar } from '../components/navigation/FxPageNavbar';
 import { Button } from '../components/ui/Button';
 import { useCart } from '../hooks/useCart';
 import { ROUTES } from '../lib/routes';
+import { FxQueryBoundary } from '../components/ui/FxQueryBoundary';
 
 
 export function CartPage() {
@@ -21,6 +22,7 @@ export function CartPage() {
 
       <main className="pb-28">
         <div className="max-w-lg mx-auto px-4 py-4 space-y-6">
+          <FxQueryBoundary isLoading={false} isError={false}>
           {items.length === 0 ? (
             <div className="text-center py-16">
               <div className="text-6xl mb-4">🛒</div>
@@ -103,6 +105,7 @@ export function CartPage() {
               </div>
             </>
           )}
+          </FxQueryBoundary>
         </div>
       </main>
     </div>

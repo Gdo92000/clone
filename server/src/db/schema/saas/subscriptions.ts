@@ -1,8 +1,9 @@
-import { pgEnum, pgTable, text, numeric, boolean, timestamp, jsonb, index } from 'drizzle-orm/pg-core';
+import { pgEnum, pgTable, text, numeric, timestamp, jsonb, index } from 'drizzle-orm/pg-core';
 import { planId } from './plans';
-import { companies } from '../merchant/companies';
+import { companies } from '../merchant';
 
 export const billingStatus = pgEnum('billing_status', ['trial', 'active', 'past_due', 'blocked', 'cancelled']);
+export const invoiceStatus = pgEnum('invoice_status', ['open', 'paid', 'overdue', 'cancelled', 'refunded']);
 
 export const subscriptions = pgTable('subscriptions', {
   company_id: text('company_id').primaryKey().references(() => companies.id),
@@ -22,7 +23,7 @@ export const invoices = pgTable('invoices', {
   id: text('id').primaryKey(),
   company_id: text('company_id').references(() => companies.id).notNull(),
   amount: numeric('amount', { precision: 10, scale: 2 }).notNull(),
-  status: text('status').notNull().default('open'),
+  status: invoiceStatus('status').notNull().default('open'),
   due_date: timestamp('due_date', { withTimezone: true }).notNull(),
   paid_at: timestamp('paid_at', { withTimezone: true }),
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),

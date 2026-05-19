@@ -1,11 +1,19 @@
-import { reviews } from '../experienceData';
+import { useQuery } from '@tanstack/react-query';
+import { consumerApi } from '../../../api/consumerApi';
+import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
 import { ExperienceLayout } from '../components/ExperienceLayout';
 
 export function ReviewsPage() {
+  const { data: reviews = [], isLoading } = useQuery({
+    queryKey: ['reviews'],
+    queryFn: () => consumerApi.getReviews(),
+  });
+
   return (
     <ExperienceLayout title="Avaliacoes">
+      <FxQueryBoundary isLoading={isLoading} isError={false}>
       <section className="space-y-3">
-        {reviews.map((review) => (
+        {reviews.map((review: any) => (
           <article key={review.id} className="rounded-xl border border-border-default bg-surface-elevated p-4">
             <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
               <div>
@@ -18,6 +26,7 @@ export function ReviewsPage() {
           </article>
         ))}
       </section>
+      </FxQueryBoundary>
     </ExperienceLayout>
   );
 }

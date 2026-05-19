@@ -4,6 +4,7 @@ import { MerchantLayout } from '../components/MerchantLayout';
 import { formatCurrency } from '../format';
 import { useMenuItems, useBranches } from '../../../hooks/useMerchantData';
 import { usePlanLimits } from '../../enterprise';
+import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
 import type { MerchantMenuItem } from '../types';
 
 const emptyItem = {
@@ -14,15 +15,14 @@ const emptyItem = {
 };
 
 export function MerchantCatalogPage() {
-  const { data: items = [] } = useMenuItems();
-  const { data: branches = [], isLoading: branchesLoading } = useBranches();
+  const { data: items = [], isLoading: menuItemsLoading, isError: menuItemsError } = useMenuItems();
+  const { data: branches = [], isLoading: branchesLoading, isError: branchesError } = useBranches();
   const [branchId, setBranchId] = useState(branches[0]?.id ?? '');
   const [form, setForm] = useState(emptyItem);
   const [localItems, setLocalItems] = useState<MerchantMenuItem[]>([]);
   const limits = usePlanLimits('company-1');
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLocalItems(items);
   }, [items]);
 
@@ -76,6 +76,7 @@ export function MerchantCatalogPage() {
   }
 
   return (
+    <FxQueryBoundary isLoading={menuItemsLoading} isError={menuItemsError || branchesError}>
     <MerchantLayout
       title="Cardapio"
       actions={
@@ -190,5 +191,6 @@ export function MerchantCatalogPage() {
         </div>
       </section>
     </MerchantLayout>
+    </FxQueryBoundary>
   );
 }

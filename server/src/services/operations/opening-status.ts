@@ -1,4 +1,4 @@
-import { eq, and } from 'drizzle-orm';
+import { eq, and, inArray } from 'drizzle-orm';
 import { db } from '../../db';
 import {
   businessHours, businessHourPeriods,
@@ -12,7 +12,10 @@ type WeekDay = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'sat
 const TZ = 'America/Sao_Paulo';
 
 function getNow(): Date {
-  return new Date(new Date().toLocaleString('en-US', { timeZone: TZ }));
+  const formatter = new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+  const parts = formatter.formatToParts(new Date());
+  const get = (type: string) => parts.find(p => p.type === type)?.value ?? '0';
+  return new Date(`${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}:${get('second')}`);
 }
 
 function toWeekDay(date: Date): WeekDay {
@@ -51,7 +54,7 @@ export interface OpenStatus {
   currentPeriod: TimePeriod | null;
   nextOpening: TimePeriod | null;
   nextOpeningDate: string | null;
-  reason: 'open' | 'closed' | 'holiday' | 'special_closed' | 'before_hours' | 'after_hours' | 'overnight_gap';
+  reason: 'open' | 'closed' | 'holiday' | 'special_closed' | 'before_hours' | 'after_hours';
   overrideLabel: string | null;
 }
 
@@ -86,27 +89,32 @@ async function getBusinessHours(branchId: string): Promise<BusinessHourRow[]> {
     .from(businessHours)
     .where(eq(businessHours.branch_id, branchId));
 
-  const result: BusinessHourRow[] = [];
+  if (hours.length === 0) return [];
 
-  for (const hour of hours) {
-    const periods = await db
-      .select({
-        openTime: businessHourPeriods.open_time,
-        closeTime: businessHourPeriods.close_time,
-      })
-      .from(businessHourPeriods)
-      .where(eq(businessHourPeriods.business_hour_id, hour.id))
-      .orderBy(businessHourPeriods.sort_order);
+  const hourIds = hours.map(h => h.id);
+  const allPeriods = await db
+    .select({
+      business_hour_id: businessHourPeriods.business_hour_id,
+      openTime: businessHourPeriods.open_time,
+      closeTime: businessHourPeriods.close_time,
+      sort_order: businessHourPeriods.sort_order,
+    })
+    .from(businessHourPeriods)
+    .where(inArray(businessHourPeriods.business_hour_id, hourIds))
+    .orderBy(businessHourPeriods.sort_order);
 
-    result.push({
-      weekday: hour.weekday,
-      isClosed: hour.is_closed ?? false,
-      is24h: hour.is_24h ?? false,
-      periods: periods.map((p: { openTime: string; closeTime: string }) => ({ openTime: p.openTime, closeTime: p.closeTime })),
-    });
+  const periodsByHourId: Record<string, TimePeriod[]> = {};
+  for (const p of allPeriods) {
+    if (!periodsByHourId[p.business_hour_id]) periodsByHourId[p.business_hour_id] = [];
+    periodsByHourId[p.business_hour_id].push({ openTime: p.openTime, closeTime: p.closeTime });
   }
 
-  return result;
+  return hours.map(hour => ({
+    weekday: hour.weekday,
+    isClosed: hour.is_closed ?? false,
+    is24h: hour.is_24h ?? false,
+    periods: periodsByHourId[hour.id] ?? [],
+  }));
 }
 
 async function getHolidayOverride(branchId: string, dateStr: string): Promise<HolidayOverrideRow | null> {
@@ -196,7 +204,7 @@ function checkPeriods(periods: TimePeriod[], nowMin: number): { inPeriod: TimePe
     const closeMin = toMinutes(period.closeTime);
 
     if (isOvernight(period.openTime, period.closeTime)) {
-      if (nowMin >= openMin || nowMin < closeMin) {
+      if (nowMin >= openMin) {
         inPeriod = period;
       } else if (!nextPeriod && openMin > nowMin) {
         nextPeriod = period;

@@ -49,7 +49,6 @@ export function AddressAutocomplete({
     if (value !== undefined && value !== query) {
       setQuery(value);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
 
   const lastSelectedRef = useRef<AutocompleteSuggestion | null>(null);

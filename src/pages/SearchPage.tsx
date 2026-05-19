@@ -3,6 +3,7 @@ import { FxSearchBar } from '../components/commerce/FxSearchBar';
 import { FxFilterChips } from '../components/commerce/FxFilterChips';
 import { FxRestaurantCard } from '../components/commerce/FxRestaurantCard';
 import { FxPageNavbar } from '../components/navigation/FxPageNavbar';
+import { FxQueryBoundary } from '../components/ui/FxQueryBoundary';
 import { useRestaurantSearch } from '../hooks/useRestaurantFilter';
 import { restaurantDetailHref } from '../lib/routes';
 
@@ -11,7 +12,7 @@ export function SearchPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const initialQuery = searchParams.get('search') ?? '';
-  const { setQuery, selectedCategory, setSelectedCategory, selectedSort, setSelectedSort, filteredRestaurants, sortOptions, categories } = useRestaurantSearch({ initialQuery });
+  const { setQuery, selectedCategory, setSelectedCategory, selectedSort, setSelectedSort, filteredRestaurants, sortOptions, categories, loading } = useRestaurantSearch({ initialQuery });
 
   const handleSearch = (searchQuery: string) => {
     setQuery(searchQuery);
@@ -26,6 +27,7 @@ export function SearchPage() {
       <FxPageNavbar title="Buscar" />
 
       <main>
+        <FxQueryBoundary isLoading={loading} isError={false} error={null}>
         <div className="fx-container py-4 space-y-4">
           <FxSearchBar
             initialValue={initialQuery}
@@ -82,6 +84,7 @@ export function SearchPage() {
             )}
           </div>
         </div>
+        </FxQueryBoundary>
       </main>
     </div>
   );

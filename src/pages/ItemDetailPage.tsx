@@ -4,6 +4,7 @@ import { useMenuItem } from '../hooks/useRestaurants';
 import { FxPriceTag } from '../components/commerce/FxPriceTag';
 import { FxQuantitySelector } from '../components/commerce/FxQuantitySelector';
 import { FxImage } from '../components/ui/FxImage';
+import { FxQueryBoundary } from '../components/ui/FxQueryBoundary';
 import { Icon } from '../components/ui/Icon';
 import { Button } from '../components/ui/Button';
 import { calculateItemTotal } from '../services/pricingService';
@@ -15,7 +16,7 @@ export function ItemDetailPage() {
   const { restaurantId: rid, itemId } = useParams<{ restaurantId: string; itemId: string }>();
   const navigate = useNavigate();
 
-  const { data: item } = useMenuItem(itemId);
+  const { data: item, isLoading: itemLoading, error: itemError } = useMenuItem(itemId);
 
   const [quantity, setQuantity] = useState(1);
   const [selectedAdditives, setSelectedAdditives] = useState<Set<string>>(new Set());
@@ -63,6 +64,7 @@ export function ItemDetailPage() {
   }
 
   return (
+    <FxQueryBoundary isLoading={itemLoading} isError={!!itemError} error={itemError ?? null}>
     <div className="min-h-screen bg-surface-background">
       <header className="sticky top-0 z-50 bg-surface-elevated border-b border-border-default">
         <div className="fx-container flex items-center h-14 gap-4">
@@ -171,6 +173,7 @@ export function ItemDetailPage() {
         </div>
       </div>
     </div>
+    </FxQueryBoundary>
   );
 }
 

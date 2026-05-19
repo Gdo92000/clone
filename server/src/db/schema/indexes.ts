@@ -1,5 +1,3 @@
-import { index, uniqueIndex } from 'drizzle-orm/pg-core';
-
 export const indexDefinitions = {
   core: [
     'idx_restaurants_category ON restaurants (category_id)',
@@ -60,5 +58,7 @@ export const indexDefinitions = {
     'idx_audit_events_actor ON audit_events (actor_id)',
     'idx_support_tickets_user ON support_tickets (user_id)',
     'idx_support_tickets_status ON support_tickets (status)',
+    'idx_user_notifications_user ON user_notifications (user_id, created_at DESC)',
+    'idx_user_notifications_read ON user_notifications (user_id, read)',
   ],
 } as const;
