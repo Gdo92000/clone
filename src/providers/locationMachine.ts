@@ -36,10 +36,15 @@ export async function locateCity(coords: Coordinates): Promise<{ city: City; sou
 }
 
 export async function processSupportedCity(detectedCity: City, coords: Coordinates) {
-  const supported = await findRegisteredCityCoverage(detectedCity.name);
-  if (supported) {
-    const distance = calculateDistance(coords.latitude, coords.longitude, supported.lat, supported.lng);
-    return { isWithinSupportedCity: distance <= supported.radiusKm, distanceToCityCenter: distance };
+  try {
+    const supported = await findRegisteredCityCoverage(detectedCity.name);
+    if (supported) {
+      const distance = calculateDistance(coords.latitude, coords.longitude, supported.lat, supported.lng);
+      return { isWithinSupportedCity: distance <= supported.radiusKm, distanceToCityCenter: distance };
+    }
+  } catch (error) {
+    // Falha ao verificar cidade - assume não suportada temporariamente
+    console.warn('Erro ao verificar cidade suportada:', error);
   }
   return { isWithinSupportedCity: false, distanceToCityCenter: null };
 }

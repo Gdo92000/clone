@@ -28,29 +28,34 @@ export function LocationProvider({ children }: { children: ReactNode }) {
 
   const setState = (patch: Partial<LocationState>) => { set((prev) => ({ ...prev, ...patch })); };
 
-  const hydrateFromCache = useCallback(async () => {
-    if (hydrated.current) return;
-    hydrated.current = true;
-    const cache = readCache();
-    if (!cache) return;
+const hydrateFromCache = useCallback(async () => {
+  if (hydrated.current) return;
+  hydrated.current = true;
+  const cache = readCache();
+  if (!cache) return;
+  try {
     const detectedCity = cityFromCache(cache);
     const supported = await processSupportedCity(detectedCity, cache.coordinates);
     setState({ city: detectedCity, coordinates: cache.coordinates, source: cache.source, ...supported, status: 'SUCCESS', loading: false });
-  }, []);
+  } catch (error) {
+    // Erro ao hidratar do cache - prossegue sem cidade
+    console.warn('Erro ao hidratar localização do cache:', error);
+  }
+}, []);
 
-  const tryIpFallback = useCallback(async () => {
-    setState({ loading: true, error: null, status: 'FALLBACK_IP' });
-    try {
-      const ipData = await ipFallback();
-      if (ipData) {
-        const detectedCity: City = { name: ipData.city, state: ipData.state, stateCode: '', country: 'Brasil', displayName: `${ipData.city} - ${ipData.state}` };
-        const supported = await findRegisteredCityCoverage(detectedCity.name);
-        setState({ city: detectedCity, coordinates: null, source: 'ip', isWithinSupportedCity: !!supported, distanceToCityCenter: null, status: 'FALLBACK_IP', loading: false, error: null });
-      } else {
-        setState({ status: 'ERROR', error: 'Não foi possível detectar sua cidade.', loading: false });
-      }
-    } catch { setState({ status: 'ERROR', error: 'Não foi possível detectar sua cidade.', loading: false }); }
-  }, []);
+const tryIpFallback = useCallback(async () => {
+  setState({ loading: true, error: null, status: 'FALLBACK_IP' });
+  try {
+    const ipData = await ipFallback();
+    if (ipData) {
+      const detectedCity: City = { name: ipData.city, state: ipData.state, stateCode: '', country: 'Brasil', displayName: `${ipData.city} - ${ipData.state}` };
+      const supported = await findRegisteredCityCoverage(detectedCity.name).catch(() => null);
+      setState({ city: detectedCity, coordinates: null, source: 'ip', isWithinSupportedCity: !!supported, distanceToCityCenter: null, status: 'FALLBACK_IP', loading: false, error: null });
+    } else {
+      setState({ status: 'ERROR', error: 'Não foi possível detectar sua cidade.', loading: false });
+    }
+  } catch { setState({ status: 'ERROR', error: 'Não foi possível detectar sua cidade.', loading: false }); }
+}, []);
 
   const processCoords = useCallback(async (coords: Coordinates) => {
     setState({ loading: true, error: null, status: 'REQUESTING' });

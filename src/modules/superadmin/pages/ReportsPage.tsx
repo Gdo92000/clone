@@ -2,25 +2,13 @@ import { PageHeader } from '../../../components/ui/PageHeader';
 import { Icon } from '../../../components/ui/Icon';
 import { Button } from '../../../components/ui/Button';
 import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
-import { useQuery } from '@tanstack/react-query';
-import { consumerApi } from '../../../api/consumerApi';
+import { usePlatformReports } from '../../../hooks/useSuperadminData';
 
-function computeReport(orders: any[]) {
-  const totalOrders = orders.length;
-  const totalRevenue = orders.reduce((sum: number, o: any) => sum + (o.total ?? 0), 0);
-  const avgTicket = totalOrders > 0 ? totalRevenue / totalOrders : 0;
-  const deliveryCount = orders.filter((o: any) => o.type === 'delivery' || o.type === 'entrega').length;
-  const deliveryPercent = totalOrders > 0 ? Math.round((deliveryCount / totalOrders) * 100) : 0;
-  return { totalOrders, totalRevenue, avgTicket, deliveryPercent, takeoutPercent: 100 - deliveryPercent };
-}
+
+// Removed computeReport as it is no longer used
 
 export function ReportsPage() {
-  const { data: orders = [] } = useQuery({
-    queryKey: ['orders'],
-    queryFn: () => consumerApi.getMyOrders(),
-  });
-
-  const report = computeReport(orders);
+  const { data: report = { totalOrders: 0, totalRevenue: 0, avgTicket: 0, activeStores: 0, deliveryPercent: 0, takeoutPercent: 0 } } = usePlatformReports();
 
   const formatCurrency = (value: number) =>
     `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -29,8 +17,9 @@ export function ReportsPage() {
     { label: 'Total de pedidos', value: report.totalOrders.toLocaleString('pt-BR'), icon: 'ShoppingBag' },
     { label: 'Receita total', value: formatCurrency(report.totalRevenue), icon: 'DollarSign' },
     { label: 'Ticket médio', value: formatCurrency(report.avgTicket), icon: 'ArrowUpRight' },
-    { label: 'Lojas ativas', value: report.totalOrders > 0 ? '1' : '0', icon: 'Store' },
+    { label: 'Lojas ativas', value: report.activeStores.toLocaleString('pt-BR'), icon: 'Store' },
   ];
+
 
   const downloadCSV = () => {
     const rows: string[][] = [

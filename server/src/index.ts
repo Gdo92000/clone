@@ -15,6 +15,7 @@ import merchantCouponsRoutes from './routes/merchant-coupons';
 import campaignsRoutes from './routes/campaigns';
 import plansRoutes from './routes/plans';
 import subscriptionsRoutes from './routes/subscriptions';
+import subscriptionAddonsRoutes from './routes/subscription-addons';
 import invoicesRoutes from './routes/invoices';
 import adminUsersRoutes from './routes/admin-users';
 import addonsRoutes from './routes/addons';
@@ -25,10 +26,17 @@ import auditEventsRoutes from './routes/audit-events';
 import supportTicketsRoutes from './routes/support-tickets';
 import userNotificationsRoutes from './routes/user-notifications';
 import branchSettingsRoutes from './routes/branch-settings';
+import commissionPlansRoutes from './routes/commission-plans';
+import adminReportsRoutes from './routes/admin-reports';
+import loyaltyRoutes from './routes/loyalty';
+import couponEngineRoutes from './routes/coupons-engine';
+import themeRoutes from './routes/theme';
+import printingRoutes from './routes/printing';
 import { authMiddleware } from './middleware/auth';
 import { requirePermission } from './middleware/permission';
 import { requestId } from './middleware/requestId';
 import { securityHeaders } from './middleware/securityHeaders';
+import { domainMiddleware } from './middleware/domain';
 import { ALLOWED_ORIGINS } from './config';
 import { errorHandler } from './lib/errors';
 import { startSessionCleanup } from './services/cleanupAuthSessions';
@@ -43,6 +51,7 @@ import coverageCitiesRoutes from './routes/coverage-cities';
 import consumerReviewsRoutes from './routes/consumer-reviews';
 import consumerSupportRoutes from './routes/consumer-support';
 import consumerOrdersRoutes from './routes/consumer-orders';
+import permissionsRoutes from './routes/permissions';
 import { reviews } from './db/schema';
 import type { TokenPayload } from './auth/types';
 
@@ -50,6 +59,7 @@ const app = new Hono();
 
 app.use('*', requestId);
 app.use('*', securityHeaders);
+app.use('*', domainMiddleware);
 app.use('*', cors({
   origin: (origin) => {
     if (!origin) return origin;
@@ -95,12 +105,13 @@ app.route('/api/coverage-cities', coverageCitiesRoutes);
 app.route('/api/reviews', consumerReviewsRoutes);
 app.route('/api/plans', plansRoutes);
 app.route('/api/capabilities', capabilitiesRoutes);
+app.route('/api/theme', themeRoutes);
 
 // Protected routes (require JWT)
 const api = new Hono();
 api.use('*', authMiddleware);
 
-api.post('/restaurants', zValidator('json', restaurantSchema), requirePermission(['superadmin', 'admin']), async (c) => {
+api.post('/restaurants', zValidator('json', restaurantSchema), requirePermission({ roles: ['superadmin', 'admin'] }), async (c) => {
   const data = c.req.valid('json');
   const id = crypto.randomUUID();
   const slug = data.name
@@ -139,13 +150,12 @@ api.route('/holidays', holidaysRoutes);
 api.route('/global-coupons', globalCouponsRoutes);
 api.route('/merchant-coupons', merchantCouponsRoutes);
 api.route('/campaigns', campaignsRoutes);
-api.route('/plans', plansRoutes);
 api.route('/subscriptions', subscriptionsRoutes);
+api.route('/subscription-addons', subscriptionAddonsRoutes);
 api.route('/invoices', invoicesRoutes);
 api.route('/admin/users', adminUsersRoutes);
 api.route('/addons', addonsRoutes);
 api.route('/feature-flags', featureFlagsRoutes);
-api.route('/capabilities', capabilitiesRoutes);
 api.route('/notifications', notificationsRoutes);
 api.route('/audit-events', auditEventsRoutes);
 api.route('/support-tickets', supportTicketsRoutes);
@@ -153,6 +163,19 @@ api.route('/support-tickets', consumerSupportRoutes);
 api.route('/me/orders', consumerOrdersRoutes);
 api.route('/me/notifications', userNotificationsRoutes);
 api.route('/branch-settings', branchSettingsRoutes);
+api.route('/commission-plans', commissionPlansRoutes);
+api.route('/admin/reports', adminReportsRoutes);
+api.route('/loyalty', loyaltyRoutes);
+api.route('/coupons/validate', couponEngineRoutes);
+api.route('/printing', printingRoutes);
+api.route('/permissions', permissionsRoutes);
+
+
+
+
+
+
+
 
 const reviewCreateSchema = z.object({
   restaurant_id: z.string().min(1).max(64),

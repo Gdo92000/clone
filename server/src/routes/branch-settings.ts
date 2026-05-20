@@ -5,12 +5,15 @@ import { eq } from 'drizzle-orm';
 import { db } from '../db';
 import { branchSettings } from '../db/schema';
 import { requirePermission } from '../middleware/permission';
+import { requireTenantOwnership } from '../middleware/tenant';
 
 const route = new Hono();
 
-route.use('*', requirePermission(['merchant', 'admin', 'superadmin']));
+route.use('*', requirePermission({ roles: ['merchant', 'admin', 'superadmin'] }));
 
 const idParam = z.object({ branchId: z.string().min(1).max(64) });
+
+
 
 const upsertSchema = z.object({
   opening_time: z.string().regex(/^\d{2}:\d{2}$/),
@@ -22,13 +25,14 @@ const upsertSchema = z.object({
   pix_key: z.string().max(100).optional(),
 });
 
-route.get('/:branchId', zValidator('param', idParam), async (c) => {
+route.get('/:branchId', requireTenantOwnership('branchId'), zValidator('param', idParam), async (c) => {
   const { branchId } = c.req.valid('param');
   const [settings] = await db.select().from(branchSettings).where(eq(branchSettings.branch_id, branchId));
   return settings ? c.json(settings) : c.json({}, 200);
 });
 
-route.put('/:branchId', zValidator('param', idParam), zValidator('json', upsertSchema), async (c) => {
+route.put('/:branchId', requireTenantOwnership('branchId'), zValidator('param', idParam), zValidator('json', upsertSchema), async (c) => {
+
   const { branchId } = c.req.valid('param');
   const data = c.req.valid('json');
   const [existing] = await db.select().from(branchSettings).where(eq(branchSettings.branch_id, branchId));

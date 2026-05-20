@@ -20,6 +20,7 @@ export type FeatureKey =
   | 'white_label'
   | 'team_management'
   | 'kitchen_display'
+  | 'kitchen_auto_print'
   | 'internal_courier';
 
 export interface SaasPlan {

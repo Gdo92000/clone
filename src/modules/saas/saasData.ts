@@ -16,5 +16,6 @@ export const featureLabels = {
   white_label: 'White label',
   team_management: 'Gestao de equipe',
   kitchen_display: 'Tela de cozinha',
+  kitchen_auto_print: 'Impressão automática na cozinha',
   internal_courier: 'Entregador interno',
 } as const;

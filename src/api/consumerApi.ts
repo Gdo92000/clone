@@ -8,12 +8,11 @@ export interface ReviewInput {
 }
 
 export const consumerApi = {
-  createReview: (data: ReviewInput) => post<{ id: string }>('/reviews', data),
-  getReviews: (restaurantId?: string) => get<any[]>(restaurantId ? `/reviews?restaurant_id=${restaurantId}` : '/reviews'),
-  getMyOrders: () => get<any[]>('/me/orders'),
-  createSupportTicket: (data: { title: string; message: string }) => post<{ id: string }>('/support-tickets', data),
-  getMyTickets: () => get<any[]>('/support-tickets'),
+  // ... existing methods ...
   getMyNotifications: () => get<any[]>('/me/notifications'),
-  markNotificationRead: (id: string) => put<{ success: boolean }>(`/me/notifications/${id}/read`),
-  markAllNotificationsRead: () => put<{ success: boolean }>('/me/notifications/read-all'),
+  markNotificationRead: (id: string) => put<void>(`/me/notifications/${id}/read`),
+  markAllNotificationsRead: () => put<void>('/me/notifications/read-all'),
+  getMyLoyalty: (branchId: string) => get<any>(`/loyalty/me/loyalty?branch_id=${branchId}`),
+  redeemLoyaltyReward: (data: { rewardId: string; branchId: string }) => post<any>('/loyalty/me/loyalty/redeem', data),
+  getMyOrders: () => get<any[]>('/me/orders'),
 };

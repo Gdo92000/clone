@@ -23,4 +23,10 @@ export const merchantApi = {
   deleteCampaign:          (id: string) => del<void>(`/campaigns/${id}`),
   getSettingsByBranch:     (branchId: string) => get<BranchSettingsDTO | Record<string, never>>(`/branch-settings/${branchId}`),
   updateSettings:          (branchId: string, data: Partial<BranchSettingsDTO>) => put<void>(`/branch-settings/${branchId}`, data),
+  getLoyaltySettings:         (branchId: string) => get<any>(`/loyalty/settings/${branchId}`),
+  updateLoyaltySettings:      (branchId: string, data: any) => put<void>(`/loyalty/settings/${branchId}`, data),
+  getLoyaltyRewards:          (branchId: string) => get<any[]>(`/loyalty/rewards/${branchId}`),
+  createLoyaltyReward:        (data: any) => post<any>(`/loyalty/rewards`, data),
+  updateLoyaltyReward:        (id: string, data: any) => put<any>(`/loyalty/rewards/${id}`, data),
+  deleteLoyaltyReward:        (id: string) => del<void>(`/loyalty/rewards/${id}`),
 };

@@ -1,4 +1,4 @@
-import { lazy, Suspense, type ReactNode } from 'react';
+import { lazy, Suspense, type ReactNode, useEffect } from 'react';
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { LocationProvider } from './context/LocationContext';
 import { ThemeProvider } from '../packages/ui/src/context';
@@ -11,6 +11,8 @@ import { FeatureRoute } from './modules/saas';
 import { ProtectedRoute, LoginPage } from './modules/auth';
 import { SuperadminLoginPage } from './modules/superadmin';
 import { ROUTES, getRouteArea } from './lib/routes';
+import { get } from './api/httpClient';
+
 
 // ── Public pages (lazy) ──
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -71,6 +73,16 @@ const MerchantSettingsPage = lazy(() =>
     default: m.MerchantSettingsPage,
   })),
 );
+const MerchantPrinterConfigPage = lazy(() =>
+  import('./modules/merchant/pages/MerchantPrinterConfigPage').then((m) => ({
+    default: m.MerchantPrinterConfigPage,
+  })),
+);
+const MerchantKitchenAutoPrintPage = lazy(() =>
+  import('./modules/merchant/pages/MerchantKitchenAutoPrintPage').then((m) => ({
+    default: m.MerchantKitchenAutoPrintPage,
+  })),
+);
 const MerchantSubscriptionPage = lazy(() => import('./modules/merchant/pages/MerchantSubscriptionPage'));
 const MerchantTeamPage = lazy(() =>
   import('./modules/merchant/pages/MerchantTeamPage').then((m) => ({ default: m.MerchantTeamPage })),
@@ -106,6 +118,9 @@ const FinancePage = lazy(() =>
 );
 const NotificationsPage = lazy(() =>
   import('./modules/experience/pages/NotificationsPage').then((m) => ({ default: m.NotificationsPage })),
+);
+const LoyaltyPage = lazy(() =>
+  import('./modules/experience/pages/ConsumerLoyaltyPage').then((m) => ({ default: m.ConsumerLoyaltyPage })),
 );
 const OnboardingPage = lazy(() =>
   import('./modules/experience/pages/OnboardingPage').then((m) => ({ default: m.OnboardingPage })),
@@ -158,6 +173,9 @@ const UsersPage = lazy(() =>
 const AuditPage = lazy(() =>
   import('./modules/superadmin/pages/AuditPage').then((m) => ({ default: m.AuditPage })),
 );
+const PermissionPage = lazy(() =>
+  import('./modules/superadmin/pages/PermissionManagementPage').then((m) => ({ default: m.PermissionManagementPage })),
+);
 const DemoDataPage = lazy(() =>
   import('./modules/superadmin/pages/DemoDataPage').then((m) => ({ default: m.DemoDataPage })),
 );
@@ -171,8 +189,21 @@ function ThemeAwareProvider({ children }: { children: ReactNode }) {
   const location = useLocation();
   const prefix = location.pathname.split('/')[1] ?? '';
   const area = getRouteArea(prefix);
+
+  useEffect(() => {
+    get('/theme/me/theme').then((res: any) => {
+      if (res?.theme && res.theme !== 'default') {
+        // Armazena o tema customizado no localStorage doThemeProvider
+        localStorage.setItem(`fluxds-theme:${area}`, JSON.stringify(res.theme));
+      }
+    }).catch(() => {});
+  }, [area]);
+
   return (
-    <ThemeProvider key={area} storageKey={`fluxds-theme:${area}`}>
+    <ThemeProvider
+      key={area}
+      storageKey={`fluxds-theme:${area}`}
+    >
       {children}
     </ThemeProvider>
   );
@@ -239,8 +270,10 @@ function App() {
                   <Route path={ROUTES.PROFILE} element={<Suspense fallback={routeFallback}><ProtectedRoute><ProfilePage /></ProtectedRoute></Suspense>} />
                   <Route path={ROUTES.ADDRESSES} element={<Suspense fallback={routeFallback}><ProtectedRoute><AddressBookPage /></ProtectedRoute></Suspense>} />
                   <Route path={ROUTES.ACCESS} element={<Suspense fallback={routeFallback}><ProtectedRoute><AccessHubPage /></ProtectedRoute></Suspense>} />
-                  <Route path={ROUTES.NOTIFICATIONS} element={<Suspense fallback={routeFallback}><ProtectedRoute><NotificationsPage /></ProtectedRoute></Suspense>} />
-                  <Route path={ROUTES.FAVORITES} element={<Suspense fallback={routeFallback}><ProtectedRoute><FavoritesPage /></ProtectedRoute></Suspense>} />
+                   <Route path={ROUTES.NOTIFICATIONS} element={<Suspense fallback={routeFallback}><ProtectedRoute><NotificationsPage /></ProtectedRoute></Suspense>} />
+                   <Route path="/loyalty" element={<Suspense fallback={routeFallback}><ProtectedRoute><LoyaltyPage /></ProtectedRoute></Suspense>} />
+                   <Route path={ROUTES.FAVORITES} element={<Suspense fallback={routeFallback}><ProtectedRoute><FavoritesPage /></ProtectedRoute></Suspense>} />
+
                   <Route path={ROUTES.PROMOTIONS} element={<Suspense fallback={routeFallback}><ProtectedRoute><PromotionsPage /></ProtectedRoute></Suspense>} />
                   <Route path={ROUTES.SUPPORT} element={<Suspense fallback={routeFallback}><ProtectedRoute><SupportPage /></ProtectedRoute></Suspense>} />
                   <Route path={ROUTES.FINANCE} element={<Suspense fallback={routeFallback}><ProtectedRoute><FinancePage /></ProtectedRoute></Suspense>} />
@@ -258,8 +291,10 @@ function App() {
                   <Route path="features" element={<Suspense fallback={routeFallback}><ProtectedRoute permission="features.manage"><FeatureFlagsPage /></ProtectedRoute></Suspense>} />
                   <Route path="billing" element={<Suspense fallback={routeFallback}><ProtectedRoute permission="billing.manage"><BillingPage /></ProtectedRoute></Suspense>} />
                   <Route path="users" element={<Suspense fallback={routeFallback}><ProtectedRoute permission="users.manage"><UsersPage /></ProtectedRoute></Suspense>} />
-                  <Route path="audit" element={<Suspense fallback={routeFallback}><ProtectedRoute roles={['superadmin']}><AuditPage /></ProtectedRoute></Suspense>} />
-                  <Route path="commissions" element={<Suspense fallback={routeFallback}><ProtectedRoute roles={['superadmin']}><CommissionsPage /></ProtectedRoute></Suspense>} />
+                   <Route path="audit" element={<Suspense fallback={routeFallback}><ProtectedRoute roles={['superadmin']}><AuditPage /></ProtectedRoute></Suspense>} />
+                   <Route path="permissions" element={<Suspense fallback={routeFallback}><ProtectedRoute roles={['superadmin']}><PermissionPage /></ProtectedRoute></Suspense>} />
+                   <Route path="commissions" element={<Suspense fallback={routeFallback}><ProtectedRoute roles={['superadmin']}><CommissionsPage /></ProtectedRoute></Suspense>} />
+
                   <Route path="coupons" element={<Suspense fallback={routeFallback}><ProtectedRoute roles={['superadmin']}><CouponsPage /></ProtectedRoute></Suspense>} />
                   <Route path="categories" element={<Suspense fallback={routeFallback}><ProtectedRoute roles={['superadmin']}><CategoriesPage /></ProtectedRoute></Suspense>} />
                   <Route path="notifications" element={<Suspense fallback={routeFallback}><ProtectedRoute roles={['superadmin']}><SuperadminNotificationsPage /></ProtectedRoute></Suspense>} />
@@ -283,8 +318,12 @@ function App() {
                 <Route path={ROUTES.MERCHANT_FINANCE} element={<Suspense fallback={routeFallback}><ProtectedRoute permission="finance.view"><FeatureRoute companyId="company-1" featureKey="financial_suite"><MerchantFinancePage /></FeatureRoute></ProtectedRoute></Suspense>} />
                 <Route path={ROUTES.MERCHANT_COUPONS} element={<Suspense fallback={routeFallback}><ProtectedRoute roles={['superadmin', 'company_owner', 'branch_manager']}><FeatureRoute companyId="company-1" featureKey="coupon_automation"><MerchantCouponsPage /></FeatureRoute></ProtectedRoute></Suspense>} />
                 <Route path={ROUTES.MERCHANT_SUBSCRIPTION} element={<Suspense fallback={routeFallback}><ProtectedRoute><MerchantSubscriptionPage /></ProtectedRoute></Suspense>} />
-                <Route path={ROUTES.MERCHANT_SETTINGS} element={<Suspense fallback={routeFallback}><ProtectedRoute><MerchantSettingsPage /></ProtectedRoute></Suspense>} />
-                <Route path={ROUTES.MERCHANT_HOURS} element={<Suspense fallback={routeFallback}><ProtectedRoute><MerchantHoursPage /></ProtectedRoute></Suspense>} />
+<Route path={ROUTES.MERCHANT_SETTINGS} element={<Suspense fallback={routeFallback}><ProtectedRoute><MerchantSettingsPage /></ProtectedRoute></Suspense>} />
+<Route path="/merchant/printer" element={<Suspense fallback={routeFallback}><ProtectedRoute><MerchantPrinterConfigPage /></ProtectedRoute></Suspense>} />
+<Route path="/merchant/kitchen-auto-print" element={<Suspense fallback={routeFallback}><ProtectedRoute><MerchantKitchenAutoPrintPage /></ProtectedRoute></Suspense>} />
+                   <Route path={ROUTES.MERCHANT_HOURS} element={<Suspense fallback={routeFallback}><ProtectedRoute><MerchantHoursPage /></ProtectedRoute></Suspense>} />
+
+
                 <Route path={ROUTES.MERCHANT_HOLIDAYS} element={<Suspense fallback={routeFallback}><ProtectedRoute><MerchantHolidaysPage /></ProtectedRoute></Suspense>} />
 
                 <Route path={ROUTES.COURIER} element={<DashboardLayout logo="EN" title="Entregador" navItems={courierNavItems} />}>

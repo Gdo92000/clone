@@ -63,16 +63,18 @@ auth.post('/register', rateLimit(5, 60_000), zValidator('json', registerSchema),
   const passwordHash = await provider.hashPassword(input.password);
   const id = crypto.randomUUID();
 
-  await db.insert(users).values({
-    id,
-    name: input.name,
-    email: input.email,
-    password_hash: passwordHash,
-    role: 'customer',
-    is_active: true,
-  });
+  await db.transaction(async (tx) => {
+    await tx.insert(users).values({
+      id,
+      name: input.name,
+      email: input.email,
+      password_hash: passwordHash,
+      role: 'customer',
+      is_active: true,
+    });
 
-  await createAuditLog({ userId: id, action: 'REGISTER' });
+    await createAuditLog({ userId: id, action: 'REGISTER' });
+  });
 
   return c.json({ success: true, id }, 201);
 });
@@ -100,14 +102,16 @@ auth.post('/forgot-password', rateLimit(3, 60_000), zValidator('json', forgotPas
     const token = crypto.randomBytes(32).toString('hex');
     const tokenHash = crypto.createHash('sha256').update(token, 'utf8').digest('hex');
 
-    await db.insert(passwordResets).values({
-      id: crypto.randomUUID(),
-      user_id: user.id,
-      token_hash: tokenHash,
-      expires_at: new Date(Date.now() + 60 * 60 * 1000),
-    });
+    await db.transaction(async (tx) => {
+      await tx.insert(passwordResets).values({
+        id: crypto.randomUUID(),
+        user_id: user.id,
+        token_hash: tokenHash,
+        expires_at: new Date(Date.now() + 60 * 60 * 1000),
+      });
 
-    await createAuditLog({ userId: user.id, action: 'PASSWORD_RESET_REQUESTED' });
+      await createAuditLog({ userId: user.id, action: 'PASSWORD_RESET_REQUESTED' });
+    });
   }
 
   return c.json({ success: true, message: 'Se o email existir, um link de recuperação será enviado.' });
@@ -137,10 +141,12 @@ auth.post('/reset-password', rateLimit(5, 60_000), zValidator('json', resetPassw
   }
 
   const passwordHash = await provider.hashPassword(password);
-  await db.update(users).set({ password_hash: passwordHash }).where(eq(users.id, reset.user_id));
-  await db.update(passwordResets).set({ used_at: new Date() }).where(eq(passwordResets.id, reset.id));
-
-  await createAuditLog({ userId: reset.user_id, action: 'PASSWORD_CHANGE' });
+  
+  await db.transaction(async (tx) => {
+    await tx.update(users).set({ password_hash: passwordHash }).where(eq(users.id, reset.user_id));
+    await tx.update(passwordResets).set({ used_at: new Date() }).where(eq(passwordResets.id, reset.id));
+    await createAuditLog({ userId: reset.user_id, action: 'PASSWORD_CHANGE' });
+  });
 
   return c.json({ success: true, message: 'Senha alterada com sucesso.' });
 });

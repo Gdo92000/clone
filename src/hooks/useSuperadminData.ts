@@ -1,10 +1,12 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   globalCouponApi,
   notificationsApi,
   auditApi,
   merchantApi,
   subscriptionApi,
+  commissionPlanApi,
+  reportsApi,
 } from '../api';
 
 const STALE = 1000 * 60 * 5;
@@ -46,6 +48,32 @@ export function usePlatformMetrics() {
         totalSubscriptions: Array.isArray(subscriptions) ? subscriptions.length : 0,
       };
     },
+    staleTime: STALE,
+  });
+}
+
+export function useCommissionPlans() {
+  return useQuery<any[]>({
+    queryKey: ['commission-plans'],
+    queryFn: () => commissionPlanApi.list(),
+    staleTime: STALE,
+  });
+}
+
+export function useUpdateCommissionPlan() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => commissionPlanApi.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['commission-plans'] });
+    },
+  });
+}
+
+export function usePlatformReports() {
+  return useQuery({
+    queryKey: ['platform-reports'],
+    queryFn: () => reportsApi.getPlatformMetrics(),
     staleTime: STALE,
   });
 }

@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { Icon } from '../../../components/ui/Icon';
 import { Button } from '../../../components/ui/Button';
-import { usePersistentState } from '../../../hooks/usePersistentState';
+import { useCommissionPlans, useUpdateCommissionPlan } from '../../../hooks/useSuperadminData';
 import { clsx } from 'clsx';
 import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
+import { toast } from 'sonner';
 
 interface CommissionPlan {
   id: string;
@@ -15,17 +16,21 @@ interface CommissionPlan {
   additionalFees: { label: string; percentage: number }[];
 }
 
-const DEFAULT_PLANS: CommissionPlan[] = [
-  { id: 'basic', name: 'Básico', marketplaceFee: 12, deliveryFee: 8, paymentFee: 3.5, additionalFees: [{ label: 'Marketing', percentage: 2 }] },
-  { id: 'pro', name: 'Profissional', marketplaceFee: 8, deliveryFee: 5, paymentFee: 2.5, additionalFees: [{ label: 'Marketing', percentage: 1.5 }] },
-  { id: 'enterprise', name: 'Enterprise', marketplaceFee: 5, deliveryFee: 3, paymentFee: 1.5, additionalFees: [] },
-];
-
 export function CommissionsPage() {
-  const [plans, setPlans] = usePersistentState<CommissionPlan[]>('superadmin.commissionPlans', DEFAULT_PLANS);
+  const { data: apiPlans = [] } = useCommissionPlans();
+  const { mutate: updatePlan } = useUpdateCommissionPlan();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<CommissionPlan | null>(null);
   const [saved, setSaved] = useState(false);
+
+  const plans = apiPlans.map(p => ({
+    id: p.plan_id,
+    name: p.name || (p.plan_id === 'basic' ? 'Básico' : p.plan_id === 'pro' ? 'Profissional' : 'Enterprise'),
+    marketplaceFee: Number(p.marketplace_fee),
+    deliveryFee: Number(p.delivery_fee),
+    paymentFee: Number(p.payment_fee),
+    additionalFees: p.additional_fees || [],
+  }));
 
   const saveDefaults = () => {
     setSaved(true);
@@ -37,11 +42,24 @@ export function CommissionsPage() {
     setEditForm({ ...plan, additionalFees: [...plan.additionalFees] });
   };
 
-  const saveEdit = () => {
+  const saveEdit = async () => {
     if (!editForm) return;
-    setPlans((prev) => prev.map((p) => (p.id === editForm.id ? editForm : p)));
-    setEditingId(null);
-    setEditForm(null);
+    try {
+      await updatePlan({
+        id: editForm.id,
+        data: {
+          marketplace_fee: String(editForm.marketplaceFee),
+          delivery_fee: String(editForm.deliveryFee),
+          payment_fee: String(editForm.paymentFee),
+          additional_fees: editForm.additionalFees,
+        }
+      });
+      toast.success('Plano atualizado com sucesso');
+      setEditingId(null);
+      setEditForm(null);
+    } catch {
+      toast.error('Erro ao salvar plano');
+    }
   };
 
   const cancelEdit = () => {
@@ -89,13 +107,13 @@ export function CommissionsPage() {
                     <span className="text-sm text-text-secondary">{field.label}</span>
                     {isEditing ? (
                       <div className="flex items-center gap-1">
-                        <input
-                          type="number"
-                          value={form[field.key]}
-                          onChange={(e) => { setEditForm({ ...form, [field.key]: Number(e.target.value) }); }}
-                          className="w-20 h-8 text-right px-2 rounded-lg bg-surface-background border border-border-default text-text-primary text-sm focus:outline-none focus:border-border-focus"
-                          step="0.5"
-                        />
+                                <input
+                                  type="number"
+                                  value={form[field.key]}
+                                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setEditForm({ ...form, [field.key]: Number(e.target.value) }); }}
+                                  className="w-20 h-8 text-right px-2 rounded-lg bg-surface-background border border-border-default text-text-primary text-sm focus:outline-none focus:border-border-focus"
+                                  step="0.5"
+                                />
                         <span className="text-sm text-text-tertiary">%</span>
                       </div>
                     ) : (
@@ -104,7 +122,7 @@ export function CommissionsPage() {
                   </div>
                 ))}
 
-                {form.additionalFees.map((fee, i) => (
+                {form.additionalFees.map((fee: { label: string; percentage: number }, i: number) => (
                   <div key={i} className="flex items-center justify-between py-1">
                     <span className="text-sm text-text-tertiary">{fee.label}</span>
                     <span className="font-medium text-text-primary">{fee.percentage}%</span>
@@ -115,9 +133,10 @@ export function CommissionsPage() {
               <div className="mt-4 pt-4 border-t border-border-default">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-semibold text-text-primary">Total estimado</span>
-                  <span className="text-lg font-bold text-brand-primary">
-                    {form.marketplaceFee + form.deliveryFee + form.paymentFee + form.additionalFees.reduce((s, f) => s + f.percentage, 0)}%
-                  </span>
+                    <span className="text-lg font-bold text-brand-primary">
+                      {form.marketplaceFee + form.deliveryFee + form.paymentFee + form.additionalFees.reduce((s: number, f: { percentage: number }) => s + f.percentage, 0)}%
+                    </span>
+
                 </div>
               </div>
 

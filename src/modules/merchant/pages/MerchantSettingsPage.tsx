@@ -16,49 +16,72 @@ export function MerchantSettingsPage() {
     if (!branchId && branches.length > 0) setBranchId(branches[0]!.id);
   }, [branches, branchId]);
 
-  const { data: remoteSettings } = useQuery({
-    queryKey: ['branch-settings', branchId],
-    queryFn: () => merchantApi.getSettingsByBranch(branchId),
-    enabled: !!branchId,
-  });
+const [settings, setSettings] = useState({
+  opening_time: '09:00',
+  closing_time: '18:00',
+  preparation_time: '30',
+  minimum_order: '20',
+  accepts_delivery: true,
+  accepts_pickup: true,
+  pix_key: '',
+});
 
-  const [settings, setSettings] = useState({
-    opening_time: '18:00',
-    closing_time: '23:30',
-    preparation_time: '35',
-    minimum_order: '25',
-    accepts_delivery: true,
-    accepts_pickup: true,
-    pix_key: '',
-  });
+const { data: remoteSettings } = useQuery({
+  queryKey: ['branch-settings', branchId],
+  queryFn: () => merchantApi.getSettingsByBranch(branchId),
+  enabled: !!branchId,
+});
+
+const { data: remoteLoyalty } = useQuery({
+  queryKey: ['loyalty-settings', branchId],
+  queryFn: () => merchantApi.getLoyaltySettings(branchId),
+  enabled: !!branchId,
+});
+
+const [loyaltySettings, setLoyaltySettings] = useState({
+  enabled: false,
+  points_per_real: '1.00',
+});
+
+useEffect(() => {
+  if (remoteSettings && 'branch_id' in remoteSettings) {
+    setSettings({
+      opening_time: remoteSettings.opening_time,
+      closing_time: remoteSettings.closing_time,
+      preparation_time: remoteSettings.preparation_time,
+      minimum_order: remoteSettings.minimum_order,
+      accepts_delivery: remoteSettings.accepts_delivery,
+      accepts_pickup: remoteSettings.accepts_pickup,
+      pix_key: remoteSettings.pix_key ?? '',
+    });
+  }
+}, [remoteSettings]);
 
   useEffect(() => {
-    if (remoteSettings && 'branch_id' in remoteSettings) {
-      setSettings({
-        opening_time: remoteSettings.opening_time,
-        closing_time: remoteSettings.closing_time,
-        preparation_time: remoteSettings.preparation_time,
-        minimum_order: remoteSettings.minimum_order,
-        accepts_delivery: remoteSettings.accepts_delivery,
-        accepts_pickup: remoteSettings.accepts_pickup,
-        pix_key: remoteSettings.pix_key ?? '',
+    if (remoteLoyalty) {
+      setLoyaltySettings({
+        enabled: remoteLoyalty.enabled ?? false,
+        points_per_real: remoteLoyalty.points_per_real ?? '1.00',
       });
     }
-  }, [remoteSettings]);
+  }, [remoteLoyalty]);
 
   const saveSettings = async () => {
     if (!branchId) return;
     setSaving(true);
     try {
       await merchantApi.updateSettings(branchId, settings);
+      await merchantApi.updateLoyaltySettings(branchId, loyaltySettings);
       successToast('Configuracoes salvas com sucesso');
       await queryClient.invalidateQueries({ queryKey: ['branch-settings', branchId] });
+      await queryClient.invalidateQueries({ queryKey: ['loyalty-settings', branchId] });
     } catch {
       errorToast('Erro ao salvar configuracoes');
     } finally {
       setSaving(false);
     }
   };
+
 
   const selectedBranch = branches.find((b) => b.id === branchId);
 
@@ -155,14 +178,42 @@ export function MerchantSettingsPage() {
             />
           </label>
 
-          <div className="mt-4 flex flex-wrap items-center gap-3">
-            <Button onClick={saveSettings} loading={saving} disabled={saving}>
-              {saving ? 'Salvando...' : 'Salvar configuracoes'}
-            </Button>
-          </div>
-        </div>
+           <div className="mt-4 flex flex-wrap items-center gap-3">
+             <Button onClick={saveSettings} loading={saving} disabled={saving}>
+               {saving ? 'Salvando...' : 'Salvar configuracoes'}
+             </Button>
+           </div>
+         </div>
 
-        <div className="rounded-xl border border-border-default bg-surface-elevated p-4">
+         <div className="rounded-xl border border-border-default bg-surface-elevated p-4">
+           <h2 className="font-semibold text-text-primary">Programa de Fidelidade</h2>
+           <p className="mt-1 text-sm text-text-secondary"> Configure a pontuação por real gasto. </p>
+
+           <div className="mt-4 space-y-4">
+             <label className="flex items-center justify-between rounded-lg border border-border-default bg-surface-background p-3">
+               <span className="text-sm font-medium text-text-primary">Habilitar Fidelidade</span>
+               <input
+                 type="checkbox"
+                 checked={loyaltySettings.enabled}
+                 onChange={(event) => { setLoyaltySettings({ ...loyaltySettings, enabled: event.target.checked }); }}
+               />
+             </label>
+
+             <label className="block">
+               <span className="text-sm font-medium text-text-primary">Pontos por R$ 1,00</span>
+               <input
+                 type="number"
+                 value={loyaltySettings.points_per_real}
+                 onChange={(event) => { setLoyaltySettings({ ...loyaltySettings, points_per_real: event.target.value }); }}
+                 className="mt-1 h-10 w-full rounded-lg border border-border-default bg-surface-background px-3 text-sm"
+                 step="0.01"
+               />
+             </label>
+           </div>
+         </div>
+
+         <div className="rounded-xl border border-border-default bg-surface-elevated p-4">
+
           <h2 className="font-semibold text-text-primary">Contrato para backend</h2>
           <div className="mt-4 space-y-3 text-sm text-text-secondary">
             <p>Empresa controla CNPJ, plano e permissoes.</p>

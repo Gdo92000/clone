@@ -1,50 +1,140 @@
 import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { MerchantLayout } from '../components/MerchantLayout';
 import { Icon } from '../../../components/ui/Icon';
 import { Button } from '../../../components/ui/Button';
-import { useCoupons } from '../../../hooks/useMerchantData';
-import type { MerchantCoupon } from '../../../types';
+import { useBranches } from '../../../hooks/useMerchantData';
+import { merchantApi } from '../../../api/merchantApi';
+import { successToast, errorToast } from '../../../lib/toast';
 import { clsx } from 'clsx';
 
-type CouponForm = Omit<MerchantCoupon, 'id' | 'currentUses'>;
-const emptyForm: CouponForm = { code: '', description: '', discountType: 'percentage', discountValue: 10, minOrder: 0, maxUses: 100, validUntil: '', isActive: true };
+interface MerchantCoupon {
+  id: string;
+  branch_id: string;
+  code: string;
+  description: string;
+  discount_type: 'percentage' | 'fixed';
+  discount_value: string;
+  min_order: string;
+  max_uses: number;
+  current_uses: number;
+  valid_until: string;
+  is_active: boolean;
+  rules: Record<string, any>;
+}
+
+type CouponForm = Omit<MerchantCoupon, 'id' | 'current_uses'> & { branch_id?: string };
+const emptyForm: CouponForm = { branch_id: '', code: '', description: '', discount_type: 'percentage', discount_value: '10', min_order: '0', max_uses: 100, valid_until: '', is_active: true, rules: {} };
 
 export function MerchantCouponsPage() {
-  const { data: initialCoupons = [] } = useCoupons();
-  const [coupons, setCoupons] = useState<MerchantCoupon[]>([]);
+  const queryClient = useQueryClient();
+  const { data: branches = [] } = useBranches();
+  const [branchId, setBranchId] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<CouponForm>(emptyForm);
 
-    useEffect(() => {
-      if (initialCoupons.length > 0) {
-        setCoupons(initialCoupons);
-      }
-    }, [initialCoupons]);
+  useEffect(() => {
+    if (!branchId && branches.length > 0) setBranchId(branches[0]!.id);
+  }, [branches, branchId]);
+
+  const { data: coupons = [] } = useQuery({
+    queryKey: ['merchant-coupons', branchId],
+    queryFn: () => merchantApi.getCouponsByBranch(branchId),
+    enabled: !!branchId,
+  });
+
+  const mutation = useMutation({
+    mutationFn: async (data: any) => {
+      if (editingId) return merchantApi.updateCoupon(editingId, data);
+      return merchantApi.createCoupon(data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['merchant-coupons', branchId] });
+      resetForm();
+      successToast('Cupom salvo com sucesso');
+    },
+    onError: () => {
+      errorToast('Erro ao salvar cupom');
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => merchantApi.deleteCoupon(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['merchant-coupons', branchId] });
+      successToast('Cupom removido');
+    },
+    onError: () => {
+      errorToast('Erro ao remover cupom');
+    },
+  });
 
   const resetForm = () => { setForm(emptyForm); setShowForm(false); setEditingId(null); };
 
-  const openNew = () => { setForm({ ...emptyForm, validUntil: new Date(Date.now() + 90 * 86400000).toISOString().slice(0, 10) }); setShowForm(true); };
+const openNew = () => {
+  setForm({ ...emptyForm, valid_until: new Date(Date.now() + 90 * 86400000).toISOString().slice(0, 10) });
+  setShowForm(true);
+};
 
-  const openEdit = (c: MerchantCoupon) => { setForm({ code: c.code, description: c.description, discountType: c.discountType, discountValue: c.discountValue, minOrder: c.minOrder, maxUses: c.maxUses, validUntil: c.validUntil, isActive: c.isActive }); setEditingId(c.id); setShowForm(true); };
+const openEdit = (c: MerchantCoupon) => {
+  setForm({
+    branch_id: c.branch_id,
+    code: c.code,
+    description: c.description,
+    discount_type: c.discount_type,
+    discount_value: c.discount_value,
+    min_order: c.min_order,
+    max_uses: c.max_uses,
+    valid_until: c.valid_until,
+    is_active: c.is_active,
+    rules: c.rules || {}
+  });
+  setEditingId(c.id);
+  setShowForm(true);
+};
 
   const save = () => {
     if (!form.code.trim() || !form.description.trim()) return;
-    if (editingId) {
-      setCoupons((prev) => prev.map((c) => c.id === editingId ? { ...c, ...form } : c));
-    } else {
-      setCoupons((prev) => [...prev, { ...form, id: `mc${Date.now()}`, currentUses: 0 }]);
-    }
-    resetForm();
+    mutation.mutate({
+      branch_id: branchId,
+      code: form.code,
+      description: form.description,
+      discount_type: form.discount_type,
+      discount_value: form.discount_value,
+      min_order: form.min_order,
+      max_uses: form.max_uses,
+      valid_until: form.valid_until,
+      is_active: form.is_active,
+      rules: form.rules,
+    });
   };
 
-  const remove = (id: string) => { if (confirm('Remover cupom?')) setCoupons((prev) => prev.filter((c) => c.id !== id)); };
+  const toggleActive = async (id: string, currentStatus: boolean) => {
+    try {
+      await merchantApi.updateCoupon(id, { is_active: !currentStatus });
+      queryClient.invalidateQueries({ queryKey: ['merchant-coupons', branchId] });
+      successToast('Status atualizado');
+    } catch {
+      errorToast('Erro ao atualizar status');
+    }
+  };
 
-  const toggleActive = (id: string) => { setCoupons((prev) => prev.map((c) => c.id === id ? { ...c, isActive: !c.isActive } : c)); };
-  const usagePercent = (c: MerchantCoupon) => c.maxUses > 0 ? Math.round((c.currentUses / c.maxUses) * 100) : 0;
+  const usagePercent = (c: MerchantCoupon) => c.max_uses > 0 ? Math.round((c.current_uses / c.max_uses) * 100) : 0;
 
   return (
-    <MerchantLayout title="Cupons da loja" actions={<Button variant="solid" intent="primary" size="sm" onClick={openNew}>Criar cupom</Button>}>
+    <MerchantLayout title="Cupons da loja" actions={
+      <div className="flex gap-3">
+        <select
+          value={branchId}
+          onChange={(e) => setBranchId(e.target.value)}
+          className="h-10 rounded-lg border border-border-default bg-surface-background px-3 text-sm"
+        >
+          {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+        </select>
+        <Button variant="solid" intent="primary" size="sm" onClick={openNew}>Criar cupom</Button>
+      </div>
+    }>
       <div className="space-y-4">
         <p className="text-sm text-text-secondary">Crie cupons e promoções para sua loja. Eles aparecerão para os clientes no marketplace.</p>
 
@@ -52,40 +142,56 @@ export function MerchantCouponsPage() {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={resetForm}>
             <div className="bg-surface-elevated rounded-2xl border border-border-default shadow-xl w-full max-w-lg mx-4 p-6 space-y-4" onClick={(e) => { e.stopPropagation(); }}>
               <h3 className="font-semibold text-lg text-text-primary">{editingId ? 'Editar cupom' : 'Criar cupom'}</h3>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="col-span-2">
-                  <label className="text-xs text-text-secondary font-medium">Código</label>
-                  <input type="text" value={form.code} onChange={(e) => { setForm({ ...form, code: e.target.value.toUpperCase() }); }} className="w-full h-10 px-3 rounded-lg bg-surface-background border border-border-default text-text-primary text-sm mt-1 focus:outline-none focus:border-border-focus" placeholder="Ex: LOJA10" />
-                </div>
-                <div className="col-span-2">
-                  <label className="text-xs text-text-secondary font-medium">Descrição</label>
-                  <input type="text" value={form.description} onChange={(e) => { setForm({ ...form, description: e.target.value }); }} className="w-full h-10 px-3 rounded-lg bg-surface-background border border-border-default text-text-primary text-sm mt-1 focus:outline-none focus:border-border-focus" />
-                </div>
-                <div>
-                  <label className="text-xs text-text-secondary font-medium">Tipo</label>
-                  <select value={form.discountType} onChange={(e) => { setForm({ ...form, discountType: e.target.value as 'percentage' | 'fixed' }); }} className="w-full h-10 px-3 rounded-lg bg-surface-background border border-border-default text-text-primary text-sm mt-1 focus:outline-none focus:border-border-focus">
-                    <option value="percentage">Porcentagem</option><option value="fixed">Valor fixo</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-xs text-text-secondary font-medium">Valor</label>
-                  <input type="number" value={form.discountValue} onChange={(e) => { setForm({ ...form, discountValue: Number(e.target.value) }); }} className="w-full h-10 px-3 rounded-lg bg-surface-background border border-border-default text-text-primary text-sm mt-1 focus:outline-none focus:border-border-focus" min={0} />
-                </div>
-                <div>
-                  <label className="text-xs text-text-secondary font-medium">Pedido mín. (R$)</label>
-                  <input type="number" value={form.minOrder} onChange={(e) => { setForm({ ...form, minOrder: Number(e.target.value) }); }} className="w-full h-10 px-3 rounded-lg bg-surface-background border border-border-default text-text-primary text-sm mt-1 focus:outline-none focus:border-border-focus" min={0} />
-                </div>
-                <div>
-                  <label className="text-xs text-text-secondary font-medium">Usos máximos</label>
-                  <input type="number" value={form.maxUses} onChange={(e) => { setForm({ ...form, maxUses: Number(e.target.value) }); }} className="w-full h-10 px-3 rounded-lg bg-surface-background border border-border-default text-text-primary text-sm mt-1 focus:outline-none focus:border-border-focus" min={1} />
-                </div>
-                <div className="col-span-2">
-                  <label className="text-xs text-text-secondary font-medium">Válido até</label>
-                  <input type="date" value={form.validUntil} onChange={(e) => { setForm({ ...form, validUntil: e.target.value }); }} className="w-full h-10 px-3 rounded-lg bg-surface-background border border-border-default text-text-primary text-sm mt-1 focus:outline-none focus:border-border-focus" />
-                </div>
-              </div>
+<div className="grid grid-cols-2 gap-3">
+  <div className="col-span-2">
+    <label className="text-xs text-text-secondary font-medium block">
+      Código
+      <input type="text" value={form.code} onChange={(e) => { setForm({ ...form, code: e.target.value.toUpperCase() }); }} className="w-full h-10 px-3 rounded-lg bg-surface-background border border-border-default text-text-primary text-sm mt-1 focus:outline-none focus:border-border-focus" placeholder="Ex: LOJA10" />
+    </label>
+  </div>
+  <div className="col-span-2">
+    <label className="text-xs text-text-secondary font-medium block">
+      Descrição
+      <input type="text" value={form.description} onChange={(e) => { setForm({ ...form, description: e.target.value }); }} className="w-full h-10 px-3 rounded-lg bg-surface-background border border-border-default text-text-primary text-sm mt-1 focus:outline-none focus:border-border-focus" />
+    </label>
+  </div>
+  <div>
+    <label className="text-xs text-text-secondary font-medium block">
+      Tipo
+      <select value={form.discount_type} onChange={(e) => { setForm({ ...form, discount_type: e.target.value as any }); }} className="w-full h-10 px-3 rounded-lg bg-surface-background border border-border-default text-text-primary text-sm mt-1 focus:outline-none focus:border-border-focus">
+        <option value="percentage">Porcentagem</option>
+        <option value="fixed">Valor fixo</option>
+      </select>
+    </label>
+  </div>
+  <div>
+    <label className="text-xs text-text-secondary font-medium block">
+      Valor
+      <input type="number" value={form.discount_value} onChange={(e) => { setForm({ ...form, discount_value: e.target.value }); }} className="w-full h-10 px-3 rounded-lg bg-surface-background border border-border-default text-text-primary text-sm mt-1 focus:outline-none focus:border-border-focus" min={0} />
+    </label>
+  </div>
+  <div>
+    <label className="text-xs text-text-secondary font-medium block">
+      Pedido mín. (R$)
+      <input type="number" value={form.min_order} onChange={(e) => { setForm({ ...form, min_order: e.target.value }); }} className="w-full h-10 px-3 rounded-lg bg-surface-background border border-border-default text-text-primary text-sm mt-1 focus:outline-none focus:border-border-focus" min={0} />
+    </label>
+  </div>
+  <div>
+    <label className="text-xs text-text-secondary font-medium block">
+      Usos máximos
+      <input type="number" value={form.max_uses} onChange={(e) => { setForm({ ...form, max_uses: Number(e.target.value) }); }} className="w-full h-10 px-3 rounded-lg bg-surface-background border border-border-default text-text-primary text-sm mt-1 focus:outline-none focus:border-border-focus" min={1} />
+    </label>
+  </div>
+  <div className="col-span-2">
+    <label className="text-xs text-text-secondary font-medium block">
+      Válido até
+      <input type="date" value={form.valid_until} onChange={(e) => { setForm({ ...form, valid_until: e.target.value }); }} className="w-full h-10 px-3 rounded-lg bg-surface-background border border-border-default text-text-primary text-sm mt-1 focus:outline-none focus:border-border-focus" />
+    </label>
+  </div>
+</div>
+
               <div className="flex gap-2 pt-2">
-                <Button variant="solid" intent="primary" className="flex-1" onClick={save} disabled={!form.code.trim() || !form.description.trim()}>Salvar</Button>
+                <Button variant="solid" intent="primary" className="flex-1" onClick={save} disabled={!form.code.trim() || !form.description.trim()} loading={mutation.isPending}>Salvar</Button>
                 <Button variant="outline" intent="secondary" className="flex-1" onClick={resetForm}>Cancelar</Button>
               </div>
             </div>
@@ -93,31 +199,31 @@ export function MerchantCouponsPage() {
         )}
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {coupons.map((coupon) => (
-            <article key={coupon.id} className={clsx('rounded-xl border bg-surface-elevated p-4', coupon.isActive ? 'border-border-default' : 'border-border-disabled opacity-60')}>
+          {coupons.map((coupon: MerchantCoupon) => (
+            <article key={coupon.id} className={clsx('rounded-xl border bg-surface-elevated p-4', coupon.is_active ? 'border-border-default' : 'border-border-disabled opacity-60')}>
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="font-mono font-bold text-lg text-brand-primary">{coupon.code}</span>
-                    <span className={clsx('px-2 py-0.5 rounded-full text-[10px] font-medium', coupon.isActive ? 'bg-feedback-success/10 text-feedback-success' : 'bg-text-disabled/10 text-text-disabled')}>{coupon.isActive ? 'Ativo' : 'Pausado'}</span>
+                    <span className={clsx('px-2 py-0.5 rounded-full text-[10px] font-medium', coupon.is_active ? 'bg-feedback-success/10 text-feedback-success' : 'bg-text-disabled/10 text-text-disabled')}>{coupon.is_active ? 'Ativo' : 'Pausado'}</span>
                   </div>
                   <p className="text-sm text-text-secondary mt-1">{coupon.description}</p>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-2 text-sm">
-                <div><p className="text-text-tertiary">Desconto</p><p className="font-semibold text-text-primary">{coupon.discountType === 'percentage' ? `${coupon.discountValue}%` : `R$ ${coupon.discountValue.toFixed(2)}`}</p></div>
-                <div><p className="text-text-tertiary">Pedido mín.</p><p className="font-semibold text-text-primary">R$ {coupon.minOrder.toFixed(2).replace('.', ',')}</p></div>
-                <div><p className="text-text-tertiary">Usos</p><p className="font-semibold text-text-primary">{coupon.currentUses}/{coupon.maxUses}</p></div>
-                <div><p className="text-text-tertiary">Validade</p><p className="font-semibold text-text-primary">{new Date(coupon.validUntil).toLocaleDateString('pt-BR')}</p></div>
+                <div><p className="text-text-tertiary">Desconto</p><p className="font-semibold text-text-primary">{coupon.discount_type === 'percentage' ? `${coupon.discount_value}%` : `R$ ${coupon.discount_value}`}</p></div>
+                <div><p className="text-text-tertiary">Pedido mín.</p><p className="font-semibold text-text-primary">R$ {coupon.min_order}</p></div>
+                <div><p className="text-text-tertiary">Usos</p><p className="font-semibold text-text-primary">{coupon.current_uses}/{coupon.max_uses}</p></div>
+                <div><p className="text-text-tertiary">Validade</p><p className="font-semibold text-text-primary">{new Date(coupon.valid_until).toLocaleDateString('pt-BR')}</p></div>
               </div>
               <div className="mt-3 h-1.5 rounded-full bg-surface-background overflow-hidden">
                 <div className={clsx('h-full rounded-full', usagePercent(coupon) > 80 ? 'bg-feedback-error' : 'bg-brand-primary')} style={{ width: `${usagePercent(coupon)}%` }} />
               </div>
               <p className="text-xs text-text-tertiary mt-1">{usagePercent(coupon)}% utilizado</p>
               <div className="flex gap-2 mt-4 pt-3 border-t border-border-default">
-                <Button variant="outline" intent="secondary" size="sm" className="flex-1" onClick={() => { toggleActive(coupon.id); }}>{coupon.isActive ? 'Pausar' : 'Ativar'}</Button>
+                <Button variant="outline" intent="secondary" size="sm" className="flex-1" onClick={() => { toggleActive(coupon.id, coupon.is_active); }}>{coupon.is_active ? 'Pausar' : 'Ativar'}</Button>
                 <Button variant="outline" intent="secondary" size="sm" className="flex-1" onClick={() => { openEdit(coupon); }}>Editar</Button>
-                <button onClick={() => { remove(coupon.id); }} className="p-2 rounded-lg hover:bg-surface-background transition-colors" title="Excluir"><Icon name="Trash2" size={16} className="text-text-tertiary hover:text-feedback-error" /></button>
+                <button onClick={() => { deleteMutation.mutate(coupon.id); }} className="p-2 rounded-lg hover:bg-surface-background transition-colors" title="Excluir"><Icon name="Trash2" size={16} className="text-text-tertiary hover:text-feedback-error" /></button>
               </div>
             </article>
           ))}

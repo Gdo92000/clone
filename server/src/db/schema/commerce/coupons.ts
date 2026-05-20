@@ -1,4 +1,4 @@
-import { pgEnum, pgTable, text, numeric, integer, boolean, timestamp } from 'drizzle-orm/pg-core';
+import { pgEnum, pgTable, text, numeric, integer, boolean, timestamp, jsonb } from 'drizzle-orm/pg-core';
 import { branches } from '../merchant';
 
 export const discountType = pgEnum('discount_type', ['percentage', 'fixed']);
@@ -30,5 +30,6 @@ export const merchantCoupons = pgTable('merchant_coupons', {
   current_uses: integer('current_uses').default(0),
   valid_until: timestamp('valid_until', { withTimezone: true }).notNull(),
   is_active: boolean('is_active').default(true),
+  rules: jsonb('rules').default({}),
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });

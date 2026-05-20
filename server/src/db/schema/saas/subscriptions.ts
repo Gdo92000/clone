@@ -20,6 +20,8 @@ export const subscriptions = pgTable('subscriptions', {
 ]);
 
 export const invoices = pgTable('invoices', {
+
+
   id: text('id').primaryKey(),
   company_id: text('company_id').references(() => companies.id).notNull(),
   amount: numeric('amount', { precision: 10, scale: 2 }).notNull(),

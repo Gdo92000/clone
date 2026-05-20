@@ -1,11 +1,7 @@
 function getJwtSecretFromEnv(): string {
   const secret = process.env.JWT_SECRET;
   if (!secret) {
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error('JWT_SECRET não definido. Configure a variável de ambiente JWT_SECRET.');
-    }
-    console.warn('⚠ JWT_SECRET não definido. Usando fallback inseguro apenas para desenvolvimento.');
-    return 'dev-secret-change-in-production';
+    throw new Error('JWT_SECRET não definido. Configure a variável de ambiente JWT_SECRET.');
   }
   return secret;
 }

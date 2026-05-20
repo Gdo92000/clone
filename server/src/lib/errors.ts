@@ -1,6 +1,7 @@
 import type { ErrorHandler } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
+import { logger } from './logger';
 
 export class AppError extends Error {
   statusCode: ContentfulStatusCode;
@@ -36,38 +37,42 @@ export const errorHandler: ErrorHandler = (err, c) => {
   })();
 
   if (err instanceof AppError) {
-    if (err.statusCode >= 500) console.error(`[${reqId ?? '-'}] AppError:`, err.message);
+    if (err.statusCode >= 500) logger.error(err.message, err, { requestId: reqId });
     return c.json({ error: err.message, details: err.details, requestId: reqId }, err.statusCode);
   }
+
 
   if (err instanceof HTTPException) {
     const status = err.status;
     const message = err.res ? 'Unauthorized' : err.message || 'Erro interno';
-    if (status >= 500) console.error(`[${reqId ?? '-'}] HTTP ${status}:`, err.message);
+    if (status >= 500) logger.error(err.message, err, { requestId: reqId, status });
     return c.json({ error: message, requestId: reqId }, status);
   }
+
 
   const isZodError = typeof err === 'object' && err !== null && (err as { name?: string }).name === 'ZodError';
   if (isZodError) {
     const issues = (err as { issues: unknown[] }).issues;
-    console.error(`[${reqId ?? '-'}] Zod validation error`);
+    logger.warn('Zod validation error', { requestId: reqId, issues });
     return c.json({ error: 'Dados inválidos', details: issues, requestId: reqId }, 400);
   }
+
 
   const isPostgresError = typeof err === 'object' && err !== null && 'code' in err;
   if (isPostgresError) {
     const pgErr = err as { code: string; message?: string };
     if (pgErr.code === 'ECONNREFUSED' || pgErr.code === '57P01') {
-      console.error(`[${reqId ?? '-'}] DB connection error`);
+      logger.error('DB connection error', err, { requestId: reqId, code: pgErr.code });
       return c.json({ error: 'Erro de conexão com banco de dados', requestId: reqId }, 503);
     }
     if (pgErr.code === '23505') {
       return c.json({ error: 'Registro duplicado', requestId: reqId }, 409);
     }
-    console.error(`[${reqId ?? '-'}] DB query error`);
+    logger.error('DB query error', err, { requestId: reqId, code: pgErr.code });
     return c.json({ error: 'Erro no banco de dados', requestId: reqId }, 500);
   }
 
-  console.error(`[${reqId ?? '-'}] Unhandled error:`, err instanceof Error ? err.message : err);
+
+  logger.error('Unhandled error', err instanceof Error ? err : new Error(String(err)), { requestId: reqId });
   return c.json({ error: 'Erro interno do servidor', requestId: reqId }, 500);
 };

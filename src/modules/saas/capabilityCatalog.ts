@@ -13,6 +13,7 @@ export const capabilityCatalog: SaasCapability[] = [
   { featureKey: 'api_access', name: 'API access', description: 'Acesso futuro a API para integracoes externas.', monthlyPrice: 149, dependencies: ['analytics'], category: 'enterprise', requiredPlan: 'premium', chargeType: 'enterprise_contract', relatedLimits: [] },
   { featureKey: 'white_label', name: 'White label', description: 'Personalizacao de marca para redes maiores.', monthlyPrice: 299, dependencies: ['api_access'], category: 'enterprise', requiredPlan: 'premium', chargeType: 'enterprise_contract', relatedLimits: ['branches'] },
   { featureKey: 'kitchen_display', name: 'Tela de cozinha', description: 'Fluxo operacional para preparo e expedicao.', monthlyPrice: 35, dependencies: ['multi_users'], category: 'operations', requiredPlan: 'basic', chargeType: 'monthly_addon', relatedLimits: ['users'] },
+{ featureKey: 'kitchen_auto_print', name: 'Impressão Automática na Cozinha', description: 'Impressão automática de pedidos aceitos via ESC/POS. Requer configuração de impressora por filial.', monthlyPrice: 49, dependencies: ['multi_users'], category: 'automation', requiredPlan: 'basic', chargeType: 'monthly_addon', relatedLimits: ['branches'] },
 ];
 
 export function capabilityToAddonId(featureKey: string) {

@@ -8,4 +8,4 @@ export { planApi } from './planApi';
 export { invoiceApi } from './invoiceApi';
 export { adminApi } from './adminApi';
 export { consumerApi } from './consumerApi';
-export { notificationsApi, auditApi, supportApi, featureFlagApi, globalCouponApi, capabilityApi } from './superadminApi';
+export { notificationsApi, auditApi, supportApi, featureFlagApi, globalCouponApi, capabilityApi, commissionPlanApi, reportsApi } from './superadminApi';

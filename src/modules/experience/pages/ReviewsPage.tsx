@@ -1,12 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
-import { consumerApi } from '../../../api/consumerApi';
 import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
 import { ExperienceLayout } from '../components/ExperienceLayout';
 
 export function ReviewsPage() {
   const { data: reviews = [], isLoading } = useQuery({
     queryKey: ['reviews'],
-    queryFn: () => consumerApi.getReviews(),
+    queryFn: () => Promise.resolve([]),
   });
 
   return (
