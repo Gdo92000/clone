@@ -1,15 +1,8 @@
 import type { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuthSession } from './useAuthSession';
-import { isAuthenticated } from '../../services/authService';
+import { getLoginUrlForPath } from '../../lib/routes';
 import type { PermissionKey, UserRole } from './types';
-
-
-function loginUrlFromPath(path: string): string {
-  if (path.startsWith('/superadmin')) return '/superadmin/login';
-  if (path.startsWith('/merchant')) return '/merchant/login';
-  return '/login';
-}
 
 interface ProtectedRouteProps {
   roles?: UserRole[];
@@ -21,11 +14,11 @@ interface ProtectedRouteProps {
 export function ProtectedRoute({ roles, permission, children }: ProtectedRouteProps) {
   const { currentUser, hasPermission, hasRole } = useAuthSession();
   const location = useLocation();
-  const loginUrl = loginUrlFromPath(location.pathname);
+  const loginUrl = getLoginUrlForPath(location.pathname);
   const roleAllowed = roles ? hasRole(roles) : true;
   const permissionAllowed = permission ? hasPermission(permission) : true;
 
-  if (!isAuthenticated()) {
+  if (!currentUser) {
     return (
       <div className="min-h-screen bg-surface-background p-4">
         <div className="mx-auto max-w-xl rounded-xl border border-border-default bg-surface-elevated p-6 text-center">
@@ -39,7 +32,7 @@ export function ProtectedRoute({ roles, permission, children }: ProtectedRoutePr
     );
   }
 
-  if (currentUser && roleAllowed && permissionAllowed) {
+  if (roleAllowed && permissionAllowed) {
     return <>{children}</>;
   }
 

@@ -42,65 +42,25 @@ interface PhotonFeature {
   properties: PhotonProperties;
 }
 
-const PHOTON_URL = '/api/photon';
-const NOMINATIM_URL = '/api/nominatim';
-const VIACEP_URL = 'https://viacep.com.br/ws';
-
-const BRAZIL_STATES: Record<string, string> = {
-  'são paulo': 'SP',
-  'sao paulo': 'SP',
-  'rio de janeiro': 'RJ',
-  'minas gerais': 'MG',
-  'bahia': 'BA',
-  'paraná': 'PR',
-  'parana': 'PR',
-  'rio grande do sul': 'RS',
-  'pernambuco': 'PE',
-  'ceará': 'CE',
-  'ceara': 'CE',
-  'par?': 'PA',
-  'para': 'PA',
-  'maranhão': 'MA',
-  'maranhao': 'MA',
-  'goiás': 'GO',
-  'goias': 'GO',
-  'espírito santo': 'ES',
-  'espirito santo': 'ES',
-  'paraíba': 'PB',
-  'paraiba': 'PB',
-  'santa catarina': 'SC',
-  'mato grosso': 'MT',
-  'mato grosso do sul': 'MS',
-  'piauí': 'PI',
-  'piaui': 'PI',
-  'alagoas': 'AL',
-  'distrito federal': 'DF',
-  'sergipe': 'SE',
-  'rondônia': 'RO',
-  'rondonia': 'RO',
-  'tocantins': 'TO',
-  'acre': 'AC',
-  'amapá': 'AP',
-  'amapa': 'AP',
-  'amazonas': 'AM',
-  'roraima': 'RR',
-};
-
-const BRAZIL_STATE_NAMES = Object.keys(BRAZIL_STATES);
+import { photonApi } from '../api/photonApi';
+import { viaCepApi } from '../api/viaCepApi';
+import { nominatimApi } from '../api/nominatimApi';
+import { logger } from '../lib/logger';
+import { BRAZIL_STATE_NAMES, normalizeState } from '../lib/brazilStates';
 
 const cache = new Map<string, CacheEntry>();
 const CACHE_TTL = 5 * 60 * 1000;
 
 let lastNominatimRequest = 0;
 
-async function rateLimitedFetch(url: string, signal?: AbortSignal): Promise<Response> {
+async function rateLimitedNominatimSearch(query: string) {
   const now = Date.now();
   const elapsed = now - lastNominatimRequest;
   if (elapsed < 1100) {
     await new Promise((resolve) => setTimeout(resolve, 1100 - elapsed));
   }
   lastNominatimRequest = Date.now();
-  return fetch(url, { signal: signal ?? null });
+  return nominatimApi.search(query);
 }
 
 export function clearAddressCache(): void {
@@ -119,14 +79,6 @@ function getCached(query: string): AutocompleteSuggestion[] | null {
 
 function setCache(query: string, data: AutocompleteSuggestion[]): void {
   cache.set(query, { data, timestamp: Date.now() });
-}
-
-function normalizeState(state: string): string {
-  if (!state) return '';
-  const lower = state.toLowerCase().trim();
-  if (BRAZIL_STATES[lower]) return BRAZIL_STATES[lower];
-  if (state.length === 2 && state === state.toUpperCase()) return state;
-  return state;
 }
 
 function isBrazilianResult(props: PhotonProperties): boolean {
@@ -201,12 +153,12 @@ function buildSuggestion(feature: PhotonFeature): AutocompleteSuggestion | null 
   const country = p.country ?? '';
 
   if (isBrazil && !city) {
-    console.warn('[Photon] Brazilian result without city, skipping:', street);
+    logger.warn('Photon', 'Brazilian result without city, skipping', { street });
     return null;
   }
 
   if (isBrazil && !state && !BRAZIL_STATE_NAMES.some(s => country.toLowerCase().includes(s))) {
-    console.warn('[Photon] Brazilian result without state, skipping:', street, city);
+    logger.warn('Photon', 'Brazilian result without state, skipping', { street, city });
     return null;
   }
 
@@ -236,66 +188,48 @@ function enhanceQuery(query: string): string {
 }
 
 async function enrichBrazilianByAddress(
-  suggestion: AutocompleteSuggestion,
-): Promise<AutocompleteSuggestion[]> {
-  if (!suggestion.state || suggestion.state.length !== 2) return [suggestion];
-  if (!suggestion.city) return [suggestion];
-  if (!suggestion.street) return [suggestion];
+   suggestion: AutocompleteSuggestion,
+ ): Promise<AutocompleteSuggestion[]> {
+   if (!suggestion.state || suggestion.state.length !== 2) return [suggestion];
+   if (!suggestion.city) return [suggestion];
+   if (!suggestion.street) return [suggestion];
 
-  const url = `${VIACEP_URL}/${encodeURIComponent(suggestion.state)}/${encodeURIComponent(suggestion.city)}/${encodeURIComponent(suggestion.street)}/json/`;
+   try {
+     const viaCepResults = await viaCepApi.lookupByAddress(
+       suggestion.state,
+       suggestion.city,
+       suggestion.street
+     );
 
-  try {
-    const response = await fetch(url);
+     const enriched: AutocompleteSuggestion[] = [];
 
-    if (!response.ok) {
-      console.warn('[ViaCEP] Erro HTTP na busca por logradouro:', response.status);
-      return [suggestion];
-    }
+     for (const entry of viaCepResults) {
+       if (!entry.cep) continue;
 
-    const data: unknown = await response.json();
+       enriched.push({
+         ...suggestion,
+         neighborhood: entry.bairro ?? suggestion.neighborhood,
+         zipcode: entry.cep,
+         formattedAddress: buildFormattedAddress({
+           street: suggestion.street,
+           neighborhood: entry.bairro ?? suggestion.neighborhood,
+           city: entry.localidade ?? suggestion.city,
+           state: entry.uf ?? suggestion.state,
+           zipcode: entry.cep,
+         }),
+       });
+     }
 
-    if (!Array.isArray(data) || data.length === 0) {
-      console.warn('[ViaCEP] Nenhum resultado para o logradouro');
-      return [suggestion];
-    }
+     if (enriched.length === 0) {
+       return [suggestion];
+     }
 
-    const viaCepResults = data as {
-      logradouro?: string;
-      bairro?: string;
-      localidade?: string;
-      uf?: string;
-      cep?: string;
-    }[];
-
-    const enriched: AutocompleteSuggestion[] = [];
-
-    for (const entry of viaCepResults) {
-      if (!entry.cep) continue;
-
-      enriched.push({
-        ...suggestion,
-        neighborhood: entry.bairro ?? suggestion.neighborhood,
-        zipcode: entry.cep,
-        formattedAddress: buildFormattedAddress({
-          street: suggestion.street,
-          neighborhood: entry.bairro ?? suggestion.neighborhood,
-          city: entry.localidade ?? suggestion.city,
-          state: entry.uf ?? suggestion.state,
-          zipcode: entry.cep,
-        }),
-      });
-    }
-
-    if (enriched.length === 0) {
-      return [suggestion];
-    }
-
-    return enriched;
+     return enriched;
   } catch (err) {
-    console.error('[ViaCEP] Erro na busca por logradouro:', err);
+    logger.error('ViaCEP', 'Erro na busca por logradouro', err);
     return [suggestion];
   }
-}
+ }
 
 function buildFormattedAddress(parts: {
   street: string;
@@ -309,33 +243,23 @@ function buildFormattedAddress(parts: {
     .join(', ');
 }
 
-async function fetchPhotonResponse(url: string, signal?: AbortSignal): Promise<{ features?: unknown[] } | null> {
-  const response = await fetch(url, { signal: signal ?? null });
-
-  if (!response.ok) {
-    console.warn('[Photon] HTTP Error:', response.status, response.statusText);
-    return null;
-  }
-
-  const rawText = await response.text();
-  if (!rawText) {
-    console.warn('[Photon] Empty response body');
-    return null;
-  }
-
+async function fetchPhotonResponse(query: string): Promise<{ features?: PhotonFeature[] } | null> {
   try {
-    return JSON.parse(rawText) as { features?: unknown[] };
-  } catch (parseErr) {
-    console.error('[Photon] JSON parse error:', parseErr);
-    console.error('[Photon] Raw text sample:', rawText.substring(0, 200));
+    const result = await photonApi.search(query);
+    return result;
+  } catch (err: unknown) {
+    if (err instanceof DOMException && err.name === 'AbortError') {
+      throw err;
+    }
+    logger.error('Photon', 'API error', err);
     return null;
   }
-}
+ }
 
 function extractValidFeatures(data: { features?: unknown[] }): PhotonFeature[] {
   const features = data.features;
   if (!Array.isArray(features)) {
-    console.warn('[Photon] No features array in response');
+    logger.warn('Photon', 'No features array in response');
     return [];
   }
 
@@ -369,7 +293,7 @@ function buildSuggestionsFromFeatures(validFeatures: PhotonFeature[]): Autocompl
     seen.add(key);
 
     if (suggestion.formattedAddress === 'Endereço não encontrado') {
-      console.warn('[Photon] Empty address skipped');
+      logger.warn('Photon', 'Empty address skipped');
       continue;
     }
 
@@ -411,7 +335,7 @@ function filterByCity(suggestions: AutocompleteSuggestion[], targetCity: string 
 
 export async function fetchSuggestions(
   query: string,
-  signal?: AbortSignal,
+  _signal?: AbortSignal,
   targetCity?: string,
 ): Promise<AutocompleteSuggestion[]> {
   const trimmed = query.trim();
@@ -422,10 +346,9 @@ export async function fetchSuggestions(
   if (cached) return cached;
 
   const enhancedQuery = enhanceQuery(trimmed);
-  const url = `${PHOTON_URL}q=${encodeURIComponent(enhancedQuery)}&limit=8&lang=default`;
 
   try {
-    const data = await fetchPhotonResponse(url, signal);
+    const data = await fetchPhotonResponse(enhancedQuery);
     if (!data) return [];
 
     const validFeatures = extractValidFeatures(data);
@@ -441,44 +364,22 @@ export async function fetchSuggestions(
     return cityFiltered;
   } catch (err: unknown) {
     if (err instanceof DOMException && err.name === 'AbortError') throw err;
-    console.error('[Photon] Fetch error:', err);
+    logger.error('Photon', 'Fetch error', err);
     return [];
   }
 }
 
 export async function geocodeAddress(
   address: string,
-  signal?: AbortSignal,
+  _signal?: AbortSignal,
 ): Promise<AutocompleteSuggestion | null> {
   if (!address.trim()) return null;
 
-  const url = `${NOMINATIM_URL}/search?q=${encodeURIComponent(address)}&format=jsonv2&limit=1&addressdetails=1`;
-
   try {
-    const response = await rateLimitedFetch(url, signal);
-    if (!response.ok) return null;
-
-    const raw: unknown = await response.json();
+    const raw = await rateLimitedNominatimSearch(address);
     if (!Array.isArray(raw) || raw.length === 0) return null;
 
-    const data = raw as {
-      lat: string;
-      lon: string;
-      address?: {
-        city?: string;
-        town?: string;
-        village?: string;
-        state?: string;
-        postcode?: string;
-        country?: string;
-        suburb?: string;
-        neighbourhood?: string;
-        county?: string;
-      };
-      display_name?: string;
-    }[];
-
-    const r = data[0];
+    const r = raw[0];
     if (!r) return null;
     const addr = r.address;
     const city = addr?.city ?? addr?.town ?? addr?.village ?? '';
@@ -499,70 +400,5 @@ export async function geocodeAddress(
   } catch (err: unknown) {
     if (err instanceof DOMException && err.name === 'AbortError') throw err;
     return null;
-  }
-}
-
-export async function enrichWithCepInfo(
-  suggestion: AutocompleteSuggestion,
-  _validateStreet = false,
-): Promise<AutocompleteSuggestion> {
-  if (!suggestion.zipcode || suggestion.zipcode.length < 8) {
-    return suggestion;
-  }
-
-  const cleanCep = suggestion.zipcode.replace(/\D/g, '');
-  if (cleanCep.length !== 8) {
-    return suggestion;
-  }
-
-  const url = `${VIACEP_URL}/${cleanCep}/json/`;
-
-  try {
-    const response = await fetch(url);
-    
-    if (!response.ok) {
-      console.warn('[ViaCEP] Erro HTTP:', response.status);
-      return suggestion;
-    }
-
-    const data: unknown = await response.json();
-    
-    if (!data || typeof data !== 'object' || 'erro' in (data as Record<string, unknown>)) {
-      console.warn('[ViaCEP] CEP não encontrado ou inválido');
-      return suggestion;
-    }
-
-    const cepData = data as {
-      logradouro?: string;
-      bairro?: string;
-      localidade?: string;
-      uf?: string;
-      cep?: string;
-    };
-
-    const finalNeighborhood = cepData.bairro ?? suggestion.neighborhood;
-    const finalCity = cepData.localidade ?? suggestion.city;
-    const finalState = cepData.uf ?? suggestion.state;
-    const finalZipcode = cepData.cep ?? suggestion.zipcode;
-
-    const addressParts: string[] = [];
-    if (suggestion.street) addressParts.push(suggestion.street);
-    if (finalNeighborhood) addressParts.push(finalNeighborhood);
-    if (finalCity) addressParts.push(finalCity);
-    if (finalState) addressParts.push(finalState);
-    if (finalZipcode) addressParts.push(finalZipcode);
-
-    return {
-      ...suggestion,
-      formattedAddress: addressParts.join(', ') || suggestion.formattedAddress,
-      street: suggestion.street,
-      neighborhood: finalNeighborhood,
-      city: finalCity,
-      state: finalState,
-      zipcode: finalZipcode,
-    };
-  } catch (err: unknown) {
-    console.error('[ViaCEP] Erro na busca:', err);
-    return suggestion;
   }
 }

@@ -11,7 +11,9 @@ import { FeatureRoute } from './modules/saas';
 import { ProtectedRoute, LoginPage } from './modules/auth';
 import { SuperadminLoginPage } from './modules/superadmin';
 import { ROUTES, getRouteArea } from './lib/routes';
-import { get } from './api/httpClient';
+import { useMyTheme } from './hooks/useThemeData';
+import { initAuthSync } from './services/authService';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 
 // ── Public pages (lazy) ──
@@ -190,14 +192,14 @@ function ThemeAwareProvider({ children }: { children: ReactNode }) {
   const prefix = location.pathname.split('/')[1] ?? '';
   const area = getRouteArea(prefix);
 
+  const { data: themeRes } = useMyTheme(area);
+
   useEffect(() => {
-    get('/theme/me/theme').then((res: any) => {
-      if (res?.theme && res.theme !== 'default') {
-        // Armazena o tema customizado no localStorage doThemeProvider
-        localStorage.setItem(`fluxds-theme:${area}`, JSON.stringify(res.theme));
-      }
-    }).catch(() => {});
-  }, [area]);
+    const theme = themeRes?.['theme'];
+    if (theme && theme !== 'default') {
+      localStorage.setItem(`fluxds-theme:${area}`, JSON.stringify(theme));
+    }
+  }, [themeRes, area]);
 
   return (
     <ThemeProvider
@@ -244,8 +246,11 @@ const routeFallback = (
   </div>
 );
 
+initAuthSync();
+
 function App() {
   return (
+    <ErrorBoundary>
     <QueryProvider>
       <LocationProvider>
         <BrowserRouter>
@@ -345,6 +350,7 @@ function App() {
         </BrowserRouter>
       </LocationProvider>
     </QueryProvider>
+    </ErrorBoundary>
   );
 }
 

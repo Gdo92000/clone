@@ -3,7 +3,7 @@ import type { MenuItem } from '../../types';
 import { FxPriceTag } from './FxPriceTag';
 import { FxImage } from '../ui/FxImage';
 import { Icon } from '../ui/Icon';
-import { calculateDiscountPercent } from '../../services/pricingService';
+import { calculateDiscountPercent } from '../../useCases/pricingUseCase';
 
 export interface FxProductCardProps {
   item: MenuItem;

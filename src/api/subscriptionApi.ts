@@ -1,11 +1,11 @@
 import { get } from './httpClient';
-import type { SaasPlan, SaasAddon, CompanySubscription, BillingInvoice } from '../modules/saas/types';
+import type { SubscriptionPlanDTO, SubscriptionAddonDTO, CompanySubscriptionDTO, BillingInvoiceDTO } from '../dto/subscriptionDto';
 
 export const subscriptionApi = {
-  getPlans: () => get<SaasPlan[]>('/plans'),
-  getAddons: () => get<SaasAddon[]>('/addons'),
-  getSubscriptions: () => get<CompanySubscription[]>('/subscriptions'),
-  getInvoices: () => get<BillingInvoice[]>('/invoices'),
+  getPlans: () => get<SubscriptionPlanDTO[]>('/plans'),
+  getAddons: () => get<SubscriptionAddonDTO[]>('/addons'),
+  getSubscriptions: () => get<CompanySubscriptionDTO[]>('/subscriptions'),
+  getInvoices: () => get<BillingInvoiceDTO[]>('/invoices'),
   getSubscriptionByCompany: (companyId: string) =>
-    get<CompanySubscription>(`/companies/${companyId}/subscription`),
+    get<CompanySubscriptionDTO>(`/companies/${companyId}/subscription`),
 };

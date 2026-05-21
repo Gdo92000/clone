@@ -1,10 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { getInvoices } from '../repositories/subscriptionRepository';
-import type { BillingInvoice } from '../modules/saas/types';
+import type { BillingInvoiceDTO } from '../dto/subscriptionDto';
+import { saasKeys } from '../api/queryKeys';
 
 export function useBilling() {
-  const { data: invoices = [] } = useQuery<BillingInvoice[]>({
-    queryKey: ['saas', 'invoices'],
+  const { data: invoices = [] } = useQuery<BillingInvoiceDTO[]>({
+    queryKey: saasKeys.invoices,
     queryFn: getInvoices,
     staleTime: 1000 * 60 * 10,
   });

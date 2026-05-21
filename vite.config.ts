@@ -2,9 +2,13 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import basicSsl from '@vitejs/plugin-basic-ssl'
 
+function getMockFlag(): boolean {
+  return process.env['VITE_MOCK'] === 'true'
+}
+
 export default defineConfig(() => ({
   define: {
-    __USE_MOCK__: 'false',
+    __USE_MOCK__: getMockFlag(),
   },
   plugins: [
     react(),
@@ -22,6 +26,21 @@ export default defineConfig(() => ({
         target: 'https://nominatim.openstreetmap.org',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/nominatim/, ''),
+      },
+      '/api/viacep': {
+        target: 'https://viacep.com.br',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/viacep/, ''),
+      },
+      '/api/ipapi': {
+        target: 'https://ipapi.co',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/ipapi/, ''),
+      },
+      '/api/ip-api': {
+        target: 'http://ip-api.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/ip-api/, ''),
       },
       '/api': {
         target: 'http://localhost:3001',

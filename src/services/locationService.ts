@@ -1,4 +1,7 @@
-import type { Coordinates } from '../hooks/useGeolocation';
+import type { Coordinates } from '../types/location';
+import { nominatimApi } from '../api/nominatimApi';
+import { ApiError } from '../api/httpClient';
+import { normalizeState } from '../lib/brazilStates';
 
 export interface City {
   name: string;
@@ -19,52 +22,11 @@ export class LocationServiceError extends Error {
   }
 }
 
-const NOMINATIM_BASE_URL = 'https://nominatim.openstreetmap.org';
 const RATE_LIMIT_MS = 1100;
-
-const BRAZIL_STATE_CODES: Record<string, string> = {
-  'são paulo': 'SP',
-  'sao paulo': 'SP',
-  'rio de janeiro': 'RJ',
-  'minas gerais': 'MG',
-  'bahia': 'BA',
-  'paraná': 'PR',
-  'parana': 'PR',
-  'rio grande do sul': 'RS',
-  'pernambuco': 'PE',
-  'ceará': 'CE',
-  'ceara': 'CE',
-  'pará': 'PA',
-  'para': 'PA',
-  'maranhão': 'MA',
-  'maranhao': 'MA',
-  'goiás': 'GO',
-  'goias': 'GO',
-  'espírito santo': 'ES',
-  'espirito santo': 'ES',
-  'paraíba': 'PB',
-  'paraiba': 'PB',
-  'santa catarina': 'SC',
-  'mato grosso': 'MT',
-  'mato grosso do sul': 'MS',
-  'piauí': 'PI',
-  'piaui': 'PI',
-  'alagoas': 'AL',
-  'distrito federal': 'DF',
-  'sergipe': 'SE',
-  'rondônia': 'RO',
-  'rondonia': 'RO',
-  'tocantins': 'TO',
-  'acre': 'AC',
-  'amapá': 'AP',
-  'amapa': 'AP',
-  'amazonas': 'AM',
-  'roraima': 'RR',
-};
 
 let lastRequestTime = 0;
 
-async function rateLimitedFetch(url: string): Promise<Response> {
+async function rateLimitedNominatimReverse(lat: number, lon: number) {
   const now = Date.now();
   const timeSinceLastRequest = now - lastRequestTime;
 
@@ -75,34 +37,23 @@ async function rateLimitedFetch(url: string): Promise<Response> {
   }
 
   lastRequestTime = Date.now();
-  return fetch(url);
+  return nominatimApi.reverse(lat, lon);
 }
 
 export async function reverseGeocode(
   coordinates: Coordinates
 ): Promise<City | null> {
   const { latitude, longitude } = coordinates;
-  const url = `${NOMINATIM_BASE_URL}/reverse?lat=${latitude}&lon=${longitude}&format=json&addressdetails=1&zoom=18`;
 
-try {
-     const response = await rateLimitedFetch(url);
+ try {
+     const data = await rateLimitedNominatimReverse(latitude, longitude);
 
-     if (!response.ok) {
-       if (response.status === 429) {
-         throw new LocationServiceError('RATE_LIMIT', 'Limite de requisições excedido. Tente novamente em alguns segundos.');
-       }
-       throw new LocationServiceError('API_ERROR', 'Erro ao consultar localização');
-     }
-
-     const data = await response.json() as { address?: Record<string, string | undefined>; display_name?: string };
-
-     if (!data.address) {
+     if (!data?.address) {
        throw new LocationServiceError('NOT_FOUND', 'Localização não encontrada');
      }
 
      const a = data.address;
 
-     // Prioridade de bairro: suburb > neighbourhood > quarter > city_district
      const neighborhood =
        a['suburb'] ??
        a['neighbourhood'] ??
@@ -110,7 +61,6 @@ try {
        a['city_district'] ??
        undefined;
 
-     // Nome da cidade: city > town > village > municipality > county
      const cityName =
        a['city'] ??
        a['town'] ??
@@ -122,42 +72,37 @@ try {
 
      const stateName = a['state'] ?? 'Estado Desconhecido';
      const isoCode = a['ISO3166-2']?.split('-')[1] ?? '';
-     const stateCode = isoCode || (BRAZIL_STATE_CODES[stateName.toLowerCase()] ?? '');
+     const stateCode = isoCode || normalizeState(stateName);
      const country = a['country'] ?? 'Brasil';
 
      const displayName = neighborhood
         ? `${neighborhood}\n${cityName} - ${stateCode || stateName}`
         : `${cityName} - ${stateCode || stateName}`;
 
-const result: City = {
-         name: cityName,
-         state: stateName,
-         stateCode,
-         country,
-         displayName,
-       };
-       if (neighborhood) result.neighborhood = neighborhood;
-       return result;
-  } catch (error) {
-    if (error instanceof LocationServiceError) {
-      throw error;
-    }
-    throw new LocationServiceError('NETWORK_ERROR', 'Erro de conexão. Verifique sua internet.');
-  }
-}
-
-export function isWithinCity(
-  userCoords: Coordinates,
-  cityCenter: { lat: number; lng: number },
-  radiusKm: number
-): boolean {
-  const distance = calculateDistance(
-    userCoords.latitude,
-    userCoords.longitude,
-    cityCenter.lat,
-    cityCenter.lng
-  );
-  return distance <= radiusKm;
+     const result: City = {
+        name: cityName,
+        state: stateName,
+        stateCode,
+        country,
+        displayName,
+      };
+      if (neighborhood) result.neighborhood = neighborhood;
+      return result;
+   } catch (error) {
+     if (error instanceof LocationServiceError) {
+       throw error;
+     }
+     if (error instanceof ApiError) {
+       if (error.status === 0) {
+         throw new LocationServiceError('NETWORK_ERROR', 'Erro de conexão. Verifique sua internet.');
+       }
+       if (error.status === 429) {
+         throw new LocationServiceError('RATE_LIMIT', 'Limite de requisições excedido. Tente novamente em alguns segundos.');
+       }
+       throw new LocationServiceError('API_ERROR', 'Erro ao consultar localização');
+     }
+     throw new LocationServiceError('NETWORK_ERROR', 'Erro de conexão. Verifique sua internet.');
+   }
 }
 
 export function calculateDistance(

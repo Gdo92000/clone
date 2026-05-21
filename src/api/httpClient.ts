@@ -1,4 +1,6 @@
 import { getToken, getRefreshToken, setToken, clearAuth } from '../services/authService';
+import { getLoginUrlForPath } from '../lib/routes';
+import { logger } from '../lib/logger';
 
 const BASE_URL = (import.meta.env as Record<string, string | undefined>)['VITE_API_URL'] ?? '/api';
 
@@ -19,16 +21,10 @@ async function tryRefreshToken(): Promise<boolean> {
     const data = await res.json() as { accessToken: string; expiresIn?: number };
     setToken(data.accessToken);
     return true;
-  } catch {
+  } catch (err) {
+    logger.error('httpClient', 'Refresh token failed', err instanceof Error ? err : new Error('Unknown'));
     return false;
   }
-}
-
-function getLoginUrl(): string {
-  const path = window.location.pathname;
-  if (path.startsWith('/superadmin')) return '/superadmin/login';
-  if (path.startsWith('/merchant')) return '/merchant/login';
-  return '/login';
 }
 
 export class ApiError extends Error {
@@ -52,7 +48,7 @@ async function request<T>(path: string, options?: RequestInit, retry = true): Pr
       headers, signal: AbortSignal.timeout(15000), ...options,
     });
   } catch {
-    console.error(`[API] Network error: ${path} — servidor indisponível em ${BASE_URL}`);
+    logger.error('API', 'Network error', undefined, { path, baseUrl: BASE_URL });
     throw new ApiError(0, { message: 'Servidor indisponível. Verifique se o backend está rodando.' });
   }
 
@@ -76,18 +72,18 @@ async function request<T>(path: string, options?: RequestInit, retry = true): Pr
         }
         if (res.status === 401) {
           clearAuth();
-          window.location.href = getLoginUrl();
+          window.location.href = getLoginUrlForPath();
           throw new ApiError(401, { message: 'Sessão expirada' });
+          }
+          return res.json() as Promise<T>;
+        } catch (e) {
+          if (e instanceof ApiError) throw e;
+          throw new ApiError(0, { message: 'Erro de rede' });
         }
-        return res.json() as Promise<T>;
-  } catch (e) {
-        if (e instanceof ApiError) throw e;
-        throw new ApiError(0, { message: 'Erro de rede' });
       }
-    }
 
-    clearAuth();
-    window.location.href = getLoginUrl();
+      clearAuth();
+      window.location.href = getLoginUrlForPath();
     throw new ApiError(401, { message: 'Sessão expirada' });
   }
 
@@ -113,3 +109,5 @@ export async function put<T>(path: string, body?: unknown): Promise<T> {
 export async function del<T>(path: string): Promise<T> {
   return request<T>(path, { method: 'DELETE' });
 }
+
+export const httpClient = { get, post, put, del };

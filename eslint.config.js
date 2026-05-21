@@ -4,32 +4,162 @@ import reactPlugin from 'eslint-plugin-react';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import reactRefreshPlugin from 'eslint-plugin-react-refresh';
 import unusedImportsPlugin from 'eslint-plugin-unused-imports';
+import importPlugin from 'eslint-plugin-import';
 
 export default tseslint.config(
   {
-    ignores: ['dist/', 'node_modules/', 'drizzle/', '*.config.*', 'scripts/', '.opencode/', '.roo/', '.windsurf/'],
+    ignores: [
+      'dist/',
+      'node_modules/',
+      'drizzle/',
+      '*.config.*',
+      'scripts/',
+      '.opencode/',
+      '.roo/',
+      '.windsurf/',
+      'coverage/',
+      '*.d.ts',
+    ],
   },
+
+  // FRONTEND
   {
-    files: ['src/**/*.{ts,tsx}', 'server/src/**/*.ts'],
+    files: ['src/**/*.{ts,tsx}'],
+
     extends: [
       js.configs.recommended,
-      ...tseslint.configs.recommended,
+
+      ...tseslint.configs.strictTypeChecked,
+
+      reactPlugin.configs.flat.recommended,
+
+      reactPlugin.configs.flat['jsx-runtime'],
     ],
+
+    languageOptions: {
+      parserOptions: {
+        project: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+
     plugins: {
       react: reactPlugin,
       'react-hooks': reactHooksPlugin,
       'react-refresh': reactRefreshPlugin,
       'unused-imports': unusedImportsPlugin,
+      import: importPlugin,
     },
-    rules: {
-      'react-refresh/only-export-components': 'warn',
-      'unused-imports/no-unused-imports': 'error',
-      'no-console': ['warn', { allow: ['warn', 'error'] }],
-      '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
-    },
+
     settings: {
-      react: { version: 'detect' },
+      react: {
+        version: 'detect',
+      },
+    },
+
+    rules: {
+      // React Hooks
+      ...reactHooksPlugin.configs.recommended.rules,
+
+      // React Refresh
+      'react-refresh/only-export-components': 'warn',
+
+      // Imports mortos
+      'unused-imports/no-unused-imports': 'error',
+
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
+
+      // Segurança de tipos
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-floating-promises': 'error',
+      '@typescript-eslint/await-thenable': 'error',
+      '@typescript-eslint/no-misused-promises': 'error',
+      '@typescript-eslint/consistent-type-imports': 'error',
+
+      // Console
+      'no-console': [
+        'warn',
+        {
+          allow: ['warn', 'error'],
+        },
+      ],
+
+      // Imports
+      'import/no-cycle': 'error',
+      'import/no-duplicates': 'error',
+
+      // Arquitetura
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['../api/httpClient', '@/api/httpClient'],
+              message:
+                'Use API modules. Não importe httpClient diretamente em pages/hooks/components.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+
+  // BACKEND
+  {
+    files: ['server/src/**/*.ts'],
+
+    extends: [
+      js.configs.recommended,
+
+      ...tseslint.configs.strictTypeChecked,
+    ],
+
+    languageOptions: {
+      parserOptions: {
+        project: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+
+    plugins: {
+      'unused-imports': unusedImportsPlugin,
+      import: importPlugin,
+    },
+
+    rules: {
+      'unused-imports/no-unused-imports': 'error',
+
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
+
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-floating-promises': 'error',
+      '@typescript-eslint/await-thenable': 'error',
+      '@typescript-eslint/no-misused-promises': 'error',
+      '@typescript-eslint/consistent-type-imports': 'error',
+
+      'import/no-cycle': 'error',
+      'import/no-duplicates': 'error',
+
+      'no-console': [
+        'warn',
+        {
+          allow: ['warn', 'error'],
+        },
+      ],
     },
   }
 );

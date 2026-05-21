@@ -4,33 +4,17 @@ export interface GeocodeResult {
   displayName: string;
 }
 
-const NOMINATIM_SEARCH = 'https://nominatim.openstreetmap.org/search';
-
-let lastRequestTime = 0;
-
-async function rateLimitedFetch(url: string): Promise<Response> {
-  const now = Date.now();
-  const elapsed = now - lastRequestTime;
-  if (elapsed < 1100) {
-    await new Promise((resolve) => setTimeout(resolve, 1100 - elapsed));
-  }
-  lastRequestTime = Date.now();
-  return fetch(url);
-}
+import { nominatimApi } from '../api/nominatimApi';
+import { logger } from '../lib/logger';
 
 export async function geocodeByQuery(query: string): Promise<GeocodeResult | null> {
   if (!query.trim()) return null;
 
-  const url = `${NOMINATIM_SEARCH}q=${encodeURIComponent(query)}&format=json&limit=1&addressdetails=1`;
-
   try {
-    const response = await rateLimitedFetch(url);
-     if (!response.ok) return null;
+    const results = await nominatimApi.search(query);
+    if (results.length === 0) return null;
 
-     const data = await response.json() as unknown as { lat: string; lon: string; display_name: string }[];
-     if (data.length === 0) return null;
-
-    const first = data[0];
+    const first = results[0];
     if (!first) return null;
 
     return {
@@ -38,7 +22,8 @@ export async function geocodeByQuery(query: string): Promise<GeocodeResult | nul
       lng: parseFloat(first.lon),
       displayName: first.display_name,
     };
-  } catch {
+  } catch (err) {
+    logger.warn('GeocodeSearch', 'Geocoding failed, returning null', { query, error: String(err) });
     return null;
   }
 }

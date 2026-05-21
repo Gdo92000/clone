@@ -15,7 +15,7 @@ export function ReportsPage() {
 
   const metrics = [
     { label: 'Total de pedidos', value: report.totalOrders.toLocaleString('pt-BR'), icon: 'ShoppingBag' },
-    { label: 'Receita total', value: formatCurrency(report.totalRevenue), icon: 'DollarSign' },
+    { label: 'Receita total', value: formatCurrency(Number(report.totalRevenue)), icon: 'DollarSign' },
     { label: 'Ticket médio', value: formatCurrency(report.avgTicket), icon: 'ArrowUpRight' },
     { label: 'Lojas ativas', value: report.activeStores.toLocaleString('pt-BR'), icon: 'Store' },
   ];
@@ -122,7 +122,7 @@ export function ReportsPage() {
             <div className="flex items-center gap-3 p-3 rounded-lg bg-surface-background">
               <Icon name="Calendar" size={20} className="text-feedback-warning" />
               <div>
-                <p className="font-medium text-text-primary">Receita total: {formatCurrency(report.totalRevenue)}</p>
+                <p className="font-medium text-text-primary">Receita total: {formatCurrency(Number(report.totalRevenue))}</p>
                 <p className="text-text-tertiary mt-0.5">Faturamento acumulado</p>
               </div>
             </div>

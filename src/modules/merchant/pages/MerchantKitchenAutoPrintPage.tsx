@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { MerchantLayout } from '../components/MerchantLayout';
 import { Button } from '../../../components/ui/Button';
 import { Icon } from '../../../components/ui/Icon';
-import { successToast, errorToast } from '../../../lib/toast';
+import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
 import { clsx } from 'clsx';
-import { get, post } from '../../../api/httpClient';
+import { useSaasAddons, useSaasUserAddons, useActivateAddon, usePrintHistoryBranches, usePrintHistoryByBranch } from '../../../hooks/useMerchantKitchenAutoPrint';
+import type { PrintHistoryDTO, MerchantBranchDTO } from '../../../dto/superadminDto';
 
 interface Addon {
   id: string;
@@ -23,43 +23,17 @@ interface SubscriptionAddon {
 }
 
 export function MerchantKitchenAutoPrintPage() {
-  const queryClient = useQueryClient();
   const [isActivating, setIsActivating] = useState(false);
 
-  // Buscar addon kitchen_auto_print
-  const { data: addons = [] } = useQuery<Addon[]>({
-    queryKey: ['addons'],
-    queryFn: () => get('/addons'),
-  });
+  const { data: addons = [] } = useSaasAddons();
 
-  const kitchenAutoPrintAddon = addons.find(a => a.feature_key === 'kitchen_auto_print');
+  const kitchenAutoPrintAddon: Addon | undefined = addons.find(a => a.feature_key === 'kitchen_auto_print');
 
-  // Verificar se tenant já tem o addon ativado
-  const { data: userAddons = [] } = useQuery<SubscriptionAddon[]>({
-    queryKey: ['user-addons'],
-    queryFn: () => get('/subscription-addons'),
-  });
+  const { data: userAddons = [] } = useSaasUserAddons();
 
   const hasAddon = userAddons.some(a => a.addon_id === kitchenAutoPrintAddon?.id);
 
-  // Ativar addon
-  const activateMutation = useMutation({
-    mutationFn: async () => {
-      if (!kitchenAutoPrintAddon) throw new Error('Addon não encontrado');
-      const response = await post('/subscription-addons/toggle', {
-        subscriptionId: 'current',
-        addonId: kitchenAutoPrintAddon.id,
-      });
-      return response;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user-addons'] });
-      successToast('Addon ativado com sucesso!');
-    },
-    onError: () => {
-      errorToast('Erro ao ativar addon');
-    },
-  });
+  const activateMutation = useActivateAddon(kitchenAutoPrintAddon?.id);
 
   const handleActivate = () => {
     setIsActivating(true);
@@ -232,18 +206,11 @@ export function MerchantKitchenAutoPrintPage() {
 }
 
 function PrintHistorySection() {
-  const { data: branches = [] } = useQuery<any[]>({
-    queryKey: ['branches'],
-    queryFn: () => get('/branches'),
-  });
+  const { data: branches = [] } = usePrintHistoryBranches();
 
   const [branchId, setBranchId] = useState('');
 
-  const { data: history = [] } = useQuery({
-    queryKey: ['print-history', branchId],
-    queryFn: () => get(`/printing/history/${branchId}`),
-    enabled: !!branchId,
-  });
+  const { data: history = [], isLoading, error } = usePrintHistoryByBranch(branchId);
 
   return (
     <section className="rounded-xl border border-border-default bg-surface-elevated p-6">
@@ -254,7 +221,7 @@ function PrintHistorySection() {
           onChange={(e) => setBranchId(e.target.value)}
           className="h-10 rounded-lg border border-border-default bg-surface-background px-3 text-sm"
         >
-          {branches.map((b: any) => (
+          {branches.map((b) => (
             <option key={b.id} value={b.id}>
               {b.name}
             </option>
@@ -262,48 +229,50 @@ function PrintHistorySection() {
         </select>
       </div>
 
-      {!history || (history as any[]).length === 0 ? (
-        <div className="text-center py-8 text-text-secondary">
-          <Icon name="Printer" size={40} className="mx-auto mb-2 opacity-50" />
-          <p>Nenhuma impressão realizada</p>
-        </div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="border-b border-border-default">
-              <tr>
-                <th className="pb-2 font-medium text-text-secondary">Pedido</th>
-                <th className="pb-2 font-medium text-text-secondary">Status</th>
-                <th className="pb-2 font-medium text-text-secondary">Data</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border-default">
-              {(history as any[]).map((job: any) => (
-                <tr key={job.id} className="hover:bg-surface-background transition-colors">
-                  <td className="py-2">#{job.order_id.slice(-6)}</td>
-                  <td className="py-2">
-                    <span
-                      className={clsx(
-                        'px-2 py-0.5 rounded-full text-[10px] font-medium',
-                        job.status === 'completed'
-                          ? 'bg-feedback-success/10 text-feedback-success'
-                          : job.status === 'failed'
-                          ? 'bg-feedback-error/10 text-feedback-error'
-                          : 'bg-brand-primary/10 text-brand-primary'
-                      )}
-                    >
-                      {job.status}
-                    </span>
-                  </td>
-                  <td className="py-2 text-text-secondary">
-                    {new Date(job.created_at).toLocaleString('pt-BR')}
-                  </td>
+      <FxQueryBoundary isLoading={isLoading} isError={!!error} error={error instanceof Error ? error : null}>
+        {history.length === 0 ? (
+          <div className="text-center py-8 text-text-secondary">
+            <Icon name="Printer" size={40} className="mx-auto mb-2 opacity-50" />
+            <p>Nenhuma impressão realizada</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="border-b border-border-default">
+                <tr>
+                  <th className="pb-2 font-medium text-text-secondary">Pedido</th>
+                  <th className="pb-2 font-medium text-text-secondary">Status</th>
+                  <th className="pb-2 font-medium text-text-secondary">Data</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </thead>
+              <tbody className="divide-y divide-border-default">
+                {history.map((job) => (
+                  <tr key={job.id} className="hover:bg-surface-background transition-colors">
+                    <td className="py-2">#{job.order_id.slice(-6)}</td>
+                    <td className="py-2">
+                      <span
+                        className={clsx(
+                          'px-2 py-0.5 rounded-full text-[10px] font-medium',
+                          job.status === 'completed'
+                            ? 'bg-feedback-success/10 text-feedback-success'
+                            : job.status === 'failed'
+                            ? 'bg-feedback-error/10 text-feedback-error'
+                            : 'bg-brand-primary/10 text-brand-primary'
+                        )}
+                      >
+                        {job.status}
+                      </span>
+                    </td>
+                    <td className="py-2 text-text-secondary">
+                      {new Date(job.created_at).toLocaleString('pt-BR')}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </FxQueryBoundary>
     </section>
   );
 }

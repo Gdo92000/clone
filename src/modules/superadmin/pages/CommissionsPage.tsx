@@ -18,7 +18,7 @@ interface CommissionPlan {
 
 export function CommissionsPage() {
   const { data: apiPlans = [] } = useCommissionPlans();
-  const { mutate: updatePlan } = useUpdateCommissionPlan();
+  const { mutateAsync: updatePlan } = useUpdateCommissionPlan();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<CommissionPlan | null>(null);
   const [saved, setSaved] = useState(false);

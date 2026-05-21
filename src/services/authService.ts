@@ -1,11 +1,26 @@
 import { storageService } from '../storage/storageService';
 import { authApi } from '../api';
 import { authUserDtoToModel } from '../mappers/authMapper';
+import { getLoginUrlForPath } from '../lib/routes';
 import type { AuthUser } from '../modules/auth/types';
 
 const TOKEN_KEY = 'auth-token';
 const REFRESH_TOKEN_KEY = 'auth-refresh-token';
 const USER_KEY = 'auth-user';
+
+function prefixed(key: string): string {
+  return `fluxds-${key}`;
+}
+
+export function initAuthSync(): void {
+  const tokenKey = prefixed(TOKEN_KEY);
+  window.addEventListener('storage', (event) => {
+    if (event.key === tokenKey && !event.newValue && event.oldValue) {
+      clearAuth();
+      window.location.href = getLoginUrlForPath();
+    }
+  });
+}
 
 export interface LoginInput {
   email: string;
@@ -43,10 +58,6 @@ export function setToken(token: string): void {
 
 export function getStoredUser(): AuthUser | null {
   return storageService.get(USER_KEY) as AuthUser | null;
-}
-
-export function isAuthenticated(): boolean {
-  return !!getToken();
 }
 
 export function clearAuth(): void {

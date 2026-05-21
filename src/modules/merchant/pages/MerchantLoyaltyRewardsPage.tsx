@@ -1,24 +1,21 @@
 import { useState } from 'react';
-import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { Icon } from '../../../components/ui/Icon';
 import { Button } from '../../../components/ui/Button';
 import { MerchantLayout } from '../components/MerchantLayout';
 import { useBranches } from '../../../hooks/useMerchantData';
-import { merchantApi } from '../../../api/merchantApi';
-import { successToast, errorToast } from '../../../lib/toast';
+import { useLoyaltyRewards, useSaveLoyaltyReward, useDeleteLoyaltyReward } from '../../../hooks/useMerchantLoyaltyRewards';
 import { clsx } from 'clsx';
 
 interface Reward {
   id: string;
   name: string;
   points_required: number;
-  discount_value: string;
-  discount_type: 'percentage' | 'fixed';
-  is_active: boolean;
+  discount_value: number;
+  discount_type: string;
+  active: boolean;
 }
 
 export function MerchantLoyaltyRewardsPage() {
-  const queryClient = useQueryClient();
   const { data: branches = [] } = useBranches();
   const [branchId, setBranchId] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -32,50 +29,20 @@ export function MerchantLoyaltyRewardsPage() {
     is_active: true,
   });
 
-  const { data: rewards = [] } = useQuery({
-    queryKey: ['loyalty-rewards', branchId],
-    queryFn: () => merchantApi.getLoyaltyRewards(branchId),
-    enabled: !!branchId,
-  });
+  const { data: rewards = [] } = useLoyaltyRewards(branchId);
 
-  const mutation = useMutation({
-    mutationFn: async (data: any) => {
-      if (editingReward) {
-        return merchantApi.updateLoyaltyReward(editingReward.id, data);
-      }
-      return merchantApi.createLoyaltyReward({ ...data, branch_id: branchId });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['loyalty-rewards', branchId] });
-      setIsModalOpen(false);
-      setEditingReward(null);
-      setForm({ name: '', points_required: 0, discount_value: '', discount_type: 'percentage', is_active: true });
-      successToast('Recompensa salva com sucesso');
-    },
-    onError: () => {
-      errorToast('Erro ao salvar recompensa');
-    },
-  });
+  const mutation = useSaveLoyaltyReward(editingReward?.id ?? null, branchId);
 
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => merchantApi.deleteLoyaltyReward(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['loyalty-rewards', branchId] });
-      successToast('Recompensa removida');
-    },
-    onError: () => {
-      errorToast('Erro ao remover recompensa');
-    },
-  });
+  const deleteMutation = useDeleteLoyaltyReward(branchId);
 
   const handleStartEdit = (reward: Reward) => {
     setEditingReward(reward);
     setForm({
       name: reward.name,
       points_required: reward.points_required,
-      discount_value: reward.discount_value,
+      discount_value: String(reward.discount_value),
       discount_type: reward.discount_type as 'percentage' | 'fixed',
-      is_active: reward.is_active,
+      is_active: reward.active,
     });
     setIsModalOpen(true);
   };
@@ -129,7 +96,7 @@ export function MerchantLoyaltyRewardsPage() {
                     <td colSpan={5} className="px-4 py-8 text-center text-text-secondary">Nenhuma recompensa cadastrada.</td>
                   </tr>
                 ) : (
-                  rewards.map((r: Reward) => (
+                  rewards.map((r) => (
                     <tr key={r.id} className="hover:bg-surface-background/50 transition-colors">
                       <td className="px-4 py-3 font-medium text-text-primary">{r.name}</td>
                       <td className="px-4 py-3">{r.points_required} pts</td>
@@ -139,9 +106,9 @@ export function MerchantLoyaltyRewardsPage() {
                       <td className="px-4 py-3">
                         <span className={clsx(
                           'px-2 py-0.5 rounded-full text-xs font-medium',
-                          r.is_active ? 'bg-feedback-success/10 text-feedback-success' : 'bg-feedback-error/10 text-feedback-error'
+                          r.active ? 'bg-feedback-success/10 text-feedback-success' : 'bg-feedback-error/10 text-feedback-error'
                         )}>
-                          {r.is_active ? 'Ativa' : 'Inativa'}
+                          {r.active ? 'Ativa' : 'Inativa'}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right space-x-2">
@@ -232,7 +199,7 @@ export function MerchantLoyaltyRewardsPage() {
               <Button variant="outline" intent="secondary" className="flex-1" onClick={() => setIsModalOpen(false)}>
                 Cancelar
               </Button>
-              <Button variant="solid" intent="primary" className="flex-1" onClick={() => mutation.mutate(form)} loading={mutation.isPending}>
+              <Button variant="solid" intent="primary" className="flex-1" onClick={() => mutation.mutate(form, { onSuccess: () => { setIsModalOpen(false); setEditingReward(null); setForm({ name: '', points_required: 0, discount_value: '', discount_type: 'percentage', is_active: true }); } })} loading={mutation.isPending}>
                 {editingReward ? 'Atualizar' : 'Criar'}
               </Button>
             </div>

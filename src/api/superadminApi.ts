@@ -1,59 +1,74 @@
 import { get, post, put, del } from './httpClient';
+import type {
+  NotificationDTO,
+  AuditEventDTO,
+  SupportTicketDTO,
+  FeatureFlagDTO,
+  GlobalCouponDTO,
+  PermissionDTO,
+  CapabilityDTO,
+  CommissionPlanDTO,
+  PlatformMetricsDTO,
+  SubscriptionPlanDTO,
+  AddonDTO,
+  SubscriptionDTO,
+} from '../dto/superadminDto';
 
 export const notificationsApi = {
-  list: () => get<any[]>('/notifications'),
-  create: (data: any) => post<any>('/notifications', data),
+  list: () => get<NotificationDTO[]>('/notifications'),
+  create: (data: Record<string, unknown>) => post<NotificationDTO>('/notifications', data),
 };
 
 export const auditApi = {
-  list: () => get<any[]>('/audit-events'),
-  getById: (id: string) => get<any>(`/audit-events/${id}`),
+  list: () => get<AuditEventDTO[]>('/audit-events'),
+  getById: (id: string) => get<AuditEventDTO>(`/audit-events/${id}`),
 };
 
 export const supportApi = {
-  list: () => get<any[]>('/support-tickets'),
-  getById: (id: string) => get<any>(`/support-tickets/${id}`),
-  update: (id: string, data: any) => put<any>(`/support-tickets/${id}`, data),
+  list: () => get<SupportTicketDTO[]>('/support-tickets'),
+  getById: (id: string) => get<SupportTicketDTO>(`/support-tickets/${id}`),
+  update: (id: string, data: Record<string, unknown>) => put<SupportTicketDTO>(`/support-tickets/${id}`, data),
 };
 
 export const featureFlagApi = {
-  list: () => get<any[]>('/feature-flags'),
-  create: (data: any) => post<any>('/feature-flags', data),
+  list: () => get<FeatureFlagDTO[]>('/feature-flags'),
+  create: (data: Record<string, unknown>) => post<FeatureFlagDTO>('/feature-flags', data),
   delete: (id: string) => del<void>(`/feature-flags/${id}`),
 };
 
 export const globalCouponApi = {
-  list: () => get<any[]>('/global-coupons'),
-  create: (data: any) => post<any>('/global-coupons', data),
-  update: (id: string, data: any) => put<any>(`/global-coupons/${id}`, data),
+  list: () => get<GlobalCouponDTO[]>('/global-coupons'),
+  create: (data: Record<string, unknown>) => post<GlobalCouponDTO>('/global-coupons', data),
+  update: (id: string, data: Record<string, unknown>) => put<GlobalCouponDTO>(`/global-coupons/${id}`, data),
   delete: (id: string) => del<void>(`/global-coupons/${id}`),
 };
 
 export const subscriptionApi = {
-  getSubscriptions: () => get<any[]>('/subscriptions'),
-  getPlans: () => get<any[]>('/plans'),
-  getAddons: () => get<any[]>('/addons'),
-  updateSubscription: (id: string, data: any) => put<void>(`/subscriptions/${id}`, data),
+  getSubscriptions: () => get<SubscriptionDTO[]>('/subscriptions'),
+  getPlans: () => get<SubscriptionPlanDTO[]>('/plans'),
+  getAddons: () => get<AddonDTO[]>('/addons'),
+  updateSubscription: (id: string, data: Record<string, unknown>) => put<void>(`/subscriptions/${id}`, data),
+  toggleAddon: (subscriptionId: string, addonId: string) => post<void>('/subscription-addons/toggle', { subscriptionId, addonId }),
 };
 
 export const permissionApi = {
-  list: () => get<any[]>('/permissions'),
-  getByRole: (role: string) => get<any[]>(`/permissions/role/${role}`),
+  list: () => get<PermissionDTO[]>('/permissions'),
+  getByRole: (role: string) => get<PermissionDTO[]>(`/permissions/role/${role}`),
   assign: (data: { role: string; permissionId: string }) => post<void>('/permissions/assign', data),
   revoke: (data: { role: string; permissionId: string }) => del<void>(`/permissions/revoke/${data.role}/${data.permissionId}`),
 };
 
 export const capabilityApi = {
-  list: () => get<any[]>('/capabilities'),
+  list: () => get<CapabilityDTO[]>('/capabilities'),
 };
 
 export const commissionPlanApi = {
-  list: () => get<any[]>('/commission-plans'),
-  update: (id: string, data: any) => put<any>(`/commission-plans/${id}`, data),
+  list: () => get<CommissionPlanDTO[]>('/commission-plans'),
+  update: (id: string, data: Record<string, unknown>) => put<CommissionPlanDTO>(`/commission-plans/${id}`, data),
 };
 
 export const reportsApi = {
-  getPlatformMetrics: () => get<any>('/admin/reports/platform-metrics'),
+  getPlatformMetrics: () => get<PlatformMetricsDTO>('/admin/reports/platform-metrics'),
 };
 
 export const superadminApi = {

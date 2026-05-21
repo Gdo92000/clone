@@ -1,12 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { merchantApi } from '../api';
 import { orderListDtoToModel } from '../mappers/merchantMapper';
+import { courierKeys } from '../api/queryKeys';
 
 const STALE = 1000 * 60 * 2;
 
 export function useCourierDeliveries() {
   return useQuery({
-    queryKey: ['courier', 'deliveries'],
+    queryKey: courierKeys.deliveries,
     queryFn: async () => {
       const orders = await merchantApi.getOrders();
       return orderListDtoToModel(orders).filter((o) => o.deliveryType === 'delivery');
@@ -15,15 +16,4 @@ export function useCourierDeliveries() {
   });
 }
 
-export function useCourierEarnings() {
-  return useQuery({
-    queryKey: ['courier', 'earnings'],
-    queryFn: async () => {
-      const orders = await merchantApi.getOrders();
-      const deliveries = orderListDtoToModel(orders).filter((o) => o.deliveryType === 'delivery');
-      const total = deliveries.reduce((sum, o) => sum + o.total, 0);
-      return { deliveries: deliveries.length, totalEarnings: total };
-    },
-    staleTime: STALE,
-  });
-}
+

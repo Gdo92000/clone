@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { MerchantLayout } from '../components/MerchantLayout';
 import { Icon } from '../../../components/ui/Icon';
 import { Button } from '../../../components/ui/Button';
 import { useBranches } from '../../../hooks/useMerchantData';
-import { merchantApi } from '../../../api/merchantApi';
-import { successToast, errorToast } from '../../../lib/toast';
+import { useCouponsByBranch, useSaveCoupon, useToggleCoupon, useDeleteCoupon } from '../../../hooks/useMerchantCoupons';
 import { clsx } from 'clsx';
 
 interface MerchantCoupon {
@@ -20,14 +18,13 @@ interface MerchantCoupon {
   current_uses: number;
   valid_until: string;
   is_active: boolean;
-  rules: Record<string, any>;
+  rules: Record<string, unknown>;
 }
 
 type CouponForm = Omit<MerchantCoupon, 'id' | 'current_uses'> & { branch_id?: string };
 const emptyForm: CouponForm = { branch_id: '', code: '', description: '', discount_type: 'percentage', discount_value: '10', min_order: '0', max_uses: 100, valid_until: '', is_active: true, rules: {} };
 
 export function MerchantCouponsPage() {
-  const queryClient = useQueryClient();
   const { data: branches = [] } = useBranches();
   const [branchId, setBranchId] = useState('');
   const [showForm, setShowForm] = useState(false);
@@ -38,37 +35,13 @@ export function MerchantCouponsPage() {
     if (!branchId && branches.length > 0) setBranchId(branches[0]!.id);
   }, [branches, branchId]);
 
-  const { data: coupons = [] } = useQuery({
-    queryKey: ['merchant-coupons', branchId],
-    queryFn: () => merchantApi.getCouponsByBranch(branchId),
-    enabled: !!branchId,
-  });
+  const { data: coupons = [] } = useCouponsByBranch(branchId);
 
-  const mutation = useMutation({
-    mutationFn: async (data: any) => {
-      if (editingId) return merchantApi.updateCoupon(editingId, data);
-      return merchantApi.createCoupon(data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['merchant-coupons', branchId] });
-      resetForm();
-      successToast('Cupom salvo com sucesso');
-    },
-    onError: () => {
-      errorToast('Erro ao salvar cupom');
-    },
-  });
+  const mutation = useSaveCoupon(editingId, branchId);
 
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => merchantApi.deleteCoupon(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['merchant-coupons', branchId] });
-      successToast('Cupom removido');
-    },
-    onError: () => {
-      errorToast('Erro ao remover cupom');
-    },
-  });
+  const toggleMutation = useToggleCoupon(branchId);
+
+  const deleteMutation = useDeleteCoupon(branchId);
 
   const resetForm = () => { setForm(emptyForm); setShowForm(false); setEditingId(null); };
 
@@ -107,17 +80,11 @@ const openEdit = (c: MerchantCoupon) => {
       valid_until: form.valid_until,
       is_active: form.is_active,
       rules: form.rules,
-    });
+    }, { onSuccess: resetForm });
   };
 
-  const toggleActive = async (id: string, currentStatus: boolean) => {
-    try {
-      await merchantApi.updateCoupon(id, { is_active: !currentStatus });
-      queryClient.invalidateQueries({ queryKey: ['merchant-coupons', branchId] });
-      successToast('Status atualizado');
-    } catch {
-      errorToast('Erro ao atualizar status');
-    }
+  const toggleActive = (id: string, currentStatus: boolean) => {
+    toggleMutation.mutate({ id, is_active: !currentStatus });
   };
 
   const usagePercent = (c: MerchantCoupon) => c.max_uses > 0 ? Math.round((c.current_uses / c.max_uses) * 100) : 0;
@@ -158,7 +125,7 @@ const openEdit = (c: MerchantCoupon) => {
   <div>
     <label className="text-xs text-text-secondary font-medium block">
       Tipo
-      <select value={form.discount_type} onChange={(e) => { setForm({ ...form, discount_type: e.target.value as any }); }} className="w-full h-10 px-3 rounded-lg bg-surface-background border border-border-default text-text-primary text-sm mt-1 focus:outline-none focus:border-border-focus">
+      <select value={form.discount_type} onChange={(e) => { setForm({ ...form, discount_type: e.target.value as 'percentage' | 'fixed' }); }} className="w-full h-10 px-3 rounded-lg bg-surface-background border border-border-default text-text-primary text-sm mt-1 focus:outline-none focus:border-border-focus">
         <option value="percentage">Porcentagem</option>
         <option value="fixed">Valor fixo</option>
       </select>

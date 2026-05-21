@@ -50,8 +50,11 @@ export const ROUTES = {
   SUPERADMIN_DEMO: '/superadmin/demo',
 
   ADMIN: '/admin',
+  ADMIN_LOGIN: '/admin/login',
   ADMIN_COMPANIES: '/admin/companies',
   ADMIN_COVERAGE: '/admin/coverage',
+
+  COURIER_LOGIN: '/courier/login',
 
   ACCESS: '/access',
   NOTIFICATIONS: '/notifications',
@@ -110,6 +113,15 @@ export const ROUTE_AREA: Record<string, string> = {
   courier: 'courier',
   access: 'experience',
 };
+
+export function getLoginUrlForPath(pathname?: string): string {
+  const path = pathname ?? window.location.pathname;
+  if (path.startsWith('/superadmin')) return ROUTES.SUPERADMIN_LOGIN;
+  if (path.startsWith('/merchant')) return ROUTES.MERCHANT_LOGIN;
+  if (path.startsWith('/admin')) return ROUTES.ADMIN_LOGIN;
+  if (path.startsWith('/courier')) return ROUTES.COURIER_LOGIN;
+  return ROUTES.LOGIN;
+}
 
 export function getRouteArea(prefix: string): string {
   return ROUTE_AREA[prefix] ?? 'public';

@@ -1,10 +1,14 @@
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 
+function getMockFlag(): boolean {
+  return process.env['VITE_MOCK'] === 'true'
+}
+
 export default defineConfig({
   plugins: [react()],
   define: {
-    __USE_MOCK__: 'false',
+    __USE_MOCK__: getMockFlag(),
   },
   test: {
     include: [],
@@ -32,7 +36,7 @@ export default defineConfig({
         },
         plugins: [react()],
         define: {
-          __USE_MOCK__: 'false',
+          __USE_MOCK__: getMockFlag(),
         },
       },
     ],

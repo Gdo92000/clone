@@ -1,8 +1,8 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useMemo } from 'react';
 import { useLocationContext } from '../context/LocationContext';
-import { getRestaurants } from '../repositories/restaurantRepository';
-import type { Restaurant } from '../types';
+import { useRestaurants } from './useRestaurants';
 import { calculateDistance } from '../services/locationService';
+import type { Restaurant } from '../types';
 
 export interface NearbyRestaurant extends Restaurant {
   distanceKm: number;
@@ -17,15 +17,7 @@ interface UseNearbyRestaurantsOptions {
 export function useNearbyRestaurants(options: UseNearbyRestaurantsOptions = {}) {
   const { coordinates, isWithinSupportedCity, loading: locationLoading } = useLocationContext();
   const { maxDistanceKm = 10, limit, includeAllIfNoLocation = true } = options;
-  const [allRestaurants, setAllRestaurants] = useState<Restaurant[]>([]);
-  const [dataLoading, setDataLoading] = useState(true);
-  const initRef = useRef(false);
-
-  useEffect(() => {
-    if (initRef.current) return;
-    initRef.current = true;
-    void getRestaurants().then((r) => { setAllRestaurants(r); setDataLoading(false); });
-  }, []);
+  const { data: allRestaurants = [], isLoading: dataLoading } = useRestaurants();
 
   const nearbyRestaurants = useMemo(() => {
     if (!coordinates || !isWithinSupportedCity) {

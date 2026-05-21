@@ -1,48 +1,21 @@
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAllPermissions, useRolePermissions, useAssignPermission, useRevokePermission } from '../../../hooks/useSuperadminData';
 import { PageHeader } from '../../../components/ui/PageHeader';
-import { superadminApi } from '../../../api/superadminApi';
-import { successToast, errorToast } from '../../../lib/toast';
 import { clsx } from 'clsx';
 
 export function PermissionManagementPage() {
-  const queryClient = useQueryClient();
   const [selectedRole, setSelectedRole] = useState('merchant');
 
   const roles = ['merchant', 'admin', 'courier', 'superadmin'];
 
-  const { data: allPermissions = [] } = useQuery({
-    queryKey: ['permissions-all'],
-    queryFn: () => superadminApi.permissionApi.list(),
-  });
+  const { data: allPermissions = [] } = useAllPermissions();
+  const { data: rolePermissions = [] } = useRolePermissions(selectedRole);
+  const assignMutation = useAssignPermission();
+  const revokeMutation = useRevokePermission();
 
-  const { data: rolePermissions = [] } = useQuery({
-    queryKey: ['permissions-role', selectedRole],
-    queryFn: () => superadminApi.permissionApi.getByRole(selectedRole),
-    enabled: !!selectedRole,
-  });
-
-  const assignMutation = useMutation({
-    mutationFn: (data: { role: string; permissionId: string }) => superadminApi.permissionApi.assign(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['permissions-role', selectedRole] });
-      successToast('Permissão atribuída');
-    },
-    onError: () => errorToast('Erro ao atribuir permissão'),
-  });
-
-  const revokeMutation = useMutation({
-    mutationFn: (data: { role: string; permissionId: string }) => superadminApi.permissionApi.revoke(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['permissions-role', selectedRole] });
-      successToast('Permissão revogada');
-    },
-    onError: () => errorToast('Erro ao revogar permissão'),
-  });
-
-const isPermissionAssigned = (permId: string) => {
-  return rolePermissions.some((p: any) => p.permission_id === permId);
-};
+  const isPermissionAssigned = (permId: string) => {
+    return rolePermissions.some((p: any) => p.permission_id === permId);
+  };
 
   return (
     <>
@@ -57,8 +30,8 @@ const isPermissionAssigned = (permId: string) => {
                 onClick={() => setSelectedRole(role)}
                 className={clsx(
                   'px-4 py-2 rounded-lg text-sm font-medium transition-all border',
-                  selectedRole === role 
-                    ? 'bg-brand-primary text-white border-brand-primary shadow-md' 
+                  selectedRole === role
+                    ? 'bg-brand-primary text-white border-brand-primary shadow-md'
                     : 'bg-surface-background text-text-secondary border-border-default hover:border-brand-primary'
                 )}
               >
@@ -86,15 +59,15 @@ const isPermissionAssigned = (permId: string) => {
                     <p className="text-xs text-text-secondary">{perm.description || 'Sem descrição'}</p>
                     <code className="text-[10px] text-brand-secondary bg-brand-primary/5 px-1 rounded">{perm.key}</code>
                   </div>
-                  <button 
-                    onClick={() => isPermissionAssigned(perm.id) 
+                  <button
+                    onClick={() => isPermissionAssigned(perm.id)
                       ? revokeMutation.mutate({ role: selectedRole, permissionId: perm.id })
                       : assignMutation.mutate({ role: selectedRole, permissionId: perm.id })
                     }
                     className={clsx(
                       'px-3 py-1 rounded-full text-xs font-bold transition-all',
-                      isPermissionAssigned(perm.id) 
-                        ? 'bg-feedback-success text-feedback-success-foreground' 
+                      isPermissionAssigned(perm.id)
+                        ? 'bg-feedback-success text-feedback-success-foreground'
                         : 'bg-surface-background text-text-secondary hover:bg-border-default'
                     )}
                   >

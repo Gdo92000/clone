@@ -1,6 +1,5 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
-import { getRestaurants, getCategories } from '../repositories/restaurantRepository';
-import type { Restaurant, Category } from '../types';
+import { useState, useMemo } from 'react';
+import { useRestaurants, useCategories } from './useRestaurants';
 
 const sortOptions = [
   { id: 'relevance', label: 'Relevância' },
@@ -18,17 +17,8 @@ export function useRestaurantFilter(options?: UseRestaurantFilterOptions) {
   const [query, setQuery] = useState(options?.initialQuery ?? '');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedSort, setSelectedSort] = useState<string | null>(options?.initialSort ?? 'relevance');
-  const [allRestaurants, setAllRestaurants] = useState<Restaurant[]>([]);
-  const [allCategories, setAllCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
-  const initRef = useRef(false);
-
-  useEffect(() => {
-    if (initRef.current) return;
-    initRef.current = true;
-    void Promise.all([getRestaurants(), getCategories()])
-      .then(([r, c]) => { setAllRestaurants(r); setAllCategories(c); setLoading(false); });
-  }, []);
+  const { data: allRestaurants = [], isLoading: loading } = useRestaurants();
+  const { data: allCategories = [] } = useCategories();
 
   const filtered = useMemo(() => {
     let results = [...allRestaurants];

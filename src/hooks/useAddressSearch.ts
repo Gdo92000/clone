@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { fetchSuggestions, geocodeAddress, clearAddressCache } from '../services/addressAutocompleteService';
 import type { AutocompleteSuggestion } from '../services/addressAutocompleteService';
+import { logger } from '../lib/logger';
 
 const DEBOUNCE_MS = 400;
 const MIN_QUERY_LENGTH = 3;
@@ -88,7 +89,7 @@ export function useAddressSearch(targetCity?: string): AddressSearchResult {
         return;
       }
 
-      console.error('[useAddressSearch] Search error:', err);
+      logger.error('AddressSearch', 'Search error', err);
       if (mountedRef.current) {
         setSuggestions([]);
         setError('Erro ao buscar endereços. Tente novamente.');

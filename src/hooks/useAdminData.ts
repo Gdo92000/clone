@@ -2,12 +2,13 @@ import { useQuery } from '@tanstack/react-query';
 import { merchantApi } from '../api';
 import { companyListDtoToModel, orderListDtoToModel } from '../mappers/merchantMapper';
 import type { MerchantCompany } from '../types';
+import { adminKeys } from '../api/queryKeys';
 
 const STALE = 1000 * 60 * 5;
 
 export function useAdminCompanies() {
   return useQuery<MerchantCompany[]>({
-    queryKey: ['admin', 'companies'],
+    queryKey: adminKeys.companies,
     queryFn: () => merchantApi.getCompanies().then(companyListDtoToModel),
     staleTime: STALE,
   });
@@ -15,7 +16,7 @@ export function useAdminCompanies() {
 
 export function useAdminMetrics() {
   return useQuery({
-    queryKey: ['admin', 'metrics'],
+    queryKey: adminKeys.metrics,
     queryFn: async () => {
       const [companies, branches, orders] = await Promise.all([
         merchantApi.getCompanies(),

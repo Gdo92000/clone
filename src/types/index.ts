@@ -21,3 +21,5 @@ export type {
 export {
   initialCartState, getCartTotal, getItemsCount
 } from './cart';
+
+export type { Coordinates } from './location';

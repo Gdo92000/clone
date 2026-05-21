@@ -5,6 +5,7 @@ import { db } from '../db';
 import { authSessions } from '../db/schema';
 import { getJwtSecret } from '../config';
 import type { TokenPayload } from '../auth/types';
+import { logger } from '../lib/logger';
 
 export function getAuthMiddleware(): MiddlewareHandler {
   return jwt({ secret: getJwtSecret(), alg: 'HS256' });
@@ -53,7 +54,8 @@ export function getTokenPayload(c: Context): TokenPayload | null {
       };
     }
     return null;
-  } catch {
+  } catch (err) {
+    logger.error('Failed to extract token payload', err instanceof Error ? err : new Error('Unknown'));
     return null;
   }
 }

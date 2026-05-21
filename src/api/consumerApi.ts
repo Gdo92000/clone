@@ -1,4 +1,11 @@
 import { get, post, put } from './httpClient';
+import type {
+  ConsumerNotificationDTO,
+  ConsumerLoyaltyDTO,
+  ConsumerOrderDTO,
+  SupportTicketDTO,
+  ReviewDTO,
+} from '../dto/superadminDto';
 
 export interface ReviewInput {
   restaurant_id: string;
@@ -7,12 +14,20 @@ export interface ReviewInput {
   comment?: string;
 }
 
+export interface CreateTicketInput {
+  subject: string;
+  description?: string;
+  priority?: string;
+}
+
 export const consumerApi = {
-  // ... existing methods ...
-  getMyNotifications: () => get<any[]>('/me/notifications'),
+  getMyNotifications: () => get<ConsumerNotificationDTO[]>('/me/notifications'),
   markNotificationRead: (id: string) => put<void>(`/me/notifications/${id}/read`),
   markAllNotificationsRead: () => put<void>('/me/notifications/read-all'),
-  getMyLoyalty: (branchId: string) => get<any>(`/loyalty/me/loyalty?branch_id=${branchId}`),
-  redeemLoyaltyReward: (data: { rewardId: string; branchId: string }) => post<any>('/loyalty/me/loyalty/redeem', data),
-  getMyOrders: () => get<any[]>('/me/orders'),
+  getMyLoyalty: (branchId: string) => get<ConsumerLoyaltyDTO>(`/loyalty/me/loyalty?branch_id=${branchId}`),
+  redeemLoyaltyReward: (data: { rewardId: string; branchId: string }) => post<Record<string, unknown>>('/loyalty/me/loyalty/redeem', data),
+  getMyOrders: () => get<ConsumerOrderDTO[]>('/me/orders'),
+  getMyTickets: () => get<SupportTicketDTO[]>('/me/tickets'),
+  getMyReviews: () => get<ReviewDTO[]>('/me/reviews'),
+  createTicket: (data: CreateTicketInput) => post<SupportTicketDTO>('/me/tickets', data),
 };

@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { csrf } from 'hono/csrf';
 import { logger } from 'hono/logger';
 import { serve } from '@hono/node-server';
 import { zValidator } from '@hono/zod-validator';
@@ -39,6 +40,9 @@ import { securityHeaders } from './middleware/securityHeaders';
 import { domainMiddleware } from './middleware/domain';
 import { ALLOWED_ORIGINS } from './config';
 import { errorHandler } from './lib/errors';
+import { logger as appLogger } from './lib/logger';
+import { checkHealth, READY_STATE } from './lib/health';
+import { metricsHandler, getMetrics } from './middleware/metrics';
 import { startSessionCleanup } from './services/cleanupAuthSessions';
 import * as coverageCityService from './services/coverageCityService';
 import { restaurantSchema } from '../../shared/validations/restaurant';
@@ -59,6 +63,7 @@ const app = new Hono();
 
 app.use('*', requestId);
 app.use('*', securityHeaders);
+app.use('*', csrf());
 app.use('*', domainMiddleware);
 app.use('*', cors({
   origin: (origin) => {
@@ -70,11 +75,28 @@ app.use('*', cors({
 }));
 app.use('*', logger());
 
+app.use('*', metricsHandler);
+
 app.onError(errorHandler);
 
+app.get('/api/metrics', async (c) => {
+  c.header('Content-Type', 'text/plain');
+  return c.body(await getMetrics());
+});
+
 // Public routes
-app.get('/api/health', (c) => {
-  return c.json({ status: 'ok', timestamp: new Date().toISOString(), requestId: c.get('requestId') });
+app.get('/api/health/live', (c) => {
+  return c.json({ status: 'ok', timestamp: new Date().toISOString(), uptime: process.uptime(), requestId: c.get('requestId') });
+});
+
+app.get('/api/health/ready', async (c) => {
+  const result = await checkHealth(c.get('requestId'));
+  if (result.database === 'down') return c.json(result, 503);
+  return c.json(result);
+});
+
+app.get('/api/health', async (c) => {
+  return c.json(await checkHealth(c.get('requestId')));
 });
 
 app.route('/api/auth', authRoutes);
@@ -203,11 +225,32 @@ api.post('/reviews', zValidator('json', reviewCreateSchema), async (c) => {
 
 app.route('/api', api);
 
+const port = Number(process.env.PORT) || 3001;
+
+const server = serve({ fetch: app.fetch, port }, () => {
+  READY_STATE.ready = true;
+  appLogger.info(`Server started`, { port, nodeEnv: process.env.NODE_ENV ?? 'development' });
+});
+
 startSessionCleanup();
-coverageCityService.seedFromRestaurants().catch(() => {});
+coverageCityService.seedFromRestaurants().catch((err) => {
+  appLogger.error('Coverage city seed failed', err instanceof Error ? err : new Error(String(err)));
+});
+
+function shutdown(signal: string) {
+  appLogger.info(`${signal} received — shutting down gracefully`, { signal });
+  READY_STATE.ready = false;
+  server.close(() => {
+    appLogger.info('HTTP server closed');
+    process.exit(0);
+  });
+  setTimeout(() => {
+    appLogger.error('Forced shutdown after timeout');
+    process.exit(1);
+  }, 10_000).unref();
+}
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
 
 export default app;
-
-const port = Number(process.env.PORT) || 3001;
-serve({ fetch: app.fetch, port });
-  console.log(`Server running on http://localhost:${port}`); // eslint-disable-line no-console

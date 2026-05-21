@@ -36,9 +36,15 @@ export const errorHandler: ErrorHandler = (err, c) => {
     try { return c.get('requestId') as string | undefined; } catch { return undefined; }
   })();
 
+  const isDev = process.env.NODE_ENV !== 'production';
+
   if (err instanceof AppError) {
     if (err.statusCode >= 500) logger.error(err.message, err, { requestId: reqId });
-    return c.json({ error: err.message, details: err.details, requestId: reqId }, err.statusCode);
+    return c.json({
+      error: err.message,
+      ...(isDev && err.details ? { details: err.details } : {}),
+      requestId: reqId,
+    }, err.statusCode);
   }
 
 

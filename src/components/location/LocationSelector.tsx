@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { clsx } from 'clsx';
 import { Icon } from '../ui/Icon';
 import { useLocationContext } from '../../context/LocationContext';
-import { getRegisteredCityCoverages } from '../../services/cityCoverageService';
+import { useRegisteredCityCoverages } from '../../hooks/useCoverageData';
 import { formatDistance } from '../../services/locationService';
 
 interface LocationSelectorProps {
@@ -292,11 +292,7 @@ export function LocationSelector({ className }: LocationSelectorProps) {
 
   const [showCityList, setShowCityList] = useState(false);
   const [searchCity, setSearchCity] = useState('');
-  const [registeredCities, setRegisteredCities] = useState<Awaited<ReturnType<typeof getRegisteredCityCoverages>>>([]);
-
-  useEffect(() => {
-    void getRegisteredCityCoverages().then(setRegisteredCities);
-  }, []);
+  const { data: registeredCities = [] } = useRegisteredCityCoverages();
 
   const filteredCities = registeredCities.filter(
     (c) =>

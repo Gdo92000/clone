@@ -4,7 +4,7 @@ import { FxQuantitySelector } from './FxQuantitySelector';
 import { FxPriceTag } from './FxPriceTag';
 import { Icon } from '../ui/Icon';
 import { FxImage } from '../ui/FxImage';
-import { calculateItemTotal } from '../../services/pricingService';
+import { calculateItemTotal } from '../../useCases/pricingUseCase';
 
 export interface FxCartItemProps {
   item: CartItem;

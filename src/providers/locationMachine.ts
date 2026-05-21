@@ -1,7 +1,8 @@
-import type { Coordinates } from '../hooks/useGeolocation';
+import type { Coordinates } from '../types/location';
 import { findRegisteredCityCoverage } from '../services/cityCoverageService';
 import { calculateDistance, reverseGeocode } from '../services/locationService';
 import type { City } from '../services/locationService';
+import { logger } from '../lib/logger';
 
 export type LocationStatus = 'IDLE' | 'REQUESTING' | 'SUCCESS' | 'FALLBACK_IP' | 'DENIED' | 'ERROR';
 
@@ -43,8 +44,7 @@ export async function processSupportedCity(detectedCity: City, coords: Coordinat
       return { isWithinSupportedCity: distance <= supported.radiusKm, distanceToCityCenter: distance };
     }
   } catch (error) {
-    // Falha ao verificar cidade - assume não suportada temporariamente
-    console.warn('Erro ao verificar cidade suportada:', error);
+    logger.warn('Location', 'Erro ao verificar cidade suportada', { error: String(error) });
   }
   return { isWithinSupportedCity: false, distanceToCityCenter: null };
 }

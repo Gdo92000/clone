@@ -1,86 +1,60 @@
 import { useState, useEffect } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '../../../components/ui/Button';
 import { MerchantLayout } from '../components/MerchantLayout';
 import { useBranches } from '../../../hooks/useMerchantData';
-import { merchantApi } from '../../../api/merchantApi';
-import { successToast, errorToast } from '../../../lib/toast';
+import { useBranchSettings, useLoyaltySettings, useSaveBranchSettings } from '../../../hooks/useMerchantSettings';
 
 export function MerchantSettingsPage() {
-  const queryClient = useQueryClient();
   const { data: branches = [] } = useBranches();
   const [branchId, setBranchId] = useState('');
-  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!branchId && branches.length > 0) setBranchId(branches[0]!.id);
   }, [branches, branchId]);
 
-const [settings, setSettings] = useState({
-  opening_time: '09:00',
-  closing_time: '18:00',
-  preparation_time: '30',
-  minimum_order: '20',
-  accepts_delivery: true,
-  accepts_pickup: true,
-  pix_key: '',
-});
+  const [settings, setSettings] = useState({
+    opening_time: '09:00',
+    closing_time: '18:00',
+    preparation_time: '30',
+    minimum_order: '20',
+    accepts_delivery: true,
+    accepts_pickup: true,
+    pix_key: '',
+  });
 
-const { data: remoteSettings } = useQuery({
-  queryKey: ['branch-settings', branchId],
-  queryFn: () => merchantApi.getSettingsByBranch(branchId),
-  enabled: !!branchId,
-});
+  const { data: remoteSettings } = useBranchSettings(branchId);
 
-const { data: remoteLoyalty } = useQuery({
-  queryKey: ['loyalty-settings', branchId],
-  queryFn: () => merchantApi.getLoyaltySettings(branchId),
-  enabled: !!branchId,
-});
+  const { data: remoteLoyalty } = useLoyaltySettings(branchId);
 
-const [loyaltySettings, setLoyaltySettings] = useState({
-  enabled: false,
-  points_per_real: '1.00',
-});
+  const [loyaltySettings, setLoyaltySettings] = useState({
+    enabled: false,
+    points_per_real: '1.00',
+  });
 
-useEffect(() => {
-  if (remoteSettings && 'branch_id' in remoteSettings) {
-    setSettings({
-      opening_time: remoteSettings.opening_time,
-      closing_time: remoteSettings.closing_time,
-      preparation_time: remoteSettings.preparation_time,
-      minimum_order: remoteSettings.minimum_order,
-      accepts_delivery: remoteSettings.accepts_delivery,
-      accepts_pickup: remoteSettings.accepts_pickup,
-      pix_key: remoteSettings.pix_key ?? '',
-    });
-  }
-}, [remoteSettings]);
+  useEffect(() => {
+    if (remoteSettings && 'branch_id' in remoteSettings) {
+      setSettings({
+        opening_time: remoteSettings.opening_time,
+        closing_time: remoteSettings.closing_time,
+        preparation_time: remoteSettings.preparation_time,
+        minimum_order: remoteSettings.minimum_order,
+        accepts_delivery: remoteSettings.accepts_delivery,
+        accepts_pickup: remoteSettings.accepts_pickup,
+        pix_key: remoteSettings.pix_key ?? '',
+      });
+    }
+  }, [remoteSettings]);
 
   useEffect(() => {
     if (remoteLoyalty) {
       setLoyaltySettings({
         enabled: remoteLoyalty.enabled ?? false,
-        points_per_real: remoteLoyalty.points_per_real ?? '1.00',
+        points_per_real: remoteLoyalty.points_per_currency?.toString() ?? '1.00',
       });
     }
   }, [remoteLoyalty]);
 
-  const saveSettings = async () => {
-    if (!branchId) return;
-    setSaving(true);
-    try {
-      await merchantApi.updateSettings(branchId, settings);
-      await merchantApi.updateLoyaltySettings(branchId, loyaltySettings);
-      successToast('Configuracoes salvas com sucesso');
-      await queryClient.invalidateQueries({ queryKey: ['branch-settings', branchId] });
-      await queryClient.invalidateQueries({ queryKey: ['loyalty-settings', branchId] });
-    } catch {
-      errorToast('Erro ao salvar configuracoes');
-    } finally {
-      setSaving(false);
-    }
-  };
+  const saveMutation = useSaveBranchSettings(branchId);
 
 
   const selectedBranch = branches.find((b) => b.id === branchId);
@@ -179,9 +153,9 @@ useEffect(() => {
           </label>
 
            <div className="mt-4 flex flex-wrap items-center gap-3">
-             <Button onClick={saveSettings} loading={saving} disabled={saving}>
-               {saving ? 'Salvando...' : 'Salvar configuracoes'}
-             </Button>
+              <Button onClick={() =>     saveMutation.mutate({ settings, loyaltySettings })} loading={saveMutation.isPending} disabled={saveMutation.isPending}>
+                {saveMutation.isPending ? 'Salvando...' : 'Salvar configuracoes'}
+              </Button>
            </div>
          </div>
 

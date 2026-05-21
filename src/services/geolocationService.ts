@@ -1,5 +1,6 @@
-import type { Coordinates } from '../hooks/useGeolocation';
+import type { Coordinates } from '../types/location';
 import { storageService } from '../storage/storageService';
+import { ipApi } from '../api/ipApi';
 
 const CITY_CACHE_KEY = 'city-cache';
 const CITY_TTL = 24 * 60 * 60 * 1000;
@@ -56,14 +57,6 @@ function log(...args: unknown[]) {
     if (prev.length > 50) prev.shift();
     storageService.set(DEBUG_KEY, prev);
   } catch { /* ignore */ }
-}
-
-export function getGeoDebug(): string[] {
-  return (storageService.get(DEBUG_KEY) as string[] | null) ?? [];
-}
-
-export function clearGeoDebug(): void {
-  storageService.remove(DEBUG_KEY);
 }
 
 export function isGeolocationUsable(): boolean {
@@ -163,59 +156,29 @@ export function progressiveGeolocation(): Promise<Coordinates> {
   });
 }
 
-const IP_APIS = [
-  {
-    url: 'https://ipapi.co/json/',
-    parse: (d: Record<string, unknown>) => {
-      const city = d['city'];
-      const region = d['region'];
-      if (typeof city === 'string' && typeof region === 'string') {
-        return { city, state: region };
-      }
-      return null;
-    },
-  },
-  {
-    url: 'https://ip-api.com/json/',
-    parse: (d: Record<string, unknown>) => {
-      const city = d['city'];
-      const region = d['region'];
-      if (typeof city === 'string' && typeof region === 'string') {
-        return { city, state: region };
-      }
-      return null;
-    },
-  },
-];
-
 export async function ipFallback(): Promise<{ city: string; state: string } | null> {
-  for (const api of IP_APIS) {
-    try {
-      log(`IP: tentando ${api.url}`);
-      const res = await fetch(api.url, { signal: AbortSignal.timeout(5000) });
-      if (!res.ok) {
-        log(`IP: ${api.url} status=${res.status}`);
-        continue;
-      }
-      const data = await res.json() as Record<string, unknown>;
-      const result = api.parse(data);
-      if (result) {
-        log(`IP: SUCESSO via ${api.url} -> ${result.city}/${result.state}`);
-        return result;
-      }
-      log(`IP: ${api.url} dados incompletos`);
-    } catch (e) {
-      log(`IP: ${api.url} erro — ${e instanceof Error ? e.message : String(e)}`);
-    }
-  }
+   // Try ipapi.co first
+   try {
+     log('IP: tentando ipapi.co');
+     const data = await ipApi.getLocationByIp();
+     const result = { city: data.city, state: data.region };
+     log(`IP: SUCESSO via ipapi.co -> ${result.city}/${result.state}`);
+     return result;
+   } catch (e) {
+     log(`IP: ipapi.co erro — ${e instanceof Error ? e.message : String(e)}`);
+   }
 
-  log('IP: TODAS AS APIs FALHARAM');
+   // Fallback to ip-api.com
+   try {
+     log('IP: tentando ip-api.com');
+     const data = await ipApi.getLocationByIpAlternative();
+     const result = { city: data.city, state: data.region_code || data.region };
+     log(`IP: SUCESSO via ip-api.com -> ${result.city}/${result.state}`);
+     return result;
+   } catch (e) {
+     log(`IP: ip-api.com erro — ${e instanceof Error ? e.message : String(e)}`);
+   }
+
+   log('IP: TODAS AS APIs FALHARAM');
   return null;
-}
-
-export function validateCity(city: string): boolean {
-  if (!city || typeof city !== 'string') return false;
-  const trimmed = city.trim();
-  if (trimmed.length < 2) return false;
-  return true;
 }

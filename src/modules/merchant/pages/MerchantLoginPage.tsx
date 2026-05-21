@@ -1,85 +1,29 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '../../../components/ui/Button';
-import { login as authLogin } from '../../../services/authService';
-import { errorToast } from '../../../lib/toast';
+import { LoginForm } from '../../auth/LoginForm';
+import type { LoginProfileConfig } from '../../auth/LoginForm';
 import { ROUTES } from '../../../lib/routes';
 
+const MERCHANT_CONFIG: LoginProfileConfig = {
+  title: 'Entrar no portal do lojista',
+  subtitle: 'Acesse sua conta para gerenciar pedidos, cardápio e operações.',
+  emailPlaceholder: 'lojista@francafood.com',
+  passwordPlaceholder: '123456',
+  emailValidationError: 'Informe seu email para acessar.',
+  passwordValidationError: 'Informe sua senha para acessar.',
+  icon: (
+    <span className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-primary font-bold text-text-inverse">
+      iF
+    </span>
+  ),
+};
 
 export function MerchantLoginPage() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!email.trim()) {
-      errorToast('Informe seu email para acessar.');
-      return;
-    }
-    if (!password.trim()) {
-      errorToast('Informe sua senha para acessar.');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await authLogin({ email, password });
-      void navigate(ROUTES.MERCHANT);
-    } catch (err) {
-      errorToast(err instanceof Error ? err.message : 'Erro ao entrar');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
-    <div className="min-h-screen bg-surface-background">
-      <main className="mx-auto flex min-h-screen max-w-md items-center px-4">
-        <section className="w-full rounded-xl border border-border-default bg-surface-elevated p-6">
-          <div className="mb-6">
-            <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-primary font-bold text-text-inverse">
-              iF
-            </span>
-            <h1 className="mt-4 font-display text-2xl font-bold text-text-primary">
-              Entrar no portal do lojista
-            </h1>
-            <p className="mt-2 text-sm text-text-secondary">
-              Acesse sua conta para gerenciar pedidos, cardápio e operações.
-            </p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <label className="block">
-              <span className="text-sm font-medium text-text-secondary">Email</span>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => { setEmail(e.target.value); }}
-                placeholder="lojista@francafood.com"
-                className="mt-1 h-11 w-full rounded-lg border border-border-default bg-surface-background px-3 text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20"
-                autoComplete="email"
-              />
-            </label>
-            <label className="block">
-              <span className="text-sm font-medium text-text-secondary">Senha</span>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => { setPassword(e.target.value); }}
-                placeholder="123456"
-                className="mt-1 h-11 w-full rounded-lg border border-border-default bg-surface-background px-3 text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20"
-                autoComplete="current-password"
-              />
-            </label>
-            <Button fullWidth type="submit" loading={loading}>
-              {loading ? 'Entrando...' : 'Entrar'}
-            </Button>
-          </form>
-        </section>
-      </main>
-    </div>
+    <LoginForm
+      config={MERCHANT_CONFIG}
+      onSuccess={() => { void navigate(ROUTES.MERCHANT); }}
+    />
   );
 }

@@ -1,10 +1,8 @@
 import { useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '../../../components/ui/Button';
 import { usePlanLimits } from '../../enterprise';
 import { MerchantLayout } from '../components/MerchantLayout';
-import { merchantApi } from '../../../api';
-import { errorToast, successToast } from '../../../lib/toast';
+import { useCampaigns, useCreateCampaign } from '../../../hooks/useMerchantCampaigns';
 import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
 
 interface Campaign {
@@ -15,28 +13,15 @@ interface Campaign {
 }
 
 export function MerchantCampaignsPage() {
-  const queryClient = useQueryClient();
-  const { data: campaigns = [], isLoading, error } = useQuery<Campaign[]>({
-    queryKey: ['merchant-campaigns'],
-    queryFn: () => merchantApi.getCampaigns(),
-  });
+  const { data: campaigns = [], isLoading, error } = useCampaigns();
   const [name, setName] = useState('');
-  const [mutating, setMutating] = useState(false);
   const limits = usePlanLimits('company-1');
 
-  const addCampaign = async () => {
+  const campaignMutation = useCreateCampaign();
+
+  const addCampaign = () => {
     if (!name.trim() || !limits.canCreateCampaign) return;
-    setMutating(true);
-    try {
-      await merchantApi.createCampaign({ name: name.trim(), discount: '10%', status: 'active' });
-      successToast('Campanha criada com sucesso!');
-      setName('');
-      await queryClient.invalidateQueries({ queryKey: ['merchant-campaigns'] });
-    } catch (err) {
-      errorToast(err instanceof Error ? err.message : 'Erro ao criar campanha');
-    } finally {
-      setMutating(false);
-    }
+    campaignMutation.mutate({ name: name.trim(), discount: '10%', status: 'active' }, { onSuccess: () => setName('') });
   };
 
   return (
@@ -55,7 +40,7 @@ export function MerchantCampaignsPage() {
             placeholder="Nome da campanha"
             className="mt-4 h-10 w-full rounded-lg border border-border-default bg-surface-background px-3 text-sm"
           />
-          <Button className="mt-3" loading={mutating} onClick={addCampaign} disabled={!limits.canCreateCampaign}>Criar campanha</Button>
+          <Button className="mt-3" loading={campaignMutation.isPending} onClick={addCampaign} disabled={!limits.canCreateCampaign}>Criar campanha</Button>
         </div>
         <FxQueryBoundary isLoading={isLoading} isError={!!error} error={error instanceof Error ? error : null}>
         <div className="space-y-3">

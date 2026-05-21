@@ -1,12 +1,15 @@
 import { db } from '../../db';
 import { printJobs, printerConfigs } from '../../db/schema';
 import { eq } from 'drizzle-orm';
+import type { InferSelectModel } from 'drizzle-orm';
 import { NetworkPrinterDriver, PrinterDriver } from './drivers';
 import { logger } from '../../lib/logger';
 import crypto from 'node:crypto';
 
+type PrinterConfig = InferSelectModel<typeof printerConfigs>;
+
 export class PrintingService {
-  private static async getDriver(config: any): Promise<PrinterDriver> {
+  private static async getDriver(config: PrinterConfig): Promise<PrinterDriver> {
     switch (config.printer_type) {
       case 'network':
         return new NetworkPrinterDriver(config.ip_address, config.port);
@@ -51,7 +54,8 @@ export class PrintingService {
 
       await db.update(printJobs).set({ status: 'completed', updated_at: new Date() }).where(eq(printJobs.id, jobId));
       logger.info('Print job completed successfully', { jobId, orderId: job.order_id });
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       const retryCount = job.retry_count + 1;
       const maxRetries = 3;
 
@@ -59,15 +63,14 @@ export class PrintingService {
         await db.update(printJobs).set({ 
           status: 'retrying', 
           retry_count: retryCount, 
-          error_message: err.message,
+          error_message: errorMessage,
           updated_at: new Date() 
         }).where(eq(printJobs.id, jobId));
         
-        // Exponential backoff retry
         setTimeout(() => this.processJob(jobId), Math.pow(2, retryCount) * 1000);
       } else {
-        await db.update(printJobs).set({ status: 'failed', error_message: err.message, updated_at: new Date() }).where(eq(printJobs.id, jobId));
-        logger.error('Print job failed after max retries', err, { jobId, orderId: job.order_id });
+        await db.update(printJobs).set({ status: 'failed', error_message: errorMessage, updated_at: new Date() }).where(eq(printJobs.id, jobId));
+        logger.error('Print job failed after max retries', err instanceof Error ? err : new Error(errorMessage), { jobId, orderId: job.order_id });
       }
     }
   }

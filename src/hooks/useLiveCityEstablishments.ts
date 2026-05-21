@@ -54,7 +54,11 @@ export function useLiveCityEstablishments(
   const [supportedCity, setSupportedCity] = useState<Awaited<ReturnType<typeof findRegisteredCityCoverage>>>(null);
 
   useEffect(() => {
-    void findRegisteredCityCoverage(city?.name ?? '').then((sc) => { setSupportedCity(sc); });
+    const abort = new AbortController();
+    findRegisteredCityCoverage(city?.name ?? '').then((sc) => {
+      if (!abort.signal.aborted) setSupportedCity(sc);
+    });
+    return () => abort.abort();
   }, [city]);
 
   const protection = useMemo<ProtectionStatus>(() => {

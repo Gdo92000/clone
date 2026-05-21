@@ -7,7 +7,7 @@ import { FxImage } from '../components/ui/FxImage';
 import { FxQueryBoundary } from '../components/ui/FxQueryBoundary';
 import { Icon } from '../components/ui/Icon';
 import { Button } from '../components/ui/Button';
-import { calculateItemTotal } from '../services/pricingService';
+import { calculateItemTotal } from '../useCases/pricingUseCase';
 import { successToast } from '../lib/toast';
 import { restaurantDetailHref } from '../lib/routes';
 

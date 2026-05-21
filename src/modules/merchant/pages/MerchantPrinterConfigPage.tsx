@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '../../../components/ui/Button';
 import { MerchantLayout } from '../components/MerchantLayout';
 import { useBranches } from '../../../hooks/useMerchantData';
-import { successToast, errorToast } from '../../../lib/toast';
+import { usePrinterConfig, usePrintHistory, useSavePrinterConfig } from '../../../hooks/useMerchantPrinterConfig';
 import { clsx } from 'clsx';
-import { get, put } from '../../../api/httpClient';
+import type { PrinterConfigDTO } from '../../../dto/superadminDto';
 
 interface PrinterConfig {
   printer_type: string;
@@ -16,20 +15,14 @@ interface PrinterConfig {
 }
 
 export function MerchantPrinterConfigPage() {
-  const queryClient = useQueryClient();
   const { data: branches = [] } = useBranches();
   const [branchId, setBranchId] = useState('');
-  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!branchId && branches.length > 0) setBranchId(branches[0]!.id);
   }, [branches, branchId]);
 
-  const { data: config } = useQuery<PrinterConfig>({
-    queryKey: ['printer-config', branchId],
-    queryFn: () => get(`/printing/config/${branchId}`),
-    enabled: !!branchId,
-  });
+  const { data: config } = usePrinterConfig(branchId);
 
   const [form, setForm] = useState<PrinterConfig>({
     printer_type: 'network',
@@ -42,34 +35,18 @@ export function MerchantPrinterConfigPage() {
   useEffect(() => {
     if (config) {
       setForm({
-        printer_type: config.printer_type || 'network',
-        ip_address: config.ip_address || '',
-        port: config.port || 9100,
-        model: config.model || 'ESC/POS',
-        enabled: config.enabled ?? true,
+        printer_type: (config as PrinterConfigDTO).printer_type || 'network',
+        ip_address: (config as PrinterConfigDTO).ip_address || '',
+        port: (config as PrinterConfigDTO).port || 9100,
+        model: (config as PrinterConfigDTO).model || 'ESC/POS',
+        enabled: (config as PrinterConfigDTO).enabled ?? true,
       });
     }
   }, [config]);
 
-const saveConfig = async () => {
-  if (!branchId) return;
-  setSaving(true);
-  try {
-    await put(`/printing/config/${branchId}`, form);
-    successToast('Configuração de impressora salva');
-    queryClient.invalidateQueries({ queryKey: ['printer-config', branchId] });
-  } catch {
-    errorToast('Erro ao salvar configuração');
-  } finally {
-    setSaving(false);
-  }
-};
+  const saveMutation = useSavePrinterConfig(branchId);
 
-const { data: history = [] } = useQuery<any[]>({
-  queryKey: ['print-history', branchId],
-  queryFn: () => get(`/printing/history/${branchId}`),
-  enabled: !!branchId,
-});
+  const { data: history = [] } = usePrintHistory(branchId);
 
   return (
     <MerchantLayout
@@ -144,8 +121,8 @@ const { data: history = [] } = useQuery<any[]>({
               />
             </label>
 
-            <Button onClick={saveConfig} loading={saving} disabled={saving} className="w-full">
-              {saving ? 'Salvando...' : 'Salvar Configurações'}
+            <Button onClick={() =>     saveMutation.mutate(form as unknown as Record<string, unknown>)} loading={saveMutation.isPending} disabled={saveMutation.isPending} className="w-full">
+              {saveMutation.isPending ? 'Salvando...' : 'Salvar Configurações'}
             </Button>
           </div>
         </section>

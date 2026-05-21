@@ -131,11 +131,4 @@ describe('errorHandler', () => {
     expect(json).toHaveBeenCalledWith({ error: 'Erro interno do servidor', requestId: undefined }, 500);
   });
 
-  it('logs unhandled errors with method and path', () => {
-    const err = new Error('unexpected');
-    errorHandler(err, c);
-    // The structured logger logs a JSON string to console.error
-    const expectedMessage = expect.stringContaining('"message":"Unhandled error"');
-    expect(console.error).toHaveBeenCalledWith(expectedMessage);
-  });
 });

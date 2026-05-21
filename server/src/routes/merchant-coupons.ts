@@ -7,6 +7,7 @@ import { merchantCoupons, users, branches } from '../db/schema';
 import { authMiddleware } from '../middleware/auth';
 import { requirePermission } from '../middleware/permission';
 import { requireTenantOwnership } from '../middleware/tenant';
+import type { TokenPayload } from '../auth/types';
 
 const route = new Hono();
 
@@ -28,7 +29,7 @@ const createSchema = z.object({
 const updateSchema = createSchema.partial();
 
 route.get('/', async (c) => {
-  const payload = c.get('jwtPayload') as any;
+  const payload = c.get('jwtPayload') as TokenPayload;
   const branchId = c.req.query('branch_id');
 
   if (payload.role === 'superadmin') {
@@ -41,7 +42,7 @@ route.get('/', async (c) => {
   const user = await db.select({ company_id: users.company_id, branch_id: users.branch_id }).from(users).where(eq(users.id, payload.sub)).limit(1);
   const userData = user[0];
 
-  if (userData.role === 'admin') {
+  if (payload.role === 'admin') {
     if (branchId) {
        const branch = await db.select().from(branches).where(eq(branches.id, branchId)).limit(1);
        if (!branch.length || branch[0].company_id !== userData.company_id) return c.json({ error: 'Forbidden' }, 403);
@@ -63,7 +64,7 @@ route.get('/:id', requireTenantOwnership('branchId'), zValidator('param', idPara
 });
 
 route.post('/', zValidator('json', createSchema), async (c) => {
-  const payload = c.get('jwtPayload') as any;
+  const payload = c.get('jwtPayload') as TokenPayload;
   const data = c.req.valid('json');
 
   if (payload.role !== 'superadmin') {

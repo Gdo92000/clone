@@ -1,10 +1,11 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
-import type { Coordinates } from '../hooks/useGeolocation';
+import type { Coordinates } from '../types/location';
 import { getRegisteredCityCoverages, findRegisteredCityCoverage } from '../services/cityCoverageService';
 import { progressiveGeolocation, ipFallback, readCache, writeCache, getCachedCoords, isGeolocationUsable } from '../services/geolocationService';
 import { initialLocationState, locateCity, processSupportedCity, type LocationState } from '../providers/locationMachine';
 import type { City } from '../services/locationService';
+import { logger } from '../lib/logger';
 
 interface LocationContextValue extends LocationState {
   requestLocation: () => void;
@@ -37,10 +38,9 @@ const hydrateFromCache = useCallback(async () => {
     const detectedCity = cityFromCache(cache);
     const supported = await processSupportedCity(detectedCity, cache.coordinates);
     setState({ city: detectedCity, coordinates: cache.coordinates, source: cache.source, ...supported, status: 'SUCCESS', loading: false });
-  } catch (error) {
-    // Erro ao hidratar do cache - prossegue sem cidade
-    console.warn('Erro ao hidratar localização do cache:', error);
-  }
+    } catch (error) {
+      logger.warn('Location', 'Erro ao hidratar localização do cache', { error: String(error) });
+    }
 }, []);
 
 const tryIpFallback = useCallback(async () => {
@@ -54,7 +54,9 @@ const tryIpFallback = useCallback(async () => {
     } else {
       setState({ status: 'ERROR', error: 'Não foi possível detectar sua cidade.', loading: false });
     }
-  } catch { setState({ status: 'ERROR', error: 'Não foi possível detectar sua cidade.', loading: false }); }
+  } catch (err) {
+      logger.warn('Location', 'IP fallback failed', { error: err instanceof Error ? err.message : String(err) });
+      setState({ status: 'ERROR', error: 'Não foi possível detectar sua cidade.', loading: false }); }
 }, []);
 
   const processCoords = useCallback(async (coords: Coordinates) => {
@@ -74,7 +76,9 @@ const tryIpFallback = useCallback(async () => {
           timestamp: Date.now(),
         });
       setState({ city: detectedCity, coordinates: coords, source: citySource, ...supported, status: 'SUCCESS', loading: false });
-    } catch { setState({ status: 'ERROR', error: 'Cidade não encontrada nas coordenadas obtidas.', loading: false }); }
+    } catch (err) {
+      logger.warn('Location', 'Failed to process coordinates', { error: err instanceof Error ? err.message : String(err) });
+      setState({ status: 'ERROR', error: 'Cidade não encontrada nas coordenadas obtidas.', loading: false }); }
   }, []);
 
   const requestLocation = useCallback(async () => {

@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
+import { viaCepApi } from '../api/viaCepApi';
 
 export interface CepAddress {
   cep: string;
@@ -75,46 +76,28 @@ export function useCepLookup(options?: UseCepLookupOptions): UseCepLookupReturn 
       setError(null);
       options?.onLoading?.(true);
 
-      try {
-        const response = await fetch(
-          `https://viacep.com.br/ws/${cleanedCep}/json/`,
-          {
-            signal: abortControllerRef.current.signal,
-          }
-        );
+       try {
+         const addressData = await viaCepApi.lookup(cleanedCep);
 
-        if (!response.ok) {
-          throw new Error('Erro ao consultar CEP');
-        }
+         setAddress(addressData);
+         setError(null);
+         options?.onSuccess?.(addressData);
+         options?.onLoading?.(false);
 
-        const data = await response.json() as CepAddress & { erro?: boolean };
+         return addressData;
+  } catch (err: unknown) {
+  if (err instanceof DOMException && err.name === 'AbortError') {
+    return null;
+  }
 
-        if (data.erro) {
-          throw new Error('CEP não encontrado');
-        }
+  const errorMessage = err instanceof Error ? err.message : 'Erro ao consultar CEP';
+         setError(errorMessage);
+         setAddress(null);
+         options?.onError?.(errorMessage);
+         options?.onLoading?.(false);
 
-        const addressData: CepAddress = data;
-
-        setAddress(addressData);
-        setError(null);
-        options?.onSuccess?.(addressData);
-        options?.onLoading?.(false);
-
-        return addressData;
-      } catch (err) {
-        if (err instanceof Error && err.name === 'AbortError') {
-          return null;
-        }
-
-        const errorMessage =
-          err instanceof Error ? err.message : 'Erro ao consultar CEP';
-        setError(errorMessage);
-        setAddress(null);
-        options?.onError?.(errorMessage);
-        options?.onLoading?.(false);
-
-        return null;
-      }
+         return null;
+       }
     },
     [options]
   );

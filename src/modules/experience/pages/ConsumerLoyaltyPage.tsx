@@ -1,34 +1,17 @@
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { Icon } from '../../../components/ui/Icon';
 import { Button } from '../../../components/ui/Button';
 import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
-import { consumerApi } from '../../../api/consumerApi';
-import { successToast, errorToast } from '../../../lib/toast';
+import { useConsumerLoyalty, useRedeemLoyaltyReward } from '../../../hooks/useConsumerData';
 import { clsx } from 'clsx';
 
 export function ConsumerLoyaltyPage() {
-  const queryClient = useQueryClient();
-  const [branchId, setBranchId] = useState(''); // In a real app, this would come from the URL/Context
+  const [branchId, setBranchId] = useState('');
   const [selectedRewardId, setSelectedRewardId] = useState<string | null>(null);
 
-  const { data: loyalty, isLoading } = useQuery({
-    queryKey: ['consumer-loyalty', branchId],
-    queryFn: () => consumerApi.getMyLoyalty(branchId),
-    enabled: !!branchId,
-  });
-
-  const redeemMutation = useMutation({
-    mutationFn: (rewardId: string) => consumerApi.redeemLoyaltyReward({ rewardId, branchId }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['consumer-loyalty', branchId] });
-      successToast('Recompensa resgatada com sucesso!');
-    },
-    onError: (err: any) => {
-      errorToast(err.response?.data?.error || 'Erro ao resgatar recompensa');
-    },
-  });
+  const { data: loyalty, isLoading } = useConsumerLoyalty(branchId);
+  const redeemMutation = useRedeemLoyaltyReward(branchId);
 
   return (
     <>
@@ -61,7 +44,7 @@ export function ConsumerLoyaltyPage() {
                 {loyalty?.rewards?.length === 0 ? (
                   <p className="text-sm text-text-secondary col-span-2">Nenhuma recompensa disponível no momento.</p>
                 ) : (
-                  loyalty?.rewards?.map((reward: any) => {
+                  loyalty?.rewards?.map((reward) => {
                     const canRedeem = (loyalty?.balance ?? 0) >= reward.points_required;
                     return (
                       <article key={reward.id} className={clsx(

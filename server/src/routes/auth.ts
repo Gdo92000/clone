@@ -9,6 +9,7 @@ import { getAuthProvider } from '../auth';
 import { authMiddleware, getTokenPayload } from '../middleware/auth';
 import { rateLimit } from '../middleware/rateLimit';
 import { createAuditLog } from '../services/auditLogService';
+import { logger } from '../lib/logger';
 
 const auth = new Hono();
 
@@ -43,12 +44,12 @@ auth.post('/login', rateLimit(10, 60_000), zValidator('json', loginSchema), asyn
   const userAgent = c.req.header('user-agent');
 
   try {
-    const result = await provider.login(input, { ip, userAgent });
-    return c.json(result);
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Erro interno';
-    return c.json({ error: message }, 401);
-  }
+      const result = await provider.login(input, { ip, userAgent });
+      return c.json(result);
+    } catch (err) {
+      logger.error('Auth', 'Login failed', err, { email: input.email, ip: ip ?? undefined });
+      return c.json({ error: 'Email ou senha inválidos' }, 401);
+    }
 });
 
 auth.post('/register', rateLimit(5, 60_000), zValidator('json', registerSchema), async (c) => {
@@ -84,12 +85,12 @@ auth.post('/refresh', rateLimit(10, 60_000), zValidator('json', refreshSchema), 
   const provider = getAuthProvider();
 
   try {
-    const result = await provider.refresh(refreshToken);
-    return c.json(result);
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Token inválido';
-    return c.json({ error: message }, 401);
-  }
+      const result = await provider.refresh(refreshToken);
+      return c.json(result);
+    } catch (err) {
+      logger.error('Auth', 'Token refresh failed', err);
+      return c.json({ error: 'Token inválido' }, 401);
+    }
 });
 
 auth.post('/forgot-password', rateLimit(3, 60_000), zValidator('json', forgotPasswordSchema), async (c) => {
@@ -161,7 +162,7 @@ protectedAuth.post('/logout', async (c) => {
       const provider = getAuthProvider();
       await provider.logout(payload.session_id);
     }
-  } catch { /* logout best-effort */ }
+  } catch (err) { logger.error('Auth', 'Logout failed', err); }
   return c.json({ success: true });
 });
 
@@ -170,12 +171,12 @@ protectedAuth.get('/me', async (c) => {
     const payload = getTokenPayload(c);
     if (!payload) return c.json({ error: 'Não autenticado' }, 401);
     const provider = getAuthProvider();
-    const user = await provider.getCurrentUser(payload.sub);
-    return c.json(user);
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Erro interno';
-    return c.json({ error: message }, 401);
-  }
+      const user = await provider.getCurrentUser(payload.sub);
+      return c.json(user);
+    } catch (err) {
+      logger.error('Auth', 'Failed to get current user', err, { sub: payload.sub });
+      return c.json({ error: 'Não foi possível obter dados do usuário' }, 401);
+    }
 });
 
 auth.route('/', protectedAuth);
