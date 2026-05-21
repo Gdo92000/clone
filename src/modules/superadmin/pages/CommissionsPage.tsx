@@ -25,11 +25,11 @@ export function CommissionsPage() {
 
   const plans = apiPlans.map(p => ({
     id: p.plan_id,
-    name: p.name || (p.plan_id === 'basic' ? 'Básico' : p.plan_id === 'pro' ? 'Profissional' : 'Enterprise'),
+    name: p.plan_id === 'basic' ? 'Básico' : p.plan_id === 'pro' ? 'Profissional' : 'Enterprise',
     marketplaceFee: Number(p.marketplace_fee),
     deliveryFee: Number(p.delivery_fee),
     paymentFee: Number(p.payment_fee),
-    additionalFees: p.additional_fees || [],
+    additionalFees: p.additional_fees,
   }));
 
   const saveDefaults = () => {
@@ -78,7 +78,7 @@ export function CommissionsPage() {
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         {plans.map((plan) => {
           const isEditing = editingId === plan.id;
-          const form = isEditing ? editForm! : plan;
+          const form = (isEditing && editForm) ? editForm : plan;
 
           return (
             <article key={plan.id} className={clsx(
@@ -142,7 +142,7 @@ export function CommissionsPage() {
 
               {isEditing && (
                 <div className="flex gap-2 mt-4">
-                  <Button variant="solid" intent="primary" size="sm" className="flex-1" onClick={saveEdit}>Salvar</Button>
+                  <Button variant="solid" intent="primary" size="sm" className="flex-1" onClick={() => { void saveEdit(); }}>Salvar</Button>
                   <Button variant="outline" intent="secondary" size="sm" onClick={cancelEdit}>Cancelar</Button>
                 </div>
               )}

@@ -17,7 +17,7 @@ export function FxSearchBar({
 }: FxSearchBarProps) {
   const [value, setValue] = useState(initialValue);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     onSearch(value);
   };

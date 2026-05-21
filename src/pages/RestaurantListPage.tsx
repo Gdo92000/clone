@@ -103,7 +103,7 @@ if (selectedCategory) {
           return a.deliveryFee - b.deliveryFee;
         case 'distance':
           if (canShowNearby && (a as RestaurantWithDistance).distanceKm !== undefined && (b as RestaurantWithDistance).distanceKm !== undefined) {
-            return (a as RestaurantWithDistance).distanceKm! - (b as RestaurantWithDistance).distanceKm!;
+            return ((a as RestaurantWithDistance).distanceKm ?? 0) - ((b as RestaurantWithDistance).distanceKm ?? 0);
           }
           return parseFloat(a.distance) - parseFloat(b.distance);
         case 'relevance':
@@ -134,7 +134,7 @@ if (selectedCategory) {
 
   return (
     <div className="min-h-screen bg-surface-background">
-      <FxNavbar onSearch={(q) => navigate(restaurantsSearchHref(q))} onCartClick={handleCartClick} />
+      <FxNavbar onSearch={(q) => { void navigate(restaurantsSearchHref(q)); }} onCartClick={handleCartClick} />
 
       <main className="max-w-7xl mx-auto px-4 py-4 space-y-4">
         <FxQueryBoundary isLoading={restaurantsLoading || categoriesLoading || nearbyLoading} isError={!!restaurantsError || !!categoriesError} error={restaurantsError ?? categoriesError ?? null}>
@@ -144,7 +144,7 @@ if (selectedCategory) {
               Resultados para <strong className="text-text-primary">&quot;{searchQuery}&quot;</strong>
             </p>
             <button
-              onClick={() => navigate(ROUTES.RESTAURANTS)}
+              onClick={() => { void navigate(ROUTES.RESTAURANTS); }}
               className="text-sm font-medium text-brand-primary hover:text-brand-primary-hover"
             >
               Limpar

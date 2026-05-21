@@ -36,7 +36,7 @@ export function CartPage() {
                   variant="solid"
                   intent="primary"
                   size="lg"
-                  onClick={() => navigate(ROUTES.RESTAURANTS)}
+                  onClick={() => { void navigate(ROUTES.RESTAURANTS); }}
                   aria-label="Ver restaurantes para adicionar itens"
                 >
                   Ver restaurantes
@@ -86,7 +86,7 @@ export function CartPage() {
                   variant="outline"
                   intent="secondary"
                   className="w-full"
-                  onClick={() => navigate(ROUTES.RESTAURANTS)}
+                  onClick={() => { void navigate(ROUTES.RESTAURANTS); }}
                   aria-label="Adicionar mais itens ao carrinho"
                 >
                   Adicionar mais itens

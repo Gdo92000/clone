@@ -13,14 +13,16 @@ import { logger } from '../lib/logger';
 
 const auth = new Hono();
 
+const emailField = z.email();
+
 const loginSchema = z.object({
-  email: z.string().email().max(255),
+  email: emailField.max(255),
   password: z.string().min(1).max(128),
 });
 
 const registerSchema = z.object({
   name: z.string().min(2).max(100),
-  email: z.string().email().max(255),
+  email: emailField.max(255),
   password: z.string().min(6).max(128),
 });
 
@@ -29,7 +31,7 @@ const refreshSchema = z.object({
 });
 
 const forgotPasswordSchema = z.object({
-  email: z.string().email().max(255),
+  email: emailField.max(255),
 });
 
 const resetPasswordSchema = z.object({
@@ -47,7 +49,7 @@ auth.post('/login', rateLimit(10, 60_000), zValidator('json', loginSchema), asyn
       const result = await provider.login(input, { ip, userAgent });
       return c.json(result);
     } catch (err) {
-      logger.error('Auth', 'Login failed', err, { email: input.email, ip: ip ?? undefined });
+      logger.error('Auth', 'Login failed', err instanceof Error ? err : new Error(String(err)), { email: input.email, ip: ip ?? undefined });
       return c.json({ error: 'Email ou senha inválidos' }, 401);
     }
 });
@@ -88,7 +90,7 @@ auth.post('/refresh', rateLimit(10, 60_000), zValidator('json', refreshSchema), 
       const result = await provider.refresh(refreshToken);
       return c.json(result);
     } catch (err) {
-      logger.error('Auth', 'Token refresh failed', err);
+      logger.error('Auth', 'Token refresh failed', err instanceof Error ? err : new Error(String(err)));
       return c.json({ error: 'Token inválido' }, 401);
     }
 });
@@ -162,21 +164,21 @@ protectedAuth.post('/logout', async (c) => {
       const provider = getAuthProvider();
       await provider.logout(payload.session_id);
     }
-  } catch (err) { logger.error('Auth', 'Logout failed', err); }
+  } catch (err: unknown) { logger.error('Auth', 'Logout failed', err instanceof Error ? err : new Error(String(err))); }
   return c.json({ success: true });
 });
 
 protectedAuth.get('/me', async (c) => {
+  const payload = getTokenPayload(c);
+  if (!payload) return c.json({ error: 'Não autenticado' }, 401);
   try {
-    const payload = getTokenPayload(c);
-    if (!payload) return c.json({ error: 'Não autenticado' }, 401);
     const provider = getAuthProvider();
-      const user = await provider.getCurrentUser(payload.sub);
-      return c.json(user);
-    } catch (err) {
-      logger.error('Auth', 'Failed to get current user', err, { sub: payload.sub });
-      return c.json({ error: 'Não foi possível obter dados do usuário' }, 401);
-    }
+    const user = await provider.getCurrentUser(payload.sub);
+    return c.json(user);
+  } catch (err: unknown) {
+    logger.error('Auth', 'Failed to get current user', err instanceof Error ? err : new Error(String(err)), { sub: payload.sub });
+    return c.json({ error: 'Não foi possível obter dados do usuário' }, 401);
+  }
 });
 
 auth.route('/', protectedAuth);

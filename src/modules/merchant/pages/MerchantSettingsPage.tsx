@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from '../../../components/ui/Button';
 import { MerchantLayout } from '../components/MerchantLayout';
 import { useBranches } from '../../../hooks/useMerchantData';
@@ -8,9 +8,7 @@ export function MerchantSettingsPage() {
   const { data: branches = [] } = useBranches();
   const [branchId, setBranchId] = useState('');
 
-  useEffect(() => {
-    if (!branchId && branches.length > 0) setBranchId(branches[0]!.id);
-  }, [branches, branchId]);
+  const effectiveBranchId = useMemo(() => branchId || (branches[0]?.id ?? ''), [branchId, branches]);
 
   const [settings, setSettings] = useState({
     opening_time: '09:00',
@@ -22,39 +20,47 @@ export function MerchantSettingsPage() {
     pix_key: '',
   });
 
-  const { data: remoteSettings } = useBranchSettings(branchId);
+  const { data: remoteSettings } = useBranchSettings(effectiveBranchId);
 
-  const { data: remoteLoyalty } = useLoyaltySettings(branchId);
+  const { data: remoteLoyalty } = useLoyaltySettings(effectiveBranchId);
 
   const [loyaltySettings, setLoyaltySettings] = useState({
     enabled: false,
     points_per_real: '1.00',
   });
 
-  useEffect(() => {
-    if (remoteSettings && 'branch_id' in remoteSettings) {
-      setSettings({
-        opening_time: remoteSettings.opening_time,
-        closing_time: remoteSettings.closing_time,
-        preparation_time: remoteSettings.preparation_time,
-        minimum_order: remoteSettings.minimum_order,
-        accepts_delivery: remoteSettings.accepts_delivery,
-        accepts_pickup: remoteSettings.accepts_pickup,
-        pix_key: remoteSettings.pix_key ?? '',
-      });
-    }
-  }, [remoteSettings]);
+  const [hasSyncedSettings, setHasSyncedSettings] = useState(false);
+  const [hasSyncedLoyalty, setHasSyncedLoyalty] = useState(false);
+  const [prevSyncBranch, setPrevSyncBranch] = useState(effectiveBranchId);
 
-  useEffect(() => {
-    if (remoteLoyalty) {
-      setLoyaltySettings({
-        enabled: remoteLoyalty.enabled ?? false,
-        points_per_real: remoteLoyalty.points_per_currency?.toString() ?? '1.00',
-      });
-    }
-  }, [remoteLoyalty]);
+  if (effectiveBranchId !== prevSyncBranch) {
+    setPrevSyncBranch(effectiveBranchId);
+    setHasSyncedSettings(false);
+    setHasSyncedLoyalty(false);
+  }
 
-  const saveMutation = useSaveBranchSettings(branchId);
+  if (remoteSettings && 'branch_id' in remoteSettings && !hasSyncedSettings) {
+    setHasSyncedSettings(true);
+    setSettings({
+      opening_time: remoteSettings.opening_time,
+      closing_time: remoteSettings.closing_time,
+      preparation_time: remoteSettings.preparation_time,
+      minimum_order: remoteSettings.minimum_order,
+      accepts_delivery: remoteSettings.accepts_delivery,
+      accepts_pickup: remoteSettings.accepts_pickup,
+       pix_key: remoteSettings.pix_key,
+    });
+  }
+
+  if (remoteLoyalty && !hasSyncedLoyalty) {
+    setHasSyncedLoyalty(true);
+    setLoyaltySettings({
+      enabled: remoteLoyalty.enabled,
+      points_per_real: remoteLoyalty.points_per_currency.toString(),
+    });
+  }
+
+  const saveMutation = useSaveBranchSettings(effectiveBranchId);
 
 
   const selectedBranch = branches.find((b) => b.id === branchId);
@@ -153,7 +159,7 @@ export function MerchantSettingsPage() {
           </label>
 
            <div className="mt-4 flex flex-wrap items-center gap-3">
-              <Button onClick={() =>     saveMutation.mutate({ settings, loyaltySettings })} loading={saveMutation.isPending} disabled={saveMutation.isPending}>
+              <Button onClick={() =>     { saveMutation.mutate({ settings, loyaltySettings }); }} loading={saveMutation.isPending} disabled={saveMutation.isPending}>
                 {saveMutation.isPending ? 'Salvando...' : 'Salvar configuracoes'}
               </Button>
            </div>

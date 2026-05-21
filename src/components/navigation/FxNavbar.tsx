@@ -35,15 +35,19 @@ export function FxNavbar({
 
   const handleLocationClick = () => {
     if (!city) {
-      requestLocation();
+      void requestLocation();
     } else {
       void navigate(ROUTES.NEARBY);
     }
   };
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
+  const handleSearchSubmit = (e: React.SubmitEvent) => {
     e.preventDefault();
     onSearch?.(searchQuery);
+
+    if (searchQuery.trim()) {
+      void navigate(`${ROUTES.RESTAURANTS}?search=${encodeURIComponent(searchQuery)}`);
+    }
   };
 
   return (
@@ -126,8 +130,8 @@ export function FxNavbar({
 
              <ThemeToggle />
 
-             <button
-               onClick={() => navigate(ROUTES.PROFILE)}
+              <button
+                 onClick={() => { void navigate(ROUTES.PROFILE); }}
                className="hidden sm:flex w-11 h-11 rounded-full bg-brand-primary text-text-inverse items-center justify-center transition-colors hover:bg-brand-primary-hover"
                aria-label="Perfil"
              >

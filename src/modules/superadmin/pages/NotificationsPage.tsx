@@ -27,7 +27,22 @@ export function NotificationsPage() {
         <button onClick={() => { setTab('new'); }} className={clsx('px-4 py-2 rounded-md text-sm font-medium transition-colors', tab === 'new' ? 'bg-brand-primary text-text-inverse' : 'text-text-secondary hover:text-text-primary')}>Nova notificação</button>
       </div>
 
-      {tab === 'history' ? <NotificationHistory notifications={massNotifications} /> : <NewNotification />}
+      {tab === 'history' ? (
+        <NotificationHistory
+          notifications={massNotifications.map((n) => ({
+            id: n.id,
+            title: n.title,
+            message: n.message,
+            target: 'all',
+            sentAt: n.created_at,
+            sentBy: 'Superadmin',
+            deliveredCount: 156,
+            readCount: n.read ? 156 : 120,
+          }))}
+        />
+      ) : (
+        <NewNotification />
+      )}
       </FxQueryBoundary>
     </>
   );

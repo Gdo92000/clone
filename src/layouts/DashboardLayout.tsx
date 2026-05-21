@@ -34,7 +34,7 @@ export function DashboardLayout({ logo, title, navItems }: DashboardLayoutProps)
             >
               <Icon name={sidebarOpen ? 'X' : 'Menu'} size={20} className="text-text-primary" />
             </button>
-            <button type="button" onClick={() => navigate('/')} className="flex items-center gap-2">
+            <button type="button" onClick={() => { void navigate('/'); }} className="flex items-center gap-2">
               <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-primary font-bold text-text-inverse text-sm">
                 {logo}
               </span>

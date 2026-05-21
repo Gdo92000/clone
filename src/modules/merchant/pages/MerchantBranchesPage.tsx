@@ -243,7 +243,7 @@ export function MerchantBranchesPage() {
                   </p>
                 )}
 
-                <Button fullWidth onClick={addBranch} disabled={!limits.canAddBranch || busyGeocode}>
+                <Button fullWidth onClick={() => { void addBranch(); }} disabled={!limits.canAddBranch || busyGeocode}>
                   {busyGeocode ? 'Buscando localização...' : 'Cadastrar filial'}
                 </Button>
               </div>

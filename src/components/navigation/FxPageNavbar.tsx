@@ -25,7 +25,7 @@ export function FxPageNavbar({ title, backTo, className, rightAction }: FxPageNa
         <div className="flex items-center gap-3 py-3">
           {backTo && (
             <button
-              onClick={() => navigate(backTo)}
+              onClick={() => { void navigate(backTo); }}
               className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-surface-background transition-colors"
               aria-label="Voltar"
             >

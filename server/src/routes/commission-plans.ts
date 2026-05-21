@@ -37,9 +37,9 @@ const updateSchema = z.object({
 route.put('/:id', zValidator('json', updateSchema), async (c) => {
   const id = c.req.param('id');
   const data = c.req.valid('json');
-  const [existing] = await db.select().from(commissionPlans).where(eq(commissionPlans.plan_id, id));
-  if (!existing) {
-    await db.insert(commissionPlans).values({ plan_id: id, ...data });
+  const existing = await db.select().from(commissionPlans).where(eq(commissionPlans.plan_id, id)).limit(1);
+  if (!existing.length) {
+    await db.insert(commissionPlans).values({ plan_id: id, ...data, additional_fees: data.additional_fees ?? [] });
   } else {
     await db.update(commissionPlans).set({ ...data, updated_at: new Date() }).where(eq(commissionPlans.plan_id, id));
   }

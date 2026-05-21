@@ -10,15 +10,13 @@ export class InMemoryRateLimitStore implements RateLimitStore {
     this.startCleanup();
   }
 
-  async increment(key: string, windowMs: number) {
+  increment(key: string, windowMs: number): Promise<{ count: number; resetAt: number }> {
     const now = Date.now();
-    let entry = this.store.get(key);
-    if (!entry || now > entry.resetAt) {
-      entry = { count: 0, resetAt: now + windowMs };
-      this.store.set(key, entry);
-    }
+    const existing = this.store.get(key);
+    const entry = existing && now <= existing.resetAt ? existing : { count: 0, resetAt: now + windowMs };
+    this.store.set(key, entry);
     entry.count++;
-    return { count: entry.count, resetAt: entry.resetAt };
+    return Promise.resolve({ count: entry.count, resetAt: entry.resetAt });
   }
 
   private startCleanup() {
@@ -29,6 +27,6 @@ export class InMemoryRateLimitStore implements RateLimitStore {
         if (now > entry.resetAt) this.store.delete(key);
       }
     }, 60_000);
-    if (this.cleanupInterval.unref) this.cleanupInterval.unref();
+    this.cleanupInterval.unref();
   }
 }

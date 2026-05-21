@@ -12,8 +12,9 @@ export const authSessions = pgTable('auth_sessions', {
   expires_at: timestamp('expires_at', { withTimezone: true }).notNull(),
   revoked_at: timestamp('revoked_at', { withTimezone: true }),
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
-}, (table) => ({
-  userIdx: index('idx_auth_sessions_user').on(table.user_id),
-  tokenLookupIdx: index('idx_auth_sessions_token_lookup').on(table.token_lookup),
-  expiresIdx: index('idx_auth_sessions_expires').on(table.expires_at),
-}));
+}, (table) => [
+  index('idx_auth_sessions_user').on(table.user_id),
+  index('idx_auth_sessions_token_lookup').on(table.token_lookup),
+  index('idx_auth_sessions_expires').on(table.expires_at),
+]);
+

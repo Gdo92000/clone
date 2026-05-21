@@ -18,7 +18,7 @@ export function useOrderTracking({ steps, estimatedTime, pollingInterval = 60000
       setCurrentStepIndex((prev) => {
         const next = prev + 1;
         if (next < steps.length) {
-          setCurrentStatus(steps[next]!.status);
+          setCurrentStatus(steps[next]?.status ?? 'confirmed');
           return next;
         }
         return prev;

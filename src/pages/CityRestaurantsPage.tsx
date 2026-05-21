@@ -29,9 +29,9 @@ export function CityRestaurantsPage() {
 
   useEffect(() => {
      if (protection.canSearch && !loading) {
-       search();
-     }
-    }, [radiusKm, protection.canSearch]);
+        void search();
+      }
+    }, [radiusKm, protection.canSearch, loading, search]);
 
   const handleRadiusChange = (value: (typeof radiusOptions)[number]) => {
     setRadiusKm(value);
@@ -60,7 +60,7 @@ export function CityRestaurantsPage() {
             <div className="flex gap-2">
               <button
                 type="button"
-                onClick={refreshLocation}
+                onClick={() => { void refreshLocation(); }}
                 disabled={locationLoading || loading}
                 className="h-11 w-11 rounded-lg border border-border-default text-text-primary hover:border-brand-primary disabled:opacity-50"
                 title="Atualizar localizacao"
@@ -71,7 +71,7 @@ export function CityRestaurantsPage() {
               </button>
               <button
                 type="button"
-                onClick={requestLocation}
+                onClick={() => { void requestLocation(); }}
                 disabled={locationLoading || loading}
                 className="h-11 w-11 rounded-lg border border-border-default text-text-primary hover:border-brand-primary disabled:opacity-50"
                 title="Usar GPS"

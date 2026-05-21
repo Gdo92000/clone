@@ -11,11 +11,9 @@ import { calculateSubscriptionTotal } from '../../saas';
 import { formatCurrency } from '../../merchant/format';
 import { useAuthSession } from '../../auth';
 import { useAuditLog } from '../../enterprise';
-import type { PlanId, FeatureKey } from '../../saas/types';
+import type { PlanId, FeatureKey, BillingStatus, CompanySubscription } from '../../saas/types';
 import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
 import { PageHeader } from '../../../components/ui/PageHeader';
-
-type BillingStatus = 'trial' | 'active' | 'past_due' | 'blocked' | 'cancelled';
 
 const billingLabels: Record<BillingStatus, string> = {
   trial: 'Trial',
@@ -24,6 +22,14 @@ const billingLabels: Record<BillingStatus, string> = {
   blocked: 'Bloqueada',
   cancelled: 'Cancelada',
 };
+
+interface SubRow {
+  company_id: string;
+  plan_id: string;
+  billing_status: BillingStatus;
+  current_period_ends_at: string;
+  addon_ids?: string[];
+}
 
 export function SubscriptionsPage() {
   const { data: companies = [], isLoading, error } = useCompanies();
@@ -59,7 +65,7 @@ export function SubscriptionsPage() {
     <><PageHeader title="Assinaturas por empresa" />
     <FxQueryBoundary isLoading={isLoading} isError={!!error} error={error}>
       <section className="space-y-4">
-        {subscriptions.map((subscription: any) => {
+        {subscriptions.map((subscription: SubRow) => {
           const company = companies.find((item) => item.id === subscription.company_id);
           return (
             <article key={subscription.company_id} className="rounded-xl border border-border-default bg-surface-elevated p-4">
@@ -67,13 +73,13 @@ export function SubscriptionsPage() {
                 <div>
                   <h2 className="font-semibold text-text-primary">{company?.name}</h2>
                   <p className="text-sm text-text-secondary">
-                    {billingLabels[subscription.billing_status as BillingStatus] || 'Desconhecido'} - ciclo ate {subscription.current_period_ends_at}
+                    {billingLabels[subscription.billing_status] || 'Desconhecido'} - ciclo ate {subscription.current_period_ends_at}
                   </p>
                   <p className="mt-2 font-bold text-text-primary">
-                    {formatCurrency(calculateSubscriptionTotal(subscription, plans, addons))}/mes
+                    {formatCurrency(calculateSubscriptionTotal(subscription as unknown as CompanySubscription, plans, addons))}/mes
                   </p>
                   <p className="mt-1 text-sm text-brand-secondary">
-                    Proration simulado: {formatCurrency(calculateSubscriptionTotal(subscription, plans, addons) / 30)} por dia restante.
+                    Proration simulado: {formatCurrency(calculateSubscriptionTotal(subscription as unknown as CompanySubscription, plans, addons) / 30)} por dia restante.
                   </p>
                 </div>
                 <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
@@ -82,7 +88,7 @@ export function SubscriptionsPage() {
                     onChange={(event) => { updatePlanMutation.mutate({ companyId: subscription.company_id, planId: event.target.value }); }}
                     className="h-10 rounded-lg border border-border-default bg-surface-background px-3 text-sm"
                   >
-                    {plans.map((plan: any) => (
+                    {plans.map((plan) => (
                       <option key={plan.id} value={plan.id}>{plan.name}</option>
                     ))}
                   </select>
@@ -98,7 +104,7 @@ export function SubscriptionsPage() {
                 </div>
               </div>
               <div className="mt-4 flex flex-wrap gap-2">
-                {addons.map((addon: any) => {
+                {addons.map((addon) => {
                   const active = subscription.addon_ids?.includes(addon.id);
                   return (
                     <button

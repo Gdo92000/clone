@@ -18,7 +18,7 @@ export function ExperienceLayout({ title, children, backTo = '/' }: ExperienceLa
       <header className="sticky top-0 z-40 border-b border-border-default bg-surface-elevated">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
-            <button onClick={() => navigate(backTo)} className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-surface-background transition-colors" aria-label="Voltar">
+            <button onClick={() => { void navigate(backTo); }} className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-surface-background transition-colors" aria-label="Voltar">
               <Icon name="ChevronLeft" className="text-text-primary" size={24} />
             </button>
             <h1 className="font-display text-lg font-bold text-text-primary">{title}</h1>

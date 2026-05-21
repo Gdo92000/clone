@@ -1,65 +1,80 @@
 import { Hono } from 'hono';
+import type { MiddlewareHandler } from 'hono';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-
+const { selectMock, insertMock, updateMock, deleteMock } = vi.hoisted(() => {
+  const select = vi.fn();
+  const insert = vi.fn();
+  const update = vi.fn();
+  const del = vi.fn();
+  return { selectMock: select, insertMock: insert, updateMock: update, deleteMock: del };
+});
 
 vi.mock('../db', () => {
-  const mockChain = (result: any[]) => ({
+  const mockChain = (result: unknown[]) => ({
     from: vi.fn().mockReturnThis(),
     where: vi.fn().mockReturnThis(),
     limit: vi.fn().mockReturnThis(),
     orderBy: vi.fn().mockReturnThis(),
-    then: vi.fn((cb: any) => Promise.resolve(cb(result))),
+    then: vi.fn((cb: (r: unknown[]) => unknown) => Promise.resolve(cb(result))),
   });
 
-  const db = {
-    _plans: [] as any[],
-    _coupons: [] as any[],
-    _cities: [] as any[],
-    select: vi.fn().mockImplementation(function (this: any) {
-      return mockChain(this._plans);
-    }),
-    insert: vi.fn().mockReturnValue({ values: vi.fn().mockResolvedValue(undefined) }),
-    update: vi.fn().mockReturnValue({ set: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) }) }),
-    delete: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) }),
+  return {
+    db: {
+      select: selectMock.mockReturnValue(mockChain([])),
+      insert: insertMock.mockReturnValue({ values: vi.fn().mockResolvedValue(undefined) }),
+      update: updateMock.mockReturnValue({ set: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) }) }),
+      delete: deleteMock.mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) }),
+    },
   };
-  return { db };
 });
 
 vi.mock('../middleware/auth', () => ({
-  authMiddleware: async (_c: any, next: any) => { await next(); },
+  authMiddleware: (async (_c: unknown, next: () => Promise<void>) => { await next(); }) as MiddlewareHandler,
   getTokenPayload: () => ({ sub: 'admin-1', email: 'admin@test.com', role: 'superadmin' }),
 }));
 
 vi.mock('../middleware/permission', () => ({
-  requirePermission: () => async (_c: any, next: any) => { await next(); },
+  requirePermission: () => (async (_c: unknown, next: () => Promise<void>) => { await next(); }) as MiddlewareHandler,
 }));
 
-import { db } from '../db';
+function mockSelect(result: unknown[]) {
+  return {
+    from: vi.fn().mockReturnThis(),
+    where: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockReturnThis(),
+    orderBy: vi.fn().mockReturnThis(),
+    then: vi.fn((cb: (r: unknown[]) => unknown) => Promise.resolve(cb(result))),
+  };
+}
+
+function mockSelectWithLimit(result: unknown[]) {
+  return {
+    from: vi.fn().mockReturnThis(),
+    where: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockReturnValue({ then: (cb: (r: unknown[]) => unknown) => Promise.resolve(cb(result)) }),
+    orderBy: vi.fn().mockReturnThis(),
+    then: vi.fn((cb: (r: unknown[]) => unknown) => Promise.resolve(cb([]))),
+  };
+}
+
+type BodyRecord = Record<string, unknown>;
+
+const resetDbMocks = () => {
+  selectMock.mockReset();
+  selectMock.mockImplementation(() => mockSelect([]));
+  insertMock.mockReset();
+  insertMock.mockReturnValue({ values: vi.fn().mockResolvedValue(undefined) });
+  updateMock.mockReset();
+  updateMock.mockReturnValue({ set: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) }) });
+  deleteMock.mockReset();
+  deleteMock.mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) });
+};
 
 describe('Route integration tests', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (db.select as any).mockReset();
-
-    const mockChain = (result: any[]) => ({
-      from: vi.fn().mockReturnThis(),
-      where: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockReturnThis(),
-      orderBy: vi.fn().mockReturnThis(),
-      then: vi.fn((cb: any) => Promise.resolve(cb(result))),
-    });
-
-    (db.select as any).mockImplementation((..._args: any[]) => {
-      return mockChain([]);
-    });
-
-    (db.insert as any).mockReset();
-    (db.insert as any).mockReturnValue({ values: vi.fn().mockResolvedValue(undefined) });
-    (db.update as any).mockReset();
-    (db.update as any).mockReturnValue({ set: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) }) });
-    (db.delete as any).mockReset();
-    (db.delete as any).mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) });
+    resetDbMocks();
   });
 
   describe('Plans', () => {
@@ -68,39 +83,27 @@ describe('Route integration tests', () => {
       const app = new Hono().route('/api/plans', route);
       const res = await app.request('/api/plans');
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as BodyRecord[];
       expect(Array.isArray(body)).toBe(true);
     }, 15000);
 
     it('GET / returns plans from DB', async () => {
-      (db.select as any).mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockReturnThis(),
-        orderBy: vi.fn().mockReturnThis(),
-        then: vi.fn((cb: any) => Promise.resolve(cb([{ id: 'basic', name: 'Básico', monthly_price: '29.90', is_active: true }]))),
-      }));
+      selectMock.mockImplementation(() => mockSelect([{ id: 'basic', name: 'Básico', monthly_price: '29.90', is_active: true }]));
       const { default: route } = await import('./plans');
       const app = new Hono().route('/api/plans', route);
       const res = await app.request('/api/plans');
-      const body = await res.json();
+      const body = await res.json() as BodyRecord[];
       expect(body).toHaveLength(1);
       expect(body[0].id).toBe('basic');
     });
 
     it('GET /:id with valid id returns plan', async () => {
-      (db.select as any).mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockReturnValue({ then: (cb: any) => Promise.resolve(cb([{ id: 'basic', name: 'Básico', monthly_price: '29.90' }])) }),
-        orderBy: vi.fn().mockReturnThis(),
-        then: vi.fn((cb: any) => Promise.resolve(cb([]))),
-      }));
+      selectMock.mockImplementation(() => mockSelectWithLimit([{ id: 'basic', name: 'Básico', monthly_price: '29.90' }]));
       const { default: route } = await import('./plans');
       const app = new Hono().route('/api/plans', route);
       const res = await app.request('/api/plans/basic');
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as BodyRecord;
       expect(body.id).toBe('basic');
     });
 
@@ -112,13 +115,7 @@ describe('Route integration tests', () => {
     });
 
     it('POST / creates a new plan (201)', async () => {
-      (db.select as any).mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockReturnValue({ then: (cb: any) => Promise.resolve(cb([])) }),
-        orderBy: vi.fn().mockReturnThis(),
-        then: vi.fn((cb: any) => Promise.resolve(cb([]))),
-      }));
+      selectMock.mockImplementation(() => mockSelectWithLimit([]));
       const { default: route } = await import('./plans');
       const app = new Hono().route('/api/plans', route);
       const res = await app.request('/api/plans', {
@@ -130,13 +127,7 @@ describe('Route integration tests', () => {
     });
 
     it('POST / returns 409 for duplicate plan id', async () => {
-      (db.select as any).mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockReturnValue({ then: (cb: any) => Promise.resolve(cb([{ id: 'basic' }])) }),
-        orderBy: vi.fn().mockReturnThis(),
-        then: vi.fn((cb: any) => Promise.resolve(cb([{ id: 'basic' }]))),
-      }));
+      selectMock.mockImplementation(() => mockSelectWithLimit([{ id: 'basic' }]));
       const { default: route } = await import('./plans');
       const app = new Hono().route('/api/plans', route);
       const res = await app.request('/api/plans', {
@@ -159,13 +150,7 @@ describe('Route integration tests', () => {
     });
 
     it('PUT /:id updates existing plan', async () => {
-      (db.select as any).mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockReturnValue({ then: (cb: any) => Promise.resolve(cb([{ id: 'basic' }])) }),
-        orderBy: vi.fn().mockReturnThis(),
-        then: vi.fn((cb: any) => Promise.resolve(cb([{ id: 'basic' }]))),
-      }));
+      selectMock.mockImplementation(() => mockSelectWithLimit([{ id: 'basic' }]));
       const { default: route } = await import('./plans');
       const app = new Hono().route('/api/plans', route);
       const res = await app.request('/api/plans/basic', {
@@ -179,18 +164,12 @@ describe('Route integration tests', () => {
 
   describe('Coverage cities', () => {
     it('GET / returns cities', async () => {
-      (db.select as any).mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockReturnThis(),
-        orderBy: vi.fn().mockReturnThis(),
-        then: vi.fn((cb: any) => Promise.resolve(cb([{ id: '1', city: 'Franca', state: 'SP', is_active: true }]))),
-      }));
+      selectMock.mockImplementation(() => mockSelect([{ id: '1', city: 'Franca', state: 'SP', is_active: true }]));
       const { default: route } = await import('./coverage-cities');
       const app = new Hono().route('/api/coverage-cities', route);
       const res = await app.request('/api/coverage-cities');
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as BodyRecord[];
       expect(body).toHaveLength(1);
       expect(body[0].city).toBe('Franca');
     });
@@ -198,29 +177,17 @@ describe('Route integration tests', () => {
 
   describe('Global coupons', () => {
     it('GET / returns all coupons', async () => {
-      (db.select as any).mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockReturnThis(),
-        orderBy: vi.fn().mockReturnThis(),
-        then: vi.fn((cb: any) => Promise.resolve(cb([{ id: 'c1', code: 'PROMO10' }]))),
-      }));
+      selectMock.mockImplementation(() => mockSelect([{ id: 'c1', code: 'PROMO10' }]));
       const { default: route } = await import('./global-coupons');
       const app = new Hono().route('/api/global-coupons', route);
       const res = await app.request('/api/global-coupons', { headers: { Authorization: 'Bearer t' } });
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json() as BodyRecord[];
       expect(body).toHaveLength(1);
     });
 
     it('POST / creates coupon (201)', async () => {
-      (db.select as any).mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockReturnThis(),
-        orderBy: vi.fn().mockReturnThis(),
-        then: vi.fn((cb: any) => Promise.resolve(cb([]))),
-      }));
+      selectMock.mockImplementation(() => mockSelect([]));
       const { default: route } = await import('./global-coupons');
       const app = new Hono().route('/api/global-coupons', route);
       const res = await app.request('/api/global-coupons', {
@@ -247,13 +214,7 @@ describe('Route integration tests', () => {
     });
 
     it('DELETE /:id removes coupon', async () => {
-      (db.select as any).mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockReturnValue({ then: (cb: any) => Promise.resolve(cb([{ id: 'c1' }])) }),
-        orderBy: vi.fn().mockReturnValue({ then: (cb: any) => Promise.resolve(cb([])) }),
-        then: vi.fn((cb: any) => Promise.resolve(cb([]))),
-      }));
+      selectMock.mockImplementation(() => mockSelectWithLimit([{ id: 'c1' }]));
       const { default: route } = await import('./global-coupons');
       const app = new Hono().route('/api/global-coupons', route);
       const res = await app.request('/api/global-coupons/c1', {
@@ -266,13 +227,7 @@ describe('Route integration tests', () => {
 
   describe('Auth bypass', () => {
     it('allows request through auth middleware (mocked)', async () => {
-      (db.select as any).mockImplementation(() => ({
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockReturnThis(),
-        orderBy: vi.fn().mockReturnThis(),
-        then: vi.fn((cb: any) => Promise.resolve(cb([]))),
-      }));
+      selectMock.mockImplementation(() => mockSelect([]));
       const { default: route } = await import('./global-coupons');
       const app = new Hono().route('/api/global-coupons', route);
       const res = await app.request('/api/global-coupons');

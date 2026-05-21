@@ -80,54 +80,54 @@ describe('unauthorized', () => {
 });
 
 describe('errorHandler', () => {
-  let json;
-  let c;
+  let json: ReturnType<typeof vi.fn>;
+  let c: Parameters<typeof errorHandler>[1];
 
   beforeEach(() => {
     json = vi.fn();
-    c = { json, req: { method: 'GET', path: '/api/test' } };
-    vi.spyOn(console, 'error').mockImplementation(() => {}); // Mock console.error to prevent test logs
+    c = { json, req: { method: 'GET', path: '/api/test' } } as unknown as Parameters<typeof errorHandler>[1];
+    vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it('returns AppError as JSON with correct status and details', () => {
+  it('returns AppError as JSON with correct status and details', async () => {
     const err = new AppError(400, 'bad', { x: 1 });
-    errorHandler(err, c);
+    await errorHandler(err, c);
     expect(json).toHaveBeenCalledWith({ error: 'bad', details: { x: 1 }, requestId: undefined }, 400);
   });
 
-  it('handles ZodError with issues as 400', () => {
+  it('handles ZodError with issues as 400', async () => {
     const issues = [{ path: ['email'], message: 'Required' }];
-    errorHandler({ name: 'ZodError', issues } as any, c);
+    await errorHandler({ name: 'ZodError', issues } as unknown as Parameters<typeof errorHandler>[0], c);
     expect(json).toHaveBeenCalledWith({ error: 'Dados inválidos', details: issues, requestId: undefined }, 400);
   });
 
-  it('handles Postgres ECONNREFUSED as 503', () => {
-    errorHandler({ code: 'ECONNREFUSED' } as any, c);
+  it('handles Postgres ECONNREFUSED as 503', async () => {
+    await errorHandler({ code: 'ECONNREFUSED' } as unknown as Parameters<typeof errorHandler>[0], c);
     expect(json).toHaveBeenCalledWith({ error: 'Erro de conexão com banco de dados', requestId: undefined }, 503);
   });
 
-  it('handles Postgres 57P01 as 503', () => {
-    errorHandler({ code: '57P01' } as any, c);
+  it('handles Postgres 57P01 as 503', async () => {
+    await errorHandler({ code: '57P01' } as unknown as Parameters<typeof errorHandler>[0], c);
     expect(json).toHaveBeenCalledWith({ error: 'Erro de conexão com banco de dados', requestId: undefined }, 503);
   });
 
-  it('handles Postgres 23505 (unique violation) as 409', () => {
-    errorHandler({ code: '23505', message: 'unique violation' } as any, c);
+  it('handles Postgres 23505 (unique violation) as 409', async () => {
+    await errorHandler({ code: '23505', message: 'unique violation' } as unknown as Parameters<typeof errorHandler>[0], c);
     expect(json).toHaveBeenCalledWith({ error: 'Registro duplicado', requestId: undefined }, 409);
   });
 
-  it('handles unknown Postgres error as 500', () => {
-    errorHandler({ code: '42P01', message: 'relation not found' } as any, c);
+  it('handles unknown Postgres error as 500', async () => {
+    await errorHandler({ code: '42P01', message: 'relation not found' } as unknown as Parameters<typeof errorHandler>[0], c);
     expect(json).toHaveBeenCalledWith({ error: 'Erro no banco de dados', requestId: undefined }, 500);
   });
 
-  it('handles generic Error as 500', () => {
+  it('handles generic Error as 500', async () => {
     const err = new Error('something broke');
-    errorHandler(err, c);
+    await errorHandler(err, c);
     expect(json).toHaveBeenCalledWith({ error: 'Erro interno do servidor', requestId: undefined }, 500);
   });
 

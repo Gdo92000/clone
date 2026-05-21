@@ -23,8 +23,8 @@ export function ConsumerLoyaltyPage() {
             <p className="text-text-secondary">Selecione um restaurante para ver seus pontos.</p>
             {/* In a real scenario, we'd list branches the user has points in */}
             <div className="mt-6 flex justify-center gap-2">
-               <Button onClick={() => setBranchId('branch-1')} variant="outline" size="sm">Testar Loja 1</Button>
-               <Button onClick={() => setBranchId('branch-2')} variant="outline" size="sm">Testar Loja 2</Button>
+               <Button onClick={() => { setBranchId('branch-1'); }} variant="outline" size="sm">Testar Loja 1</Button>
+               <Button onClick={() => { setBranchId('branch-2'); }} variant="outline" size="sm">Testar Loja 2</Button>
             </div>
           </div>
         ) : (
@@ -41,11 +41,11 @@ export function ConsumerLoyaltyPage() {
             <section>
               <h2 className="text-lg font-semibold text-text-primary mb-4">Recompensas Disponíveis</h2>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {loyalty?.rewards?.length === 0 ? (
+                {loyalty?.rewards.length === 0 ? (
                   <p className="text-sm text-text-secondary col-span-2">Nenhuma recompensa disponível no momento.</p>
                 ) : (
-                  loyalty?.rewards?.map((reward) => {
-                    const canRedeem = (loyalty?.balance ?? 0) >= reward.points_required;
+                  loyalty?.rewards.map((reward) => {
+                    const canRedeem = loyalty.balance >= reward.points_required;
                     return (
                       <article key={reward.id} className={clsx(
                         'rounded-xl border p-4 transition-all',

@@ -10,7 +10,7 @@ export function requireTenantOwnership(paramName: 'branchId' | 'companyId' = 'br
     if (!payload) return c.json({ error: 'Não autenticado' }, 401);
  
     if (payload.role === 'superadmin') {
-      return await next();
+      await next(); return;
     }
  
     const user = await db.select({
@@ -24,7 +24,7 @@ export function requireTenantOwnership(paramName: 'branchId' | 'companyId' = 'br
     }
  
     const userData = user[0];
-    const requestedId = paramName === 'branchId' ? c.req.param('branchId') : c.req.param('companyId');
+    const requestedId = c.req.param(paramName);
     const queryId = paramName === 'branchId' ? c.req.query('branch_id') : c.req.query('company_id');
     const id = requestedId || queryId;
  
@@ -33,7 +33,7 @@ export function requireTenantOwnership(paramName: 'branchId' | 'companyId' = 'br
       // We attach the user's identifiers to the context for the route to use
       c.set('userCompanyId', userData.company_id);
       c.set('userBranchId', userData.branch_id);
-      return await next();
+      await next(); return;
     }
  
     if (paramName === 'branchId') {
@@ -52,7 +52,7 @@ export function requireTenantOwnership(paramName: 'branchId' | 'companyId' = 'br
       } else {
         return c.json({ error: 'Permissão insuficiente para acessar filiais' }, 403);
       }
-    } else if (paramName === 'companyId') {
+    } else {
       if (userData.role === 'admin' || userData.role === 'merchant') {
         if (id !== userData.company_id) {
           return c.json({ error: 'Acesso negado a esta empresa' }, 403);

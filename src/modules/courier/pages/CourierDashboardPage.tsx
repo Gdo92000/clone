@@ -5,7 +5,7 @@ import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
 
 export function CourierDashboardPage() {
   const { data: orders = [], isLoading, error } = useCourierDeliveries();
-  const earnings = (orders as any[]).reduce((sum, o) => sum + (o.total || 0), 0);
+  const earnings = orders.reduce((sum, o) => sum + o.total, 0);
   const distance = 0;
 
   return (

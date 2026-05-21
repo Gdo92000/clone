@@ -18,7 +18,7 @@ export function FavoritesPage() {
             <FxRestaurantCard
               key={restaurant.id}
               restaurant={restaurant}
-              onClick={() => navigate(restaurantDetailHref(restaurant.id))}
+              onClick={() => { void navigate(restaurantDetailHref(restaurant.id)); }}
             />
           ))}
         </section>

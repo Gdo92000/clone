@@ -33,7 +33,7 @@ export function AdminCompaniesPage() {
                       <p className="text-sm text-text-secondary">{company.document}</p>
                     </div>
                     <div className="text-sm text-text-secondary md:text-right">
-                      <p>{(company as any).branches ?? 0} filiais</p>
+                      <p>{(company as { branches?: number }).branches ?? 0} filiais</p>
                       <p>Plano {company.plan}</p>
                     </div>
                   </div>

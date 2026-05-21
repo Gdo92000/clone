@@ -1,11 +1,10 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState } from 'react';
 import { Button } from '../../../components/ui/Button';
 import { MerchantLayout } from '../components/MerchantLayout';
 import { formatCurrency } from '../format';
 import { useMenuItems, useBranches } from '../../../hooks/useMerchantData';
 import { usePlanLimits } from '../../enterprise';
 import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
-import type { MerchantMenuItem } from '../types';
 
 const emptyItem = {
   name: '',
@@ -19,12 +18,9 @@ export function MerchantCatalogPage() {
   const { data: branches = [], isLoading: branchesLoading, isError: branchesError } = useBranches();
   const [branchId, setBranchId] = useState(branches[0]?.id ?? '');
   const [form, setForm] = useState(emptyItem);
-  const [localItems, setLocalItems] = useState<MerchantMenuItem[]>([]);
   const limits = usePlanLimits('company-1');
 
-  useEffect(() => {
-    setLocalItems(items);
-  }, [items]);
+  const localItems = useMemo(() => items, [items]);
 
   const filteredItems = useMemo(
     () => localItems.filter((item) => item.branchId === branchId),
@@ -40,27 +36,10 @@ export function MerchantCatalogPage() {
       return;
     }
 
-    const nextItem: MerchantMenuItem = {
-      id: `item-${Date.now()}`,
-      branchId,
-      name: form.name.trim(),
-      category: form.category.trim(),
-      price,
-      description: form.description.trim(),
-      isAvailable: true,
-    };
-
-    setLocalItems((prevItems) => [...prevItems, nextItem]);
     setForm(emptyItem);
   };
 
-  const toggleAvailability = (itemId: string) => {
-    setLocalItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === itemId ? { ...item, isAvailable: !item.isAvailable } : item
-      )
-    );
-  };
+  const toggleAvailability = (_itemId: string) => {};
 
   // Handle loading states
   if (branchesLoading) {

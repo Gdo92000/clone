@@ -1,7 +1,6 @@
 import { pgTable, text, time, integer, timestamp, index } from 'drizzle-orm/pg-core';
 import { branches } from '../merchant';
-import { holidayRules } from './holiday-rules';
-import { holidayOverrideType } from './holiday-rules';
+import { holidayRules , holidayOverrideType } from './holiday-rules';
 
 export const holidayOverrides = pgTable('holiday_overrides', {
   id: text('id').primaryKey(),

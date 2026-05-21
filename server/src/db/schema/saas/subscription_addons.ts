@@ -3,7 +3,7 @@ import { subscriptions } from './subscriptions';
 import { addons } from './addons';
  
 export const subscriptionAddons = pgTable('subscription_addons', {
-  subscription_id: text('subscription_id').references(() => subscriptions.id).notNull(),
+  subscription_id: text('subscription_id').references(() => subscriptions.company_id).notNull(),
   addon_id: text('addon_id').references(() => addons.id).notNull(),
   activated_at: timestamp('activated_at', { withTimezone: true }).defaultNow(),
 }, (table) => [

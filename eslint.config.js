@@ -5,6 +5,7 @@ import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import reactRefreshPlugin from 'eslint-plugin-react-refresh';
 import unusedImportsPlugin from 'eslint-plugin-unused-imports';
 import importPlugin from 'eslint-plugin-import';
+import { fixupConfigRules } from '@eslint/compat';
 
 export default tseslint.config(
   {
@@ -31,20 +32,19 @@ export default tseslint.config(
 
       ...tseslint.configs.strictTypeChecked,
 
-      reactPlugin.configs.flat.recommended,
+      ...fixupConfigRules(reactPlugin.configs.flat.recommended),
 
-      reactPlugin.configs.flat['jsx-runtime'],
+      ...fixupConfigRules(reactPlugin.configs.flat['jsx-runtime']),
     ],
 
     languageOptions: {
       parserOptions: {
-        project: true,
+        project: ['./tsconfig.eslint.json'],
         tsconfigRootDir: import.meta.dirname,
       },
     },
 
     plugins: {
-      react: reactPlugin,
       'react-hooks': reactHooksPlugin,
       'react-refresh': reactRefreshPlugin,
       'unused-imports': unusedImportsPlugin,
@@ -77,6 +77,10 @@ export default tseslint.config(
       ],
 
       // Segurança de tipos
+      '@typescript-eslint/restrict-template-expressions': [
+        'error',
+        { allowNumber: true },
+      ],
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/await-thenable': 'error',
@@ -123,7 +127,7 @@ export default tseslint.config(
 
     languageOptions: {
       parserOptions: {
-        project: true,
+        project: ['./server/tsconfig.eslint.json'],
         tsconfigRootDir: import.meta.dirname,
       },
     },
@@ -145,6 +149,10 @@ export default tseslint.config(
         },
       ],
 
+      '@typescript-eslint/restrict-template-expressions': [
+        'error',
+        { allowNumber: true },
+      ],
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/await-thenable': 'error',

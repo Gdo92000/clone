@@ -25,12 +25,12 @@ const createSchema = z.object({
 route.get('/', async (c) => {
   const companyId = c.req.query('company_id');
   const branchId = c.req.query('branch_id');
-  const conds: any[] = [];
-  if (companyId) conds.push(eq(feature_flags.company_id, companyId));
-  if (branchId) conds.push(eq(feature_flags.branch_id, branchId));
+  const conditions: ReturnType<typeof eq>[] = [];
+  if (companyId) conditions.push(eq(feature_flags.company_id, companyId));
+  if (branchId) conditions.push(eq(feature_flags.branch_id, branchId));
   const query = db.select().from(feature_flags);
-  if (conds.length) {
-    const all = await query.where(and(...conds));
+  if (conditions.length) {
+    const all = await query.where(and(...conditions));
     return c.json(all);
   }
   const all = await query;
@@ -39,10 +39,10 @@ route.get('/', async (c) => {
 
 route.post('/', zValidator('json', createSchema), async (c) => {
   const data = c.req.valid('json');
-  const conds: any[] = [eq(feature_flags.feature_key, data.feature_key)];
-  if (data.company_id) conds.push(eq(feature_flags.company_id, data.company_id));
-  if (data.branch_id) conds.push(eq(feature_flags.branch_id, data.branch_id));
-  const existing = await db.select().from(feature_flags).where(and(...conds)).limit(1);
+  const conditions: ReturnType<typeof eq>[] = [eq(feature_flags.feature_key, data.feature_key)];
+  if (data.company_id) conditions.push(eq(feature_flags.company_id, data.company_id));
+  if (data.branch_id) conditions.push(eq(feature_flags.branch_id, data.branch_id));
+  const existing = await db.select().from(feature_flags).where(and(...conditions)).limit(1);
   if (existing.length) {
     await db.update(feature_flags).set({ ...data, updated_at: new Date() }).where(eq(feature_flags.id, existing[0].id));
     return c.json({ success: true, upserted: true });

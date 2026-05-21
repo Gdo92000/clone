@@ -2,9 +2,6 @@ import type { MiddlewareHandler } from 'hono';
 import { getTokenPayload } from './auth';
 import { createAuditLog } from '../services/auditLogService';
 
-import type { MiddlewareHandler } from 'hono';
-import { getTokenPayload } from './auth';
-import { createAuditLog } from '../services/auditLogService';
 import { db } from '../db';
 import { rolePermissions } from '../db/schema';
 import { eq, and } from 'drizzle-orm';
@@ -18,14 +15,14 @@ export function requirePermission(options: { roles?: string[]; permission?: stri
     }
 
     if (payload.role === 'superadmin') {
-      return await next();
+      await next(); return;
     }
 
     const { roles, permission } = options;
 
     // Check legacy roles if provided
     if (roles && roles.length > 0 && roles.includes(payload.role)) {
-      return await next();
+      await next(); return;
     }
 
     // Check granular permission if provided
@@ -36,7 +33,7 @@ export function requirePermission(options: { roles?: string[]; permission?: stri
         .limit(1);
 
       if (hasPermission.length > 0) {
-        return await next();
+        await next(); return;
       }
     }
 

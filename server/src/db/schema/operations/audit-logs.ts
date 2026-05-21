@@ -11,8 +11,8 @@ export const auditLogs = pgTable('audit_logs', {
   ip_address: text('ip_address'),
   user_agent: text('user_agent'),
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
-}, (table) => ({
-  userIdx: index('idx_audit_logs_user').on(table.user_id),
-  actionIdx: index('idx_audit_logs_action').on(table.action),
-  createdAtIdx: index('idx_audit_logs_created').on(table.created_at),
-}));
+}, (table) => [
+  index('idx_audit_logs_user').on(table.user_id),
+  index('idx_audit_logs_action').on(table.action),
+  index('idx_audit_logs_created').on(table.created_at),
+]);

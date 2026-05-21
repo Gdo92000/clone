@@ -3,7 +3,7 @@ import { localAuthProvider } from './local/provider';
 
 const PROVIDER_ENV_KEY = 'AUTH_PROVIDER';
 
-const providers: Record<AuthProviderType, AuthProvider> = {
+const providers: Partial<Record<AuthProviderType, AuthProvider>> = {
   local: localAuthProvider,
 };
 

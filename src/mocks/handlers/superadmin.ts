@@ -14,16 +14,18 @@ export const superadminHandlers = [
   }),
 
   http.get('*/api/admin/users/:id', ({ params }) => {
-    const user = mockAdminUsers.find(u => u.id === params['id'])
-    logMock('GET', `/api/admin/users/${params['id']}`, user ? 200 : 404)
+    const id = typeof params['id'] === 'string' ? params['id'] : ''
+    const user = mockAdminUsers.find(u => u.id === id)
+    logMock('GET', `/api/admin/users/${id}`, user ? 200 : 404)
     return user
       ? HttpResponse.json(user, { status: 200 })
       : HttpResponse.json({ error: 'Not found' }, { status: 404 })
   }),
 
   http.put('*/api/admin/users/:id', async ({ params, request }) => {
+    const id = typeof params['id'] === 'string' ? params['id'] : ''
     const body = await request.json()
-    logMock('PUT', `/api/admin/users/${params['id']}`, 200)
+    logMock('PUT', `/api/admin/users/${id}`, 200)
     return HttpResponse.json({ success: true, ...body as Record<string, unknown> }, { status: 200 })
   }),
 
@@ -44,8 +46,9 @@ export const superadminHandlers = [
   }),
 
   http.get('*/api/audit-events/:id', ({ params }) => {
-    const event = mockAuditEvents.find(e => e.id === params['id'])
-    logMock('GET', `/api/audit-events/${params['id']}`, event ? 200 : 404)
+    const id = typeof params['id'] === 'string' ? params['id'] : ''
+    const event = mockAuditEvents.find(e => e.id === id)
+    logMock('GET', `/api/audit-events/${id}`, event ? 200 : 404)
     return event
       ? HttpResponse.json(event, { status: 200 })
       : HttpResponse.json({ error: 'Not found' }, { status: 404 })
@@ -57,16 +60,18 @@ export const superadminHandlers = [
   }),
 
   http.get('*/api/support-tickets/:id', ({ params }) => {
-    const ticket = mockSupportTickets.find(t => t.id === params['id'])
-    logMock('GET', `/api/support-tickets/${params['id']}`, ticket ? 200 : 404)
+    const id = typeof params['id'] === 'string' ? params['id'] : ''
+    const ticket = mockSupportTickets.find(t => t.id === id)
+    logMock('GET', `/api/support-tickets/${id}`, ticket ? 200 : 404)
     return ticket
       ? HttpResponse.json(ticket, { status: 200 })
       : HttpResponse.json({ error: 'Not found' }, { status: 404 })
   }),
 
   http.put('*/api/support-tickets/:id', async ({ params, request }) => {
+    const id = typeof params['id'] === 'string' ? params['id'] : ''
     const body = await request.json()
-    logMock('PUT', `/api/support-tickets/${params['id']}`, 200)
+    logMock('PUT', `/api/support-tickets/${id}`, 200)
     return HttpResponse.json({ success: true, ...body as Record<string, unknown> }, { status: 200 })
   }),
 
@@ -82,7 +87,8 @@ export const superadminHandlers = [
   }),
 
   http.delete('*/api/feature-flags/:id', ({ params }) => {
-    logMock('DELETE', `/api/feature-flags/${params['id']}`, 200)
+    const id = typeof params['id'] === 'string' ? params['id'] : ''
+    logMock('DELETE', `/api/feature-flags/${id}`, 200)
     return HttpResponse.json({ success: true }, { status: 200 })
   }),
 
@@ -98,13 +104,15 @@ export const superadminHandlers = [
   }),
 
   http.put('*/api/global-coupons/:id', async ({ params, request }) => {
+    const id = typeof params['id'] === 'string' ? params['id'] : ''
     const body = await request.json()
-    logMock('PUT', `/api/global-coupons/${params['id']}`, 200)
+    logMock('PUT', `/api/global-coupons/${id}`, 200)
     return HttpResponse.json({ success: true, ...body as Record<string, unknown> }, { status: 200 })
   }),
 
   http.delete('*/api/global-coupons/:id', ({ params }) => {
-    logMock('DELETE', `/api/global-coupons/${params['id']}`, 200)
+    const id = typeof params['id'] === 'string' ? params['id'] : ''
+    logMock('DELETE', `/api/global-coupons/${id}`, 200)
     return HttpResponse.json({ success: true }, { status: 200 })
   }),
 
@@ -114,8 +122,9 @@ export const superadminHandlers = [
   }),
 
   http.get('*/api/permissions/role/:role', ({ params }) => {
-    const perms = mockPermissions.filter(p => p.role === params['role'])
-    logMock('GET', `/api/permissions/role/${params['role']}`, 200)
+    const role = typeof params['role'] === 'string' ? params['role'] : ''
+    const perms = mockPermissions.filter(p => p.role === role)
+    logMock('GET', `/api/permissions/role/${role}`, 200)
     return HttpResponse.json(perms, { status: 200 })
   }),
 
@@ -141,8 +150,9 @@ export const superadminHandlers = [
   }),
 
   http.put('*/api/commission-plans/:id', async ({ params, request }) => {
+    const id = typeof params['id'] === 'string' ? params['id'] : ''
     const body = await request.json()
-    logMock('PUT', `/api/commission-plans/${params['id']}`, 200)
+    logMock('PUT', `/api/commission-plans/${id}`, 200)
     return HttpResponse.json({ success: true, ...body as Record<string, unknown> }, { status: 200 })
   }),
 

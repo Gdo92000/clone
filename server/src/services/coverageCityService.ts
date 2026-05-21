@@ -1,4 +1,4 @@
-import { eq, isNull, sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { db } from '../db';
 import { coverageCities } from '../db/schema/ops/coverage';
 import { restaurants } from '../db/schema/core';
@@ -17,7 +17,8 @@ export async function listCoverageCities() {
 
 export async function getCoverageCity(id: string) {
   const result = await db.select().from(coverageCities).where(eq(coverageCities.id, id)).limit(1);
-  return result[0] ?? null;
+  if (result.length === 0) return null;
+  return result[0];
 }
 
 export async function createCoverageCity(input: CoverageCityInput) {
@@ -52,10 +53,10 @@ export async function deleteCoverageCity(id: string) {
 
 export async function seedFromRestaurants() {
   const existing = await db.select({ count: sql<number>`count(*)` }).from(coverageCities);
-  if (existing[0].count > 0) return { seeded: 0, reason: 'already_seeded' };
+  if (existing[0]?.count > 0) return { seeded: 0, reason: 'already_seeded' };
 
-  const all = await db.select({ city: restaurants.city }).from(restaurants).where(isNull(restaurants.city).not());
-  const unique = [...new Set(all.map((r) => r.city as string))];
+  const all = await db.select({ city: restaurants.city }).from(restaurants).where(sql`${restaurants.city} IS NOT NULL`);
+  const unique = [...new Set(all.map((r) => r.city))];
   if (unique.length === 0) return { seeded: 0, reason: 'no_restaurants' };
 
   let seeded = 0;

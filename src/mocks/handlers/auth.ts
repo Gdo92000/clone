@@ -5,8 +5,8 @@ import { logMock } from '../logger'
 export const authHandlers = [
   http.post('*/api/auth/login', async ({ request }) => {
     const body = await request.json() as { email?: string; password?: string }
-    const { email, password } = body || {}
-    const result = loginMock(email!, password!)
+    const { email = '', password = '' } = body
+    const result = loginMock(email, password)
     if (!result) {
       logMock('POST', '/api/auth/login', 401)
       return HttpResponse.json({ error: 'Credenciais inválidas' }, { status: 401 })
@@ -26,7 +26,7 @@ export const authHandlers = [
     }, { status: 201 })
   }),
 
-  http.post('*/api/auth/refresh', async () => {
+  http.post('*/api/auth/refresh', () => {
     logMock('POST', '/api/auth/refresh', 200)
     return HttpResponse.json({
       accessToken: 'mock-jwt-token-refreshed',
@@ -34,12 +34,12 @@ export const authHandlers = [
     }, { status: 200 })
   }),
 
-  http.post('*/api/auth/logout', async () => {
+  http.post('*/api/auth/logout', () => {
     logMock('POST', '/api/auth/logout', 200)
     return HttpResponse.json({ success: true }, { status: 200 })
   }),
 
-  http.get('*/api/auth/me', async ({ request }) => {
+  http.get('*/api/auth/me', ({ request }) => {
     const auth = request.headers.get('Authorization')
     if (!auth) {
       logMock('GET', '/api/auth/me', 401)
@@ -50,7 +50,7 @@ export const authHandlers = [
     return HttpResponse.json(user, { status: 200 })
   }),
 
-  http.get('*/api/users', async () => {
+  http.get('*/api/users', () => {
     logMock('GET', '/api/users', 200)
     return HttpResponse.json(mockUsers, { status: 200 })
   }),

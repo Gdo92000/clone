@@ -49,7 +49,7 @@ export function AddressAutocomplete({
     if (value !== undefined && value !== query) {
       setQuery(value);
     }
-  }, [value]);
+  }, [value, query, setQuery]);
 
   const lastSelectedRef = useRef<AutocompleteSuggestion | null>(null);
 

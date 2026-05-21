@@ -22,8 +22,8 @@ export interface CreateTicketInput {
 
 export const consumerApi = {
   getMyNotifications: () => get<ConsumerNotificationDTO[]>('/me/notifications'),
-  markNotificationRead: (id: string) => put<void>(`/me/notifications/${id}/read`),
-  markAllNotificationsRead: () => put<void>('/me/notifications/read-all'),
+  markNotificationRead: (id: string) => put<Record<string, never>>(`/me/notifications/${id}/read`),
+  markAllNotificationsRead: () => put<Record<string, never>>('/me/notifications/read-all'),
   getMyLoyalty: (branchId: string) => get<ConsumerLoyaltyDTO>(`/loyalty/me/loyalty?branch_id=${branchId}`),
   redeemLoyaltyReward: (data: { rewardId: string; branchId: string }) => post<Record<string, unknown>>('/loyalty/me/loyalty/redeem', data),
   getMyOrders: () => get<ConsumerOrderDTO[]>('/me/orders'),

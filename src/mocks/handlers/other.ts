@@ -22,7 +22,8 @@ export const consumerHandlers = [
   }),
 
   http.put('*/api/me/notifications/:id/read', ({ params }) => {
-    logMock('PUT', `/api/me/notifications/${params['id']}/read`, 200)
+    const id = typeof params['id'] === 'string' ? params['id'] : ''
+    logMock('PUT', `/api/me/notifications/${id}/read`, 200)
     return HttpResponse.json({ success: true }, { status: 200 })
   }),
 
@@ -78,19 +79,22 @@ export const consumerHandlers = [
 
 export const loyaltyHandlers = [
   http.get('*/api/loyalty/settings/:branchId', ({ params }) => {
-    logMock('GET', `/api/loyalty/settings/${params['branchId']}`, 200)
-    return HttpResponse.json({ ...mockLoyaltySettings, branch_id: params['branchId'] }, { status: 200 })
+    const branchId = typeof params['branchId'] === 'string' ? params['branchId'] : ''
+    logMock('GET', `/api/loyalty/settings/${branchId}`, 200)
+    return HttpResponse.json({ ...mockLoyaltySettings, branch_id: branchId }, { status: 200 })
   }),
 
   http.put('*/api/loyalty/settings/:branchId', async ({ params, request }) => {
+    const branchId = typeof params['branchId'] === 'string' ? params['branchId'] : ''
     const body = await request.json()
-    logMock('PUT', `/api/loyalty/settings/${params['branchId']}`, 200)
+    logMock('PUT', `/api/loyalty/settings/${branchId}`, 200)
     return HttpResponse.json({ success: true, ...body as Record<string, unknown> }, { status: 200 })
   }),
 
   http.get('*/api/loyalty/rewards/:branchId', ({ params }) => {
-    logMock('GET', `/api/loyalty/rewards/${params['branchId']}`, 200)
-    const rewards = mockLoyaltyRewards.filter(r => r.branch_id === params['branchId'])
+    const branchId = typeof params['branchId'] === 'string' ? params['branchId'] : ''
+    logMock('GET', `/api/loyalty/rewards/${branchId}`, 200)
+    const rewards = mockLoyaltyRewards.filter(r => r.branch_id === branchId)
     return HttpResponse.json(rewards, { status: 200 })
   }),
 
@@ -101,13 +105,15 @@ export const loyaltyHandlers = [
   }),
 
   http.put('*/api/loyalty/rewards/:id', async ({ params, request }) => {
+    const id = typeof params['id'] === 'string' ? params['id'] : ''
     const body = await request.json()
-    logMock('PUT', `/api/loyalty/rewards/${params['id']}`, 200)
+    logMock('PUT', `/api/loyalty/rewards/${id}`, 200)
     return HttpResponse.json({ success: true, ...body as Record<string, unknown> }, { status: 200 })
   }),
 
   http.delete('*/api/loyalty/rewards/:id', ({ params }) => {
-    logMock('DELETE', `/api/loyalty/rewards/${params['id']}`, 200)
+    const id = typeof params['id'] === 'string' ? params['id'] : ''
+    logMock('DELETE', `/api/loyalty/rewards/${id}`, 200)
     return HttpResponse.json({ success: true }, { status: 200 })
   }),
 ]

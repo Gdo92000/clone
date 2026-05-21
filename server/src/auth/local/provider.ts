@@ -1,6 +1,5 @@
 import crypto from 'node:crypto';
-import { sign, verify } from 'hono/jwt';
-import { jwt } from 'hono/jwt';
+import { sign, verify , jwt } from 'hono/jwt';
 import { and, isNull, eq, sql } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import { db } from '../../db';
@@ -55,7 +54,8 @@ export const localAuthProvider: AuthProvider = {
   },
 
   async verifyToken(token: string): Promise<TokenPayload> {
-    return verify(token, JWT_SECRET, 'HS256') as unknown as TokenPayload;
+    const result = await verify(token, JWT_SECRET, 'HS256');
+    return result as unknown as TokenPayload;
   },
 
   async verifyRefreshToken(refreshTokenRaw: string): Promise<TokenPayload> {
@@ -68,7 +68,7 @@ export const localAuthProvider: AuthProvider = {
     if (!sessions.length) throw new Error('Token inválido');
 
     const session = sessions[0];
-    if (session.expires_at && new Date(session.expires_at) < new Date()) {
+    if (new Date(session.expires_at) < new Date()) {
       await db.update(authSessions).set({ revoked_at: new Date() }).where(eq(authSessions.id, session.id));
       throw new Error('Sessão expirada');
     }

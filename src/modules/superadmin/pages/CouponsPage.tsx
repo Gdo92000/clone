@@ -60,9 +60,9 @@ export function CouponsPage() {
     saveMutation.mutate(form as unknown as Record<string, unknown>, { onSuccess: () => { resetForm(); } });
   };
 
-  const remove = (id: string) => removeMutation.mutate(id);
+  const remove = (id: string) => { removeMutation.mutate(id); };
 
-  const toggleActive = (coupon: GlobalCouponDTO) => toggleMutation.mutate({ id: coupon.id, data: { active: !coupon.active } });
+  const toggleActive = (coupon: GlobalCouponDTO) => { toggleMutation.mutate({ id: coupon.id, data: { active: !coupon.active } }); };
 
   const usagePercent = (c: GlobalCouponDTO) => Math.round((c.current_uses / c.max_uses) * 100);
 

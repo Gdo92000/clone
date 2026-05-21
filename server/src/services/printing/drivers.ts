@@ -25,12 +25,7 @@ export class NetworkPrinterDriver implements PrinterDriver {
     });
   }
 
-  async getStatus(): Promise<'connected' | 'offline' | 'error'> {
-    try {
-      // Simulate a ping/connection check
-      return 'connected';
-    } catch {
-      return 'offline';
-    }
+  getStatus(): Promise<'connected' | 'offline' | 'error'> {
+    return Promise.resolve('connected');
   }
 }

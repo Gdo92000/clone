@@ -26,12 +26,12 @@ export function useAuthSession() {
   };
 
   const logout = () => {
-    authService.logout();
+    void authService.logout();
   };
 
   const hasRole = (roles: UserRole[]) => !!currentUser && roles.includes(currentUser.role);
   const hasPermission = (permission: PermissionKey) =>
-    !!currentUser && rolePermissions[currentUser.role]?.includes(permission);
+    !!currentUser && rolePermissions[currentUser.role].includes(permission);
 
   return {
     users,

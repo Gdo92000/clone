@@ -67,7 +67,7 @@ export function RestaurantDetailPage() {
   const [showInfo, setShowInfo] = useState(false);
   const cartItemCount = 2;
 
-  const { data: restaurant, isLoading: restaurantLoading, error: restaurantError } = useRestaurant(id);
+  const { data: restaurant } = useRestaurant(id);
   const { data: menuItems = [], isLoading: menuItemsLoading, error: menuItemsError } = useMenuItems(id);
   const { data: openStatus, isLoading: statusLoading } = useBranchStatus(restaurant?.id);
   const { data: todayPeriods } = useTodayPeriods(restaurant?.id);
@@ -98,7 +98,7 @@ export function RestaurantDetailPage() {
         <div className="text-center">
           <Icon name="SearchX" className="mx-auto text-text-tertiary" size={48} />
           <h2 className="font-semibold text-xl text-text-primary mt-4 mb-2">Restaurante não encontrado</h2>
-          <button onClick={() => navigate('/')} className="text-brand-primary hover:text-brand-primary-hover font-medium">
+          <button onClick={() => { void navigate('/'); }} className="text-brand-primary hover:text-brand-primary-hover font-medium">
             Voltar para home
           </button>
         </div>
@@ -107,7 +107,7 @@ export function RestaurantDetailPage() {
   }
 
   return (
-    <FxQueryBoundary isLoading={restaurantLoading || menuItemsLoading} isError={!!restaurantError || !!menuItemsError} error={restaurantError ?? menuItemsError ?? null}>
+    <FxQueryBoundary isLoading={menuItemsLoading} isError={!!menuItemsError} error={menuItemsError}>
     <div className="min-h-screen bg-surface-background pb-24">
       <div className="relative">
         <FxImage src={restaurant.bannerUrl} alt={restaurant.name} className="w-full h-48 sm:h-56 object-cover" />
@@ -258,7 +258,7 @@ export function RestaurantDetailPage() {
           <div className="mt-12">
             <div className="flex items-center justify-between mb-5">
               <h2 className="font-display font-bold text-lg text-text-primary">Avaliações</h2>
-            <button onClick={() => navigate(ROUTES.REVIEWS)} className="text-sm font-medium text-brand-primary hover:text-brand-primary-hover transition-colors">
+            <button onClick={() => { void navigate(ROUTES.REVIEWS); }} className="text-sm font-medium text-brand-primary hover:text-brand-primary-hover transition-colors">
                  Ver todas ({reviews.length})
                </button>
             </div>
@@ -316,7 +316,7 @@ export function RestaurantDetailPage() {
             <p className="font-bold text-text-primary">{cartItemCount} itens</p>
           </div>
           <button
-            onClick={() => navigate(ROUTES.CART)}
+            onClick={() => { void navigate(ROUTES.CART); }}
             className="flex items-center gap-2 bg-brand-primary text-text-inverse font-semibold px-6 py-3 rounded-full hover:bg-brand-primary-hover transition-all active:scale-95"
           >
             <span>Ver sacola</span>

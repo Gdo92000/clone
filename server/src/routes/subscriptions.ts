@@ -13,13 +13,14 @@ route.use('*', authMiddleware, requirePermission(['superadmin', 'admin']));
 
 const companyIdParam = z.object({ id: z.string().min(1) });
 
+const datetimeField = z.iso.datetime();
 const createSchema = z.object({
   company_id: z.string().min(1),
   plan_id: z.enum(['basic', 'pro', 'premium']),
   addon_ids: z.array(z.string()).optional(),
   billing_status: z.enum(['trial', 'active', 'past_due', 'blocked', 'cancelled']).optional(),
-  trial_ends_at: z.string().datetime().optional(),
-  current_period_ends_at: z.string().datetime(),
+  trial_ends_at: datetimeField.optional(),
+  current_period_ends_at: datetimeField,
   blocked_reason: z.string().optional(),
 });
 
@@ -71,14 +72,15 @@ route.put('/:id', zValidator('param', companyIdParam), zValidator('json', update
   const data = c.req.valid('json');
   const existing = await db.select().from(subscriptions).where(eq(subscriptions.company_id, id)).limit(1);
   if (!existing.length) return c.json({ error: 'Not found' }, 404);
-  const updateData: Record<string, any> = { updated_at: new Date() };
-  if (data.plan_id !== undefined) updateData.plan_id = data.plan_id;
-  if (data.addon_ids !== undefined) updateData.addon_ids = data.addon_ids;
-  if (data.billing_status !== undefined) updateData.billing_status = data.billing_status;
-  if (data.trial_ends_at !== undefined) updateData.trial_ends_at = data.trial_ends_at ? new Date(data.trial_ends_at) : null;
-  if (data.current_period_ends_at !== undefined) updateData.current_period_ends_at = new Date(data.current_period_ends_at);
-  if (data.blocked_reason !== undefined) updateData.blocked_reason = data.blocked_reason;
-  await db.update(subscriptions).set(updateData).where(eq(subscriptions.company_id, id));
+  await db.update(subscriptions).set({
+    updated_at: new Date(),
+    ...(data.plan_id !== undefined && { plan_id: data.plan_id }),
+    ...(data.addon_ids !== undefined && { addon_ids: data.addon_ids }),
+    ...(data.billing_status !== undefined && { billing_status: data.billing_status }),
+    ...(data.trial_ends_at !== undefined && { trial_ends_at: data.trial_ends_at ? new Date(data.trial_ends_at) : null }),
+    ...(data.current_period_ends_at !== undefined && { current_period_ends_at: new Date(data.current_period_ends_at) }),
+    ...(data.blocked_reason !== undefined && { blocked_reason: data.blocked_reason }),
+  }).where(eq(subscriptions.company_id, id));
   return c.json({ success: true });
 });
 

@@ -60,7 +60,7 @@ export function MerchantLoyaltyRewardsPage() {
         <div className="flex gap-3">
           <select
             value={branchId}
-            onChange={(e) => setBranchId(e.target.value)}
+            onChange={(e) => { setBranchId(e.target.value); }}
             className="h-10 rounded-lg border border-border-default bg-surface-background px-3 text-sm"
           >
             <option value="">Selecione a filial</option>
@@ -112,10 +112,10 @@ export function MerchantLoyaltyRewardsPage() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right space-x-2">
-                        <button onClick={() => handleStartEdit(r)} className="p-1.5 rounded-md hover:bg-surface-background text-text-tertiary transition-colors">
+                        <button onClick={() => { handleStartEdit(r); }} className="p-1.5 rounded-md hover:bg-surface-background text-text-tertiary transition-colors">
                           <Icon name="Pencil" size={16} />
                         </button>
-                        <button onClick={() => deleteMutation.mutate(r.id)} className="p-1.5 rounded-md hover:bg-surface-background text-feedback-error transition-colors">
+                        <button onClick={() => { deleteMutation.mutate(r.id); }} className="p-1.5 rounded-md hover:bg-surface-background text-feedback-error transition-colors">
                           <Icon name="Trash" size={16} />
                         </button>
                       </td>
@@ -135,7 +135,7 @@ export function MerchantLoyaltyRewardsPage() {
               <h2 className="text-xl font-bold text-text-primary">
                 {editingReward ? 'Editar Recompensa' : 'Nova Recompensa'}
               </h2>
-              <button onClick={() => setIsModalOpen(false)} className="p-2 rounded-lg hover:bg-surface-background">
+              <button onClick={() => { setIsModalOpen(false); }} className="p-2 rounded-lg hover:bg-surface-background">
                 <Icon name="X" size={20} />
               </button>
             </div>
@@ -145,7 +145,7 @@ export function MerchantLoyaltyRewardsPage() {
                 <span className="text-sm font-medium text-text-primary">Nome da Recompensa</span>
                 <input
                   value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  onChange={(e) => { setForm({ ...form, name: e.target.value }); }}
                   placeholder="Ex: Desconto de R$ 10,00"
                   className="mt-1 h-10 w-full rounded-lg border border-border-default bg-surface-background px-3 text-sm"
                 />
@@ -157,7 +157,7 @@ export function MerchantLoyaltyRewardsPage() {
                   <input
                     type="number"
                     value={form.points_required}
-                    onChange={(e) => setForm({ ...form, points_required: Number(e.target.value) })}
+                    onChange={(e) => { setForm({ ...form, points_required: Number(e.target.value) }); }}
                     className="mt-1 h-10 w-full rounded-lg border border-border-default bg-surface-background px-3 text-sm"
                   />
                 </label>
@@ -166,7 +166,7 @@ export function MerchantLoyaltyRewardsPage() {
                   <input
                     type="number"
                     value={form.discount_value}
-                    onChange={(e) => setForm({ ...form, discount_value: e.target.value })}
+                    onChange={(e) => { setForm({ ...form, discount_value: e.target.value }); }}
                     className="mt-1 h-10 w-full rounded-lg border border-border-default bg-surface-background px-3 text-sm"
                     step="0.01"
                   />
@@ -177,7 +177,7 @@ export function MerchantLoyaltyRewardsPage() {
                 <span className="text-sm font-medium text-text-primary">Tipo de Desconto</span>
                 <select
                   value={form.discount_type}
-                  onChange={(e) => setForm({ ...form, discount_type: e.target.value as any })}
+                  onChange={(e) => { setForm({ ...form, discount_type: e.target.value as 'percentage' | 'fixed' }); }}
                   className="mt-1 h-10 w-full rounded-lg border border-border-default bg-surface-background px-3 text-sm"
                 >
                   <option value="percentage">Percentual (%)</option>
@@ -190,16 +190,16 @@ export function MerchantLoyaltyRewardsPage() {
                 <input
                   type="checkbox"
                   checked={form.is_active}
-                  onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
+                  onChange={(e) => { setForm({ ...form, is_active: e.target.checked }); }}
                 />
               </label>
             </div>
 
             <div className="mt-8 flex gap-3">
-              <Button variant="outline" intent="secondary" className="flex-1" onClick={() => setIsModalOpen(false)}>
+              <Button variant="outline" intent="secondary" className="flex-1" onClick={() => { setIsModalOpen(false); }}>
                 Cancelar
               </Button>
-              <Button variant="solid" intent="primary" className="flex-1" onClick={() => mutation.mutate(form, { onSuccess: () => { setIsModalOpen(false); setEditingReward(null); setForm({ name: '', points_required: 0, discount_value: '', discount_type: 'percentage', is_active: true }); } })} loading={mutation.isPending}>
+              <Button variant="solid" intent="primary" className="flex-1" onClick={() => { mutation.mutate(form, { onSuccess: () => { setIsModalOpen(false); setEditingReward(null); setForm({ name: '', points_required: 0, discount_value: '', discount_type: 'percentage', is_active: true }); } }); }} loading={mutation.isPending}>
                 {editingReward ? 'Atualizar' : 'Criar'}
               </Button>
             </div>

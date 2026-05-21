@@ -13,13 +13,13 @@ export function getAuthMiddleware(): MiddlewareHandler {
 
 export const authMiddleware: MiddlewareHandler = async (c, next) => {
   const jwtMiddleware = getAuthMiddleware();
-  let jwtPassed = false;
-
-  await jwtMiddleware(c, async () => {
-    jwtPassed = true;
-  });
-
-  if (!jwtPassed) return;
+  try {
+    await jwtMiddleware(c, () => {
+      return;
+    });
+  } catch {
+    return;
+  }
 
   const payload = c.get('jwtPayload') as TokenPayload | undefined;
   if (payload?.session_id) {
@@ -33,7 +33,7 @@ export const authMiddleware: MiddlewareHandler = async (c, next) => {
       return c.json({ error: 'Sessão revogada ou inexistente' });
     }
 
-    if (sessions[0].expires_at && new Date(sessions[0].expires_at) < new Date()) {
+    if (new Date(sessions[0].expires_at) < new Date()) {
       c.status(401);
       return c.json({ error: 'Sessão expirada' });
     }
@@ -44,13 +44,13 @@ export const authMiddleware: MiddlewareHandler = async (c, next) => {
 
 export function getTokenPayload(c: Context): TokenPayload | null {
   try {
-    const payload = c.get('jwtPayload');
+    const payload = c.get('jwtPayload') as Record<string, unknown> | undefined;
     if (payload && typeof payload.sub === 'string') {
       return {
         sub: payload.sub,
         email: typeof payload.email === 'string' ? payload.email : '',
         role: typeof payload.role === 'string' ? payload.role : '',
-        session_id: payload.session_id,
+        session_id: typeof payload.session_id === 'string' ? payload.session_id : undefined,
       };
     }
     return null;

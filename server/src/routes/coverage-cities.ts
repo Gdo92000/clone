@@ -13,7 +13,9 @@ publicRoutes.get('/', async (c) => {
 });
 
 publicRoutes.get('/:id', async (c) => {
-  const city = await coverageCityService.getCoverageCity(c.req.param('id'));
+  const id = c.req.param('id');
+  if (!id) return c.json({ error: 'Not found' }, 404);
+  const city = await coverageCityService.getCoverageCity(id);
   if (!city) return c.json({ error: 'Not found' }, 404);
   return c.json(city);
 });
@@ -37,19 +39,25 @@ adminRoutes.post('/', zValidator('json', inputSchema), async (c) => {
 
 adminRoutes.put('/:id', zValidator('json', inputSchema.partial()), async (c) => {
   const input = c.req.valid('json');
-  const city = await coverageCityService.updateCoverageCity(c.req.param('id'), input);
+  const id = c.req.param('id');
+  if (!id) return c.json({ error: 'Not found' }, 404);
+  const city = await coverageCityService.updateCoverageCity(id, input);
   if (!city) return c.json({ error: 'Not found' }, 404);
   return c.json(city);
 });
 
 adminRoutes.patch('/:id/toggle', async (c) => {
-  const city = await coverageCityService.toggleCoverageCity(c.req.param('id'));
+  const id = c.req.param('id');
+  if (!id) return c.json({ error: 'Not found' }, 404);
+  const city = await coverageCityService.toggleCoverageCity(id);
   if (!city) return c.json({ error: 'Not found' }, 404);
   return c.json(city);
 });
 
 adminRoutes.delete('/:id', async (c) => {
-  await coverageCityService.deleteCoverageCity(c.req.param('id'));
+  const id = c.req.param('id');
+  if (!id) return;
+  await coverageCityService.deleteCoverageCity(id);
   return c.json({ success: true });
 });
 

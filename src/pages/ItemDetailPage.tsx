@@ -53,7 +53,7 @@ export function ItemDetailPage() {
             Item não encontrado
           </h2>
           <button
-              onClick={() => navigate(rid ? restaurantDetailHref(rid) : '/')}
+              onClick={() => { void navigate(rid ? restaurantDetailHref(rid) : '/'); }}
              className="text-brand-primary hover:text-brand-primary-hover"
            >
              Voltar
@@ -69,10 +69,10 @@ export function ItemDetailPage() {
       <header className="sticky top-0 z-50 bg-surface-elevated border-b border-border-default">
         <div className="fx-container flex items-center h-14 gap-4">
            <button
-              onClick={() => navigate(rid ? restaurantDetailHref(rid) : '/')}
-              className="w-10 h-10 rounded-full hover:bg-surface-background flex items-center justify-center"
-              aria-label="Voltar"
-            >
+               onClick={() => { void navigate(rid ? restaurantDetailHref(rid) : '/'); }}
+               className="w-10 h-10 rounded-full hover:bg-surface-background flex items-center justify-center"
+               aria-label="Voltar"
+             >
              <Icon name="ChevronLeft" className="text-text-primary" size={20} />
            </button>
           <span className="font-medium text-text-primary truncate">

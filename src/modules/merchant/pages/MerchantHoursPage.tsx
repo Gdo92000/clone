@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { MerchantLayout } from '../components/MerchantLayout';
 import { Button } from '../../../components/ui/Button';
 import { useBusinessHours, useUpdateBusinessHours, useBranchStatus } from '../../../hooks/useOperations';
@@ -42,26 +42,32 @@ export function MerchantHoursPage() {
   const updateHours = useUpdateBusinessHours(selectedBranch || undefined);
 
   const [week, setWeek] = useState<DayForm[]>(defaultWeek);
+  const [hasSyncedWeek, setHasSyncedWeek] = useState(false);
+  const [prevSyncBranch, setPrevSyncBranch] = useState(selectedBranch);
 
-  useEffect(() => {
-    if (!hours) {
-      setWeek(defaultWeek);
-      return;
-    }
-    const mapped: DayForm[] = WEEKDAYS.map((d) => {
-      const existing = hours.find((h) => h.weekday === d.key);
-      if (!existing) return { weekday: d.key, isClosed: d.key === 'sunday', is24h: false, periods: [{ openTime: '08:00', closeTime: '22:00' }] };
-      return {
-        weekday: d.key,
-        isClosed: existing.is_closed ?? false,
-        is24h: existing.is_24h ?? false,
-        periods: existing.periods.length > 0
-          ? existing.periods.map((p) => ({ openTime: p.open_time, closeTime: p.close_time }))
-          : [{ openTime: '08:00', closeTime: '22:00' }],
-      };
-    });
-    setWeek(mapped);
-  }, [hours, selectedBranch]);
+  if (selectedBranch !== prevSyncBranch) {
+    setPrevSyncBranch(selectedBranch);
+    setHasSyncedWeek(false);
+  }
+
+  if (!hasSyncedWeek && hours) {
+    setHasSyncedWeek(true);
+    setWeek(hours.length > 0
+      ? WEEKDAYS.map((d) => {
+          const existing = hours.find((h) => h.weekday === d.key);
+          if (!existing) return { weekday: d.key, isClosed: d.key === 'sunday', is24h: false, periods: [{ openTime: '08:00', closeTime: '22:00' }] };
+          return {
+            weekday: d.key,
+            isClosed: existing.is_closed ?? false,
+            is24h: existing.is_24h ?? false,
+            periods: existing.periods.length > 0
+              ? existing.periods.map((p) => ({ openTime: p.open_time, closeTime: p.close_time }))
+              : [{ openTime: '08:00', closeTime: '22:00' }],
+          };
+        })
+      : defaultWeek
+    );
+  }
 
   const updateDay = useCallback((weekday: string, patch: Partial<DayForm>) => {
     setWeek((prev) => prev.map((d) => d.weekday === weekday ? { ...d, ...patch } : d));

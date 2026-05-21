@@ -74,16 +74,16 @@ export function TrackingPage() {
                   <p className="font-semibold text-text-primary">Seu entregador</p>
                   <p className="text-sm text-text-secondary">Carlos Silva</p>
                 </div>
-                <Button variant="outline" intent="secondary" size="sm" onClick={() => navigate(ROUTES.SUPPORT)}>Contactar</Button>
+                <Button variant="outline" intent="secondary" size="sm" onClick={() => { void navigate(ROUTES.SUPPORT); }}>Contactar</Button>
               </div>
             </div>
           )}
 
           <div className="space-y-3">
-            <Button variant="outline" intent="secondary" className="w-full" onClick={() => navigate('/')}>
+            <Button variant="outline" intent="secondary" className="w-full" onClick={() => { void navigate('/'); }}>
               Fazer novo pedido
             </Button>
-            <Button variant="ghost" intent="danger" className="w-full" onClick={() => navigate(ROUTES.ORDERS)}>Cancelar pedido</Button>
+            <Button variant="ghost" intent="danger" className="w-full" onClick={() => { void navigate(ROUTES.ORDERS); }}>Cancelar pedido</Button>
           </div>
         </div>
       </main>

@@ -105,8 +105,8 @@ async function getBusinessHours(branchId: string): Promise<BusinessHourRow[]> {
 
   const periodsByHourId: Record<string, TimePeriod[]> = {};
   for (const p of allPeriods) {
-    if (!periodsByHourId[p.business_hour_id]) periodsByHourId[p.business_hour_id] = [];
-    periodsByHourId[p.business_hour_id].push({ openTime: p.openTime, closeTime: p.closeTime });
+    const hourId = p.business_hour_id;
+    (periodsByHourId[hourId] ??= []).push({ openTime: p.openTime, closeTime: p.closeTime });
   }
 
   return hours.map(hour => ({

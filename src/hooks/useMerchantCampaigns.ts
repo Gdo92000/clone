@@ -22,6 +22,6 @@ export function useCreateCampaign() {
       successToast('Campanha criada com sucesso!');
       void queryClient.invalidateQueries({ queryKey: merchantKeys.campaigns });
     },
-    onError: (err) => errorToast(err instanceof Error ? err.message : 'Erro ao criar campanha'),
+    onError: (err) => { errorToast(err instanceof Error ? err.message : 'Erro ao criar campanha'); },
   });
 }

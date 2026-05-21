@@ -23,7 +23,7 @@ export function LoginForm({ config, onSuccess }: LoginFormProps) {
   const [password, setPassword] = useState('');
   const mutation = useLogin();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SubmitEvent) => {
     e.preventDefault();
     if (!email.trim()) {
       errorToast(config.emailValidationError);

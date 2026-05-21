@@ -27,38 +27,38 @@ export function ProfilePage() {
       id: 'addresses',
       label: 'Endereços',
       icon: <Icon name="MapPin" size={20} />,
-      action: () => navigate(ROUTES.ADDRESSES),
+      action: () => { void navigate(ROUTES.ADDRESSES); },
     },
     {
        id: 'payment',
        label: 'Formas de pagamento',
        icon: <Icon name="CreditCard" size={20} />,
        badge: '2 cartões',
-       action: () => navigate(ROUTES.PAYMENT_METHODS),
+        action: () => { void navigate(ROUTES.PAYMENT_METHODS); },
      },
     {
       id: 'orders',
       label: 'Meus pedidos',
       icon: <Icon name="ShoppingBag" size={20} />,
-      action: () => navigate(ROUTES.ORDERS),
+      action: () => { void navigate(ROUTES.ORDERS); },
     },
     {
       id: 'favorites',
       label: 'Restaurantes favoritos',
       icon: <Icon name="Heart" size={20} />,
-      action: () => navigate(ROUTES.FAVORITES),
+      action: () => { void navigate(ROUTES.FAVORITES); },
     },
     {
       id: 'promotions',
       label: 'Cupons e promoções',
       icon: <Icon name="Tag" size={20} />,
-      action: () => navigate(ROUTES.PROMOTIONS),
+      action: () => { void navigate(ROUTES.PROMOTIONS); },
     },
     {
       id: 'support',
       label: 'Suporte',
       icon: <Icon name="Headset" size={20} />,
-      action: () => navigate(ROUTES.SUPPORT),
+      action: () => { void navigate(ROUTES.SUPPORT); },
     },
     {
       id: 'notifications',
@@ -81,7 +81,7 @@ export function ProfilePage() {
             <p className="text-sm text-text-secondary">usuario@email.com</p>
           </div>
           <button
-            onClick={() => navigate(ROUTES.LOGIN)}
+            onClick={() => { void navigate(ROUTES.LOGIN); }}
             className="text-sm font-medium text-brand-primary hover:text-brand-primary-hover"
           >
             Editar

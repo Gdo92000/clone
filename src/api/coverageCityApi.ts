@@ -20,6 +20,6 @@ export const coverageCityApi = {
   update: (id: string, data: Partial<{ name: string; state: string; latitude: number; longitude: number; radiusKm: number }>) =>
     put<CoverageCityDTO>(`/coverage-cities/admin/${id}`, data),
   toggle: (id: string) => post<CoverageCityDTO>(`/coverage-cities/admin/${id}/toggle`),
-  delete: (id: string) => del<void>(`/coverage-cities/admin/${id}`),
+  delete: (id: string) => del<Record<string, never>>(`/coverage-cities/admin/${id}`),
   seed: () => post<{ seeded: number; reason?: string }>('/coverage-cities/admin/seed'),
 };

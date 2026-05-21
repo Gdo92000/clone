@@ -14,7 +14,7 @@ export function PermissionManagementPage() {
   const revokeMutation = useRevokePermission();
 
   const isPermissionAssigned = (permId: string) => {
-    return rolePermissions.some((p: any) => p.permission_id === permId);
+    return (rolePermissions as unknown as Array<{ permission_id: string }>).some((p) => p.permission_id === permId);
   };
 
   return (
@@ -27,7 +27,7 @@ export function PermissionManagementPage() {
             {roles.map(role => (
               <button
                 key={role}
-                onClick={() => setSelectedRole(role)}
+                onClick={() => { setSelectedRole(role); }}
                 className={clsx(
                   'px-4 py-2 rounded-lg text-sm font-medium transition-all border',
                   selectedRole === role
@@ -52,7 +52,7 @@ export function PermissionManagementPage() {
             {allPermissions.length === 0 ? (
               <div className="p-8 text-center text-text-secondary">Nenhuma permissão cadastrada.</div>
             ) : (
-              allPermissions.map((perm: any) => (
+              (allPermissions as unknown as Array<{ id: string; name: string; description?: string; key: string }>).map((perm) => (
                 <div key={perm.id} className="px-6 py-4 flex items-center justify-between hover:bg-surface-background transition-colors">
                   <div>
                     <p className="font-medium text-text-primary">{perm.name}</p>
@@ -60,10 +60,13 @@ export function PermissionManagementPage() {
                     <code className="text-[10px] text-brand-secondary bg-brand-primary/5 px-1 rounded">{perm.key}</code>
                   </div>
                   <button
-                    onClick={() => isPermissionAssigned(perm.id)
-                      ? revokeMutation.mutate({ role: selectedRole, permissionId: perm.id })
-                      : assignMutation.mutate({ role: selectedRole, permissionId: perm.id })
-                    }
+                    onClick={() => {
+                      if (isPermissionAssigned(perm.id)) {
+                        revokeMutation.mutate({ role: selectedRole, permissionId: perm.id });
+                      } else {
+                        assignMutation.mutate({ role: selectedRole, permissionId: perm.id });
+                      }
+                    }}
                     className={clsx(
                       'px-3 py-1 rounded-full text-xs font-bold transition-all',
                       isPermissionAssigned(perm.id)

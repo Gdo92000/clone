@@ -28,9 +28,10 @@ export const proxyHandlers = [
   }),
 
   http.get('*/api/viacep/ws/:cep/json/', ({ params }) => {
-    logMock('GET', `/viacep/${params['cep']}`, 200)
+    const cep = typeof params['cep'] === 'string' ? params['cep'] : ''
+    logMock('GET', `/viacep/${cep}`, 200)
     return HttpResponse.json({
-      cep: params['cep'],
+      cep: cep,
       logradouro: 'Rua de Exemplo',
       complemento: '',
       unidade: '',

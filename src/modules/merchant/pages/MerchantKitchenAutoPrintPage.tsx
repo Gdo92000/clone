@@ -5,7 +5,6 @@ import { Icon } from '../../../components/ui/Icon';
 import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
 import { clsx } from 'clsx';
 import { useSaasAddons, useSaasUserAddons, useActivateAddon, usePrintHistoryBranches, usePrintHistoryByBranch } from '../../../hooks/useMerchantKitchenAutoPrint';
-import type { PrintHistoryDTO, MerchantBranchDTO } from '../../../dto/superadminDto';
 
 interface Addon {
   id: string;
@@ -14,12 +13,6 @@ interface Addon {
   monthly_price: string;
   feature_key: string;
   is_active: boolean;
-}
-
-interface SubscriptionAddon {
-  subscription_id: string;
-  addon_id: string;
-  activated_at: string;
 }
 
 export function MerchantKitchenAutoPrintPage() {
@@ -181,7 +174,7 @@ export function MerchantKitchenAutoPrintPage() {
                   Você aceita o pedido
                 </p>
                 <p className="text-sm text-text-secondary">
-                  Ao mudar status para "Aceito", o sistema dispara automaticamente
+                  Ao mudar status para &quot;Aceito&quot;, o sistema dispara automaticamente
                 </p>
               </div>
             </li>
@@ -218,7 +211,7 @@ function PrintHistorySection() {
         <h3 className="font-semibold text-text-primary">Histórico de Impressões</h3>
         <select
           value={branchId}
-          onChange={(e) => setBranchId(e.target.value)}
+          onChange={(e) => { setBranchId(e.target.value); }}
           className="h-10 rounded-lg border border-border-default bg-surface-background px-3 text-sm"
         >
           {branches.map((b) => (

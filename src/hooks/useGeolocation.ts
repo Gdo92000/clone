@@ -55,7 +55,7 @@ export function useGeolocation(
         setCoordinates(coords);
         setLoading(false);
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         const message = err instanceof Error ? err.message : 'Erro desconhecido';
         const codeMatch = message.match(/^DENIED:(\d+):/);
         if (codeMatch && codeMatch[1]) {

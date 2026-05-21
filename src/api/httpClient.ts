@@ -75,7 +75,7 @@ async function request<T>(path: string, options?: RequestInit, retry = true): Pr
           window.location.href = getLoginUrlForPath();
           throw new ApiError(401, { message: 'Sessão expirada' });
           }
-          return res.json() as Promise<T>;
+          return await res.json() as T;
         } catch (e) {
           if (e instanceof ApiError) throw e;
           throw new ApiError(0, { message: 'Erro de rede' });

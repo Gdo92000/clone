@@ -47,8 +47,8 @@ operations.get('/:branchId/hours', zValidator('param', branchIdParam), async (c)
 
   const periodsByHourId: Record<string, typeof allPeriods> = {};
   for (const p of allPeriods) {
-    if (!periodsByHourId[p.business_hour_id]) periodsByHourId[p.business_hour_id] = [];
-    periodsByHourId[p.business_hour_id].push(p);
+    const hourId = p.business_hour_id;
+    (periodsByHourId[hourId] ??= []).push(p);
   }
 
   const result = hours.map(hour => ({ ...hour, periods: periodsByHourId[hour.id] ?? [] }));
@@ -113,8 +113,8 @@ operations.get('/:branchId/holiday-overrides', zValidator('param', branchIdParam
 
   const periodsByOverrideId: Record<string, typeof allPeriods> = {};
   for (const p of allPeriods) {
-    if (!periodsByOverrideId[p.holiday_override_id]) periodsByOverrideId[p.holiday_override_id] = [];
-    periodsByOverrideId[p.holiday_override_id].push(p);
+    const overrideId = p.holiday_override_id;
+    (periodsByOverrideId[overrideId] ??= []).push(p);
   }
 
   const result = overrides.map(o => ({ ...o, periods: periodsByOverrideId[o.id] ?? [] }));
@@ -173,8 +173,8 @@ operations.get('/:branchId/special-dates', zValidator('param', branchIdParam), a
 
   const periodsByDateId: Record<string, typeof allPeriods> = {};
   for (const p of allPeriods) {
-    if (!periodsByDateId[p.special_date_id]) periodsByDateId[p.special_date_id] = [];
-    periodsByDateId[p.special_date_id].push(p);
+    const dateId = p.special_date_id;
+    (periodsByDateId[dateId] ??= []).push(p);
   }
 
   const result = dates.map(d => ({ ...d, periods: periodsByDateId[d.id] ?? [] }));

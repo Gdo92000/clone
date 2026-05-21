@@ -48,7 +48,7 @@ if (require.main === module) {
       logger.info('Seed concluído');
       process.exit(0);
     })
-    .catch((err) => {
+    .catch((err: unknown) => {
       logger.error('Falha no seed', { err });
       process.exit(1);
     });

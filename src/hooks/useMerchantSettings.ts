@@ -41,6 +41,6 @@ export function useSaveBranchSettings(branchId: string) {
       void queryClient.invalidateQueries({ queryKey: merchantKeys.branchSettings(branchId) });
       void queryClient.invalidateQueries({ queryKey: merchantKeys.loyaltySettings(branchId) });
     },
-    onError: () => errorToast('Erro ao salvar configuracoes'),
+    onError: () => { errorToast('Erro ao salvar configuracoes'); },
   });
 }

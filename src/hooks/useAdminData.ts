@@ -25,7 +25,7 @@ export function useAdminMetrics() {
       ]);
       const orderModels = orderListDtoToModel(orders);
       const today = new Date().toISOString().slice(0, 10);
-      const ordersToday = orderModels.filter((o) => o.createdAt?.startsWith(today));
+      const ordersToday = orderModels.filter((o) => o.createdAt.startsWith(today));
       const grossValue = ordersToday.reduce((sum, o) => sum + o.total, 0);
       return {
         companies: companies.length,

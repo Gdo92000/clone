@@ -48,6 +48,8 @@ export interface RegisterInput {
   role?: string;
 }
 
+export type AuthProviderType = 'local' | 'supabase';
+
 export interface AuthProvider {
   readonly name: string;
 

@@ -18,10 +18,10 @@ export function useConsumerLoyalty(branchId: string) {
 export function useRedeemLoyaltyReward(branchId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (rewardId: string) => consumerApi.redeemLoyaltyReward({ rewardId, branchId }),
+    mutationFn: async (rewardId: string) => consumerApi.redeemLoyaltyReward({ rewardId, branchId }),
     onSuccess: () => {
       successToast('Recompensa resgatada com sucesso!');
-      queryClient.invalidateQueries({ queryKey: consumerKeys.loyalty(branchId) });
+      void queryClient.invalidateQueries({ queryKey: consumerKeys.loyalty(branchId) });
     },
     onError: (err: unknown) => {
       const message = err instanceof Error ? err.message : 'Erro ao resgatar recompensa';
@@ -65,10 +65,10 @@ export function useConsumerReviews() {
 export function useCreateTicket() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (subject: string) => consumerApi.createTicket({ subject }),
+    mutationFn: async (subject: string) => consumerApi.createTicket({ subject }),
     onSuccess: () => {
       successToast('Chamado aberto com sucesso!');
-      queryClient.invalidateQueries({ queryKey: consumerKeys.tickets });
+      void queryClient.invalidateQueries({ queryKey: consumerKeys.tickets });
     },
     onError: (err: unknown) => {
       errorToast(err instanceof Error ? err.message : 'Erro ao abrir chamado');

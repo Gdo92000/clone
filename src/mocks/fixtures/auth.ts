@@ -8,8 +8,12 @@ export const mockUsers: AuthUserDTO[] = [
   { id: 'user-5', name: 'Ana Cliente', email: 'ana@email.com', role: 'customer', avatar_url: '', active: true },
 ]
 
+const defaultUser: AuthUserDTO = {
+  id: 'user-1', name: 'Admin Master', email: 'admin@admin.com', role: 'superadmin', avatar_url: '', active: true,
+}
+
 export const mockLoginResponse: LoginResponseDTO = {
-  user: mockUsers[0]!,
+  user: defaultUser,
   token: 'mock-jwt-token-superadmin',
   refreshToken: 'mock-refresh-token',
   expiresIn: 86400,

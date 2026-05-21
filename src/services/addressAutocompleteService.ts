@@ -208,13 +208,13 @@ async function enrichBrazilianByAddress(
 
        enriched.push({
          ...suggestion,
-         neighborhood: entry.bairro ?? suggestion.neighborhood,
+         neighborhood: entry.bairro,
          zipcode: entry.cep,
          formattedAddress: buildFormattedAddress({
            street: suggestion.street,
-           neighborhood: entry.bairro ?? suggestion.neighborhood,
-           city: entry.localidade ?? suggestion.city,
-           state: entry.uf ?? suggestion.state,
+           neighborhood: entry.bairro,
+           city: entry.localidade,
+           state: entry.uf,
            zipcode: entry.cep,
          }),
        });
@@ -387,7 +387,7 @@ export async function geocodeAddress(
     const neighborhood = addr?.suburb ?? addr?.neighbourhood ?? addr?.county ?? '';
 
     return {
-      formattedAddress: r.display_name ?? address,
+      formattedAddress: r.display_name,
       latitude: parseFloat(r.lat),
       longitude: parseFloat(r.lon),
       city,

@@ -9,7 +9,7 @@ export function requireFeature(featureKey: string): MiddlewareHandler {
     const payload = getTokenPayload(c);
     if (!payload) return c.json({ error: 'Não autenticado' }, 401);
  
-    if (payload.role === 'superadmin') return await next();
+    if (payload.role === 'superadmin') { await next(); return; }
  
     const user = await db.select().from(users).where(eq(users.id, payload.sub)).limit(1);
     if (!user.length) return c.json({ error: 'Usuário não encontrado' }, 404);

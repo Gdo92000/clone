@@ -15,14 +15,15 @@ route.use('*', authMiddleware, requirePermission(['superadmin', 'admin', 'mercha
 
 const idParam = z.object({ id: z.string().min(1).max(64) });
 
+const datetimeField = z.iso.datetime();
 const createSchema = z.object({
   branch_id: z.string().min(1),
   name: z.string().min(1).max(100),
   description: z.string().optional(),
   discount_percentage: z.string().optional(),
   status: z.enum(['active', 'paused', 'finished']).optional(),
-  starts_at: z.string().datetime().optional(),
-  ends_at: z.string().datetime().optional(),
+  starts_at: datetimeField.optional(),
+  ends_at: datetimeField.optional(),
 });
 
 const updateSchema = createSchema.partial();
@@ -100,15 +101,15 @@ route.put('/:id', requireTenantOwnership('branchId'), zValidator('param', idPara
   const data = c.req.valid('json');
   const existing = await db.select().from(campaigns).where(eq(campaigns.id, id)).limit(1);
   if (!existing.length) return c.json({ error: 'Not found' }, 404);
-  const updateData: Record<string, any> = {};
-  if (data.branch_id !== undefined) updateData.branch_id = data.branch_id;
-  if (data.name !== undefined) updateData.name = data.name;
-  if (data.description !== undefined) updateData.description = data.description;
-  if (data.discount_percentage !== undefined) updateData.discount_percentage = data.discount_percentage;
-  if (data.status !== undefined) updateData.status = data.status;
-  if (data.starts_at !== undefined) updateData.starts_at = data.starts_at ? new Date(data.starts_at) : null;
-  if (data.ends_at !== undefined) updateData.ends_at = data.ends_at ? new Date(data.ends_at) : null;
-  await db.update(campaigns).set(updateData).where(eq(campaigns.id, id));
+  await db.update(campaigns).set({
+    ...(data.branch_id !== undefined && { branch_id: data.branch_id }),
+    ...(data.name !== undefined && { name: data.name }),
+    ...(data.description !== undefined && { description: data.description }),
+    ...(data.discount_percentage !== undefined && { discount_percentage: data.discount_percentage }),
+    ...(data.status !== undefined && { status: data.status }),
+    ...(data.starts_at !== undefined && { starts_at: data.starts_at ? new Date(data.starts_at) : null }),
+    ...(data.ends_at !== undefined && { ends_at: data.ends_at ? new Date(data.ends_at) : null }),
+  }).where(eq(campaigns.id, id));
   return c.json({ success: true });
 });
 

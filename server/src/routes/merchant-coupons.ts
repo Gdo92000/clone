@@ -15,6 +15,7 @@ route.use('*', authMiddleware, requirePermission(['superadmin', 'admin', 'mercha
 
 const idParam = z.object({ id: z.string().min(1).max(64) });
 
+const datetimeField = z.iso.datetime();
 const createSchema = z.object({
   branch_id: z.string().min(1),
   code: z.string().min(1).max(50),
@@ -23,7 +24,7 @@ const createSchema = z.object({
   discount_value: z.string(),
   min_order: z.string().optional(),
   max_uses: z.number().int().optional(),
-  valid_until: z.string().datetime(),
+  valid_until: datetimeField,
 });
 
 const updateSchema = createSchema.partial();
@@ -104,16 +105,16 @@ route.put('/:id', requireTenantOwnership('branchId'), zValidator('param', idPara
   const data = c.req.valid('json');
   const existing = await db.select().from(merchantCoupons).where(eq(merchantCoupons.id, id)).limit(1);
   if (!existing.length) return c.json({ error: 'Not found' }, 404);
-  const updateData: Record<string, any> = {};
-  if (data.branch_id !== undefined) updateData.branch_id = data.branch_id;
-  if (data.code !== undefined) updateData.code = data.code;
-  if (data.description !== undefined) updateData.description = data.description;
-  if (data.discount_type !== undefined) updateData.discount_type = data.discount_type;
-  if (data.discount_value !== undefined) updateData.discount_value = data.discount_value;
-  if (data.min_order !== undefined) updateData.min_order = data.min_order;
-  if (data.max_uses !== undefined) updateData.max_uses = data.max_uses;
-  if (data.valid_until !== undefined) updateData.valid_until = new Date(data.valid_until);
-  await db.update(merchantCoupons).set(updateData).where(eq(merchantCoupons.id, id));
+  await db.update(merchantCoupons).set({
+    ...(data.branch_id !== undefined && { branch_id: data.branch_id }),
+    ...(data.code !== undefined && { code: data.code }),
+    ...(data.description !== undefined && { description: data.description }),
+    ...(data.discount_type !== undefined && { discount_type: data.discount_type }),
+    ...(data.discount_value !== undefined && { discount_value: data.discount_value }),
+    ...(data.min_order !== undefined && { min_order: data.min_order }),
+    ...(data.max_uses !== undefined && { max_uses: data.max_uses }),
+    ...(data.valid_until !== undefined && { valid_until: new Date(data.valid_until) }),
+  }).where(eq(merchantCoupons.id, id));
   return c.json({ success: true });
 });
 

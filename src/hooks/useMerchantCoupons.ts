@@ -26,7 +26,7 @@ export function useSaveCoupon(editingId: string | null, branchId: string) {
       void queryClient.invalidateQueries({ queryKey: merchantKeys.couponsByBranch(branchId) });
       successToast('Cupom salvo com sucesso');
     },
-    onError: () => errorToast('Erro ao salvar cupom'),
+    onError: () => { errorToast('Erro ao salvar cupom'); },
   });
 }
 
@@ -38,7 +38,7 @@ export function useToggleCoupon(branchId: string) {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: merchantKeys.couponsByBranch(branchId) });
     },
-    onError: () => errorToast('Erro ao atualizar status'),
+    onError: () => { errorToast('Erro ao atualizar status'); },
   });
 }
 
@@ -50,6 +50,6 @@ export function useDeleteCoupon(branchId: string) {
       void queryClient.invalidateQueries({ queryKey: merchantKeys.couponsByBranch(branchId) });
       successToast('Cupom removido');
     },
-    onError: () => errorToast('Erro ao remover cupom'),
+    onError: () => { errorToast('Erro ao remover cupom'); },
   });
 }

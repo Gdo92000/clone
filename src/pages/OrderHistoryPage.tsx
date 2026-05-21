@@ -84,7 +84,7 @@ export function OrderHistoryPage() {
                 Seus pedidos realizados aparecerão aqui
               </p>
               <button
-                 onClick={() => navigate(ROUTES.RESTAURANTS)}
+                 onClick={() => { void navigate(ROUTES.RESTAURANTS); }}
                  className="px-6 py-3 bg-brand-primary text-text-inverse rounded-full font-medium hover:bg-brand-primary-hover transition-colors"
                  aria-label="Ver restaurantes para fazer um pedido"
                >

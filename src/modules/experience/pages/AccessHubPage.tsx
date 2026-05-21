@@ -21,7 +21,7 @@ export function AccessHubPage() {
           <button
             key={area.title}
             type="button"
-            onClick={() => navigate(area.to)}
+            onClick={() => { void navigate(area.to); }}
             className="rounded-xl border border-border-default bg-surface-elevated p-4 text-left transition-colors hover:border-brand-primary"
           >
             <h2 className="font-semibold text-text-primary">{area.title}</h2>

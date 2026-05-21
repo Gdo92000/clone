@@ -15,8 +15,8 @@ export function useRestaurants() {
 
 export function useRestaurant(id: string | undefined) {
   return useQuery({
-    queryKey: restaurantKeys.detail(id!),
-    queryFn: () => getRestaurantById(id!),
+    queryKey: restaurantKeys.detail(id ?? ''),
+    queryFn: () => getRestaurantById(id ?? ''),
     enabled: !!id,
     staleTime: STALE_MEDIUM,
   });
@@ -24,7 +24,7 @@ export function useRestaurant(id: string | undefined) {
 
 export function useMenuItems(restaurantId: string | undefined) {
   return useQuery({
-    queryKey: restaurantKeys.menuItems(restaurantId!),
+    queryKey: restaurantKeys.menuItems(restaurantId ?? ''),
     queryFn: () => getMenuItems(restaurantId),
     staleTime: STALE_MEDIUM,
   });
@@ -32,8 +32,8 @@ export function useMenuItems(restaurantId: string | undefined) {
 
 export function useMenuItem(id: string | undefined) {
   return useQuery({
-    queryKey: restaurantKeys.menuItem(id!),
-    queryFn: () => getMenuItemById(id!),
+    queryKey: restaurantKeys.menuItem(id ?? ''),
+    queryFn: () => getMenuItemById(id ?? ''),
     enabled: !!id,
     staleTime: STALE_MEDIUM,
   });

@@ -13,25 +13,25 @@ export function useNavItems(activeId: string): NavItem[] {
       label: 'Início',
       icon: <Icon name="House" />,
       activeIcon: <Icon name="House" fill="currentColor" />,
-      onClick: () => navigate('/'),
+      onClick: () => { void navigate('/'); },
     },
     {
       id: 'search',
       label: 'Busca',
       icon: <Icon name="Search" />,
-      onClick: () => navigate(ROUTES.RESTAURANTS),
+      onClick: () => { void navigate(ROUTES.RESTAURANTS); },
     },
     {
       id: 'orders',
       label: 'Pedidos',
       icon: <Icon name="ShoppingBag" />,
-      onClick: () => navigate(ROUTES.ORDERS),
+      onClick: () => { void navigate(ROUTES.ORDERS); },
     },
     {
       id: 'profile',
       label: 'Perfil',
       icon: <Icon name="User" />,
-      onClick: () => navigate(ROUTES.PROFILE),
+      onClick: () => { void navigate(ROUTES.PROFILE); },
     },
   ];
 

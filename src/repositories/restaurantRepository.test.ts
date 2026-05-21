@@ -9,13 +9,14 @@ vi.mock('../api', () => ({
 }));
 
 vi.mock('../mappers/restaurantMapper', () => ({
-  restaurantListDtoToModel: vi.fn((data: any) => data),
-  restaurantDtoToModel: vi.fn((data: any) => data),
-  menuItemListDtoToModel: vi.fn((data: any) => data),
-  menuItemDtoToModel: vi.fn((data: any) => data),
-  categoryDtoToModel: vi.fn((data: any) => data),
+  restaurantListDtoToModel: vi.fn((data: unknown) => data),
+  restaurantDtoToModel: vi.fn((data: unknown) => data),
+  menuItemListDtoToModel: vi.fn((data: unknown) => data),
+  menuItemDtoToModel: vi.fn((data: unknown) => data),
+  categoryDtoToModel: vi.fn((data: unknown) => data),
 }));
 
+import type { RestaurantDTO, MenuItemDTO } from '../dto/restaurantDto';
 import { restaurantApi } from '../api';
 import {
   restaurantListDtoToModel,
@@ -32,7 +33,7 @@ describe('restaurantRepository', () => {
 
   it('getRestaurants calls restaurantApi.getAll() and maps the result', async () => {
     const mockDto = [{ id: '1', name: 'Test Restaurant' }];
-    vi.mocked(restaurantApi.getAll).mockResolvedValue(mockDto as any);
+    vi.mocked(restaurantApi.getAll).mockResolvedValue(mockDto as unknown as RestaurantDTO[]);
 
     const result = await getRestaurants();
 
@@ -46,7 +47,7 @@ describe('restaurantRepository', () => {
       id: String(i + 1),
       name: `Restaurant ${i + 1}`,
     }));
-    vi.mocked(restaurantApi.getAll).mockResolvedValue(manyDtos as any);
+    vi.mocked(restaurantApi.getAll).mockResolvedValue(manyDtos as unknown as RestaurantDTO[]);
 
     const result = await getRestaurants(1, 10);
 
@@ -55,7 +56,7 @@ describe('restaurantRepository', () => {
 
   it('getRestaurantById calls restaurantApi.getById(id)', async () => {
     const mockDto = { id: '1', name: 'Single Restaurant' };
-    vi.mocked(restaurantApi.getById).mockResolvedValue(mockDto as any);
+    vi.mocked(restaurantApi.getById).mockResolvedValue(mockDto as unknown as RestaurantDTO);
 
     const result = await getRestaurantById('1');
 
@@ -66,7 +67,7 @@ describe('restaurantRepository', () => {
 
   it('getMenuItems calls restaurantApi.getMenuItems(restaurantId)', async () => {
     const mockDto = [{ id: 'm1', name: 'Item 1' }];
-    vi.mocked(restaurantApi.getMenuItems).mockResolvedValue(mockDto as any);
+    vi.mocked(restaurantApi.getMenuItems).mockResolvedValue(mockDto as unknown as MenuItemDTO[]);
 
     const result = await getMenuItems('1');
 
@@ -80,7 +81,7 @@ describe('restaurantRepository', () => {
       { id: '1', name: 'Pizza', icon: '🍕', slug: 'pizza' },
       { id: '2', name: 'Hamburger', icon: '🍔', slug: 'hamburger' },
     ];
-    vi.mocked(restaurantApi.getCategories).mockResolvedValue(mockDto as any);
+    vi.mocked(restaurantApi.getCategories).mockResolvedValue(mockDto);
 
     const result = await getCategories();
 

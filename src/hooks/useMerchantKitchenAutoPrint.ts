@@ -2,8 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { subscriptionApi } from '../api/superadminApi';
 import { merchantApi } from '../api/merchantApi';
 import { saasKeys, merchantKeys } from '../api/queryKeys';
-import type { AddonDTO } from '../dto/superadminDto';
-import type { MerchantBranchDTO, PrintHistoryDTO } from '../dto/superadminDto';
+import type { AddonDTO , PrintHistoryDTO } from '../dto/superadminDto';
+import type { MerchantBranchDTO } from '../dto/merchantDto';
 import { successToast, errorToast } from '../lib/toast';
 
 const STALE_MEDIUM = 1000 * 60 * 5;
@@ -67,7 +67,7 @@ export function useActivateAddon(addonId: string | undefined) {
       void queryClient.invalidateQueries({ queryKey: saasKeys.userAddons });
       successToast('Addon ativado com sucesso!');
     },
-    onError: () => errorToast('Erro ao ativar addon'),
+    onError: () => { errorToast('Erro ao ativar addon'); },
   });
 }
 

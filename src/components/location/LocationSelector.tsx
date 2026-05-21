@@ -301,7 +301,7 @@ export function LocationSelector({ className }: LocationSelectorProps) {
   );
 
   const handleCitySelect = (cityName: string) => {
-    setManualCity(cityName);
+    void setManualCity(cityName);
     setShowCityList(false);
     setSearchCity('');
   };
@@ -319,7 +319,7 @@ export function LocationSelector({ className }: LocationSelectorProps) {
         title="Localização desativada"
         description="Permita o acesso ? localização no navegador ou selecione manualmente."
         loading={loading}
-        requestLocation={requestLocation}
+        requestLocation={() => { void requestLocation(); }}
         onSelectCity={() => { setShowCityList(true); }}
         {...spreadCn}
       />
@@ -333,7 +333,7 @@ export function LocationSelector({ className }: LocationSelectorProps) {
         title="Não foi possível detectar sua localização"
         description={error}
         loading={loading}
-        requestLocation={requestLocation}
+        requestLocation={() => { void requestLocation(); }}
         onSelectCity={() => { setShowCityList(true); }}
         {...spreadCn}
       />
@@ -365,7 +365,7 @@ export function LocationSelector({ className }: LocationSelectorProps) {
     return (
       <IdleState
         loading={loading}
-        requestLocation={requestLocation}
+        requestLocation={() => { void requestLocation(); }}
         onSelectCity={() => { setShowCityList(true); }}
         showCityList={showCityList}
         searchCity={searchCity}

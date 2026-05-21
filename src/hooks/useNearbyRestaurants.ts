@@ -33,7 +33,9 @@ export function useNearbyRestaurants(options: UseNearbyRestaurantsOptions = {}) 
       .filter((r) => r.coordinates)
       .map((r) => ({
         ...r,
-        distanceKm: calculateDistance(coordinates.latitude, coordinates.longitude, r.coordinates!.lat, r.coordinates!.lng),
+        distanceKm: r.coordinates
+          ? calculateDistance(coordinates.latitude, coordinates.longitude, r.coordinates.lat, r.coordinates.lng)
+          : Infinity,
       }))
       .filter((r) => r.distanceKm <= maxDistanceKm)
       .sort((a, b) => a.distanceKm - b.distanceKm)

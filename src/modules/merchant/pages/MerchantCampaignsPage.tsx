@@ -5,13 +5,6 @@ import { MerchantLayout } from '../components/MerchantLayout';
 import { useCampaigns, useCreateCampaign } from '../../../hooks/useMerchantCampaigns';
 import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
 
-interface Campaign {
-  id: string;
-  name: string;
-  discount: string;
-  status: 'active' | 'paused';
-}
-
 export function MerchantCampaignsPage() {
   const { data: campaigns = [], isLoading, error } = useCampaigns();
   const [name, setName] = useState('');
@@ -21,7 +14,7 @@ export function MerchantCampaignsPage() {
 
   const addCampaign = () => {
     if (!name.trim() || !limits.canCreateCampaign) return;
-    campaignMutation.mutate({ name: name.trim(), discount: '10%', status: 'active' }, { onSuccess: () => setName('') });
+    campaignMutation.mutate({ name: name.trim(), discount: '10%', status: 'active' }, { onSuccess: () => { setName(''); } });
   };
 
   return (

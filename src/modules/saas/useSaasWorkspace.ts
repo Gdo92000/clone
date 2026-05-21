@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { usePlans } from '../../hooks/usePlans';
 import { useSubscriptions } from '../../hooks/useSubscriptions';
 import { useBilling } from '../../hooks/useBilling';
@@ -9,14 +9,28 @@ export function useSaasWorkspace() {
   const { addons: apiAddons, subscriptions: apiSubscriptions } = useSubscriptions();
   const { invoices } = useBilling();
 
-  const [plans, setPlans] = useState<SaasPlan[]>(apiPlans);
-  const [addons, setAddons] = useState<SaasAddon[]>(apiAddons);
-  const [subscriptions, setSubscriptions] = useState<CompanySubscription[]>(apiSubscriptions);
+  const [plans, setPlans] = useState<SaasPlan[]>([]);
+  const [addons, setAddons] = useState<SaasAddon[]>([]);
+  const [subscriptions, setSubscriptions] = useState<CompanySubscription[]>([]);
   const [overrides, setOverrides] = useState<FeatureFlagOverride[]>([]);
+  const [hasSyncedPlans, setHasSyncedPlans] = useState(false);
+  const [hasSyncedAddons, setHasSyncedAddons] = useState(false);
+  const [hasSyncedSubs, setHasSyncedSubs] = useState(false);
 
-  useEffect(() => { if (apiPlans.length) setPlans(apiPlans); }, [apiPlans]);
-  useEffect(() => { if (apiAddons.length) setAddons(apiAddons); }, [apiAddons]);
-  useEffect(() => { if (apiSubscriptions.length) setSubscriptions(apiSubscriptions); }, [apiSubscriptions]);
+  if (apiPlans.length && !hasSyncedPlans) {
+    setHasSyncedPlans(true);
+    setPlans(apiPlans);
+  }
+
+  if (apiAddons.length && !hasSyncedAddons) {
+    setHasSyncedAddons(true);
+    setAddons(apiAddons);
+  }
+
+  if (apiSubscriptions.length && !hasSyncedSubs) {
+    setHasSyncedSubs(true);
+    setSubscriptions(apiSubscriptions);
+  }
 
   return { plans, setPlans, addons, setAddons, subscriptions, setSubscriptions, overrides, setOverrides, invoices };
 }

@@ -28,15 +28,15 @@ const upsertSchema = z.object({
 route.get('/:branchId', requireTenantOwnership('branchId'), zValidator('param', idParam), async (c) => {
   const { branchId } = c.req.valid('param');
   const [settings] = await db.select().from(branchSettings).where(eq(branchSettings.branch_id, branchId));
-  return settings ? c.json(settings) : c.json({}, 200);
+  return c.json(settings);
 });
 
 route.put('/:branchId', requireTenantOwnership('branchId'), zValidator('param', idParam), zValidator('json', upsertSchema), async (c) => {
 
   const { branchId } = c.req.valid('param');
   const data = c.req.valid('json');
-  const [existing] = await db.select().from(branchSettings).where(eq(branchSettings.branch_id, branchId));
-  if (existing) {
+  const existing = await db.select().from(branchSettings).where(eq(branchSettings.branch_id, branchId)).limit(1);
+  if (existing.length) {
     await db.update(branchSettings).set({ ...data, updated_at: new Date() }).where(eq(branchSettings.branch_id, branchId));
   } else {
     await db.insert(branchSettings).values({ branch_id: branchId, ...data });

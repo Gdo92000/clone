@@ -56,7 +56,7 @@ export const errorHandler: ErrorHandler = (err, c) => {
   }
 
 
-  const isZodError = typeof err === 'object' && err !== null && (err as { name?: string }).name === 'ZodError';
+  const isZodError = typeof err === 'object' && 'name' in err && (err as { name?: string }).name === 'ZodError';
   if (isZodError) {
     const issues = (err as { issues: unknown[] }).issues;
     logger.warn('Zod validation error', { requestId: reqId, issues });
@@ -64,7 +64,7 @@ export const errorHandler: ErrorHandler = (err, c) => {
   }
 
 
-  const isPostgresError = typeof err === 'object' && err !== null && 'code' in err;
+  const isPostgresError = typeof err === 'object' && 'code' in err;
   if (isPostgresError) {
     const pgErr = err as { code: string; message?: string };
     if (pgErr.code === 'ECONNREFUSED' || pgErr.code === '57P01') {

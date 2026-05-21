@@ -17,18 +17,21 @@ const mockPrintHistory = [
 
 export const printingHandlers = [
   http.get('*/api/printing/config/:branchId', ({ params }) => {
-    logMock('GET', `/api/printing/config/${params['branchId']}`, 200)
+    const branchId = typeof params['branchId'] === 'string' ? params['branchId'] : ''
+    logMock('GET', `/api/printing/config/${branchId}`, 200)
     return HttpResponse.json(mockPrintConfig, { status: 200 })
   }),
 
   http.put('*/api/printing/config/:branchId', async ({ params, request }) => {
+    const branchId = typeof params['branchId'] === 'string' ? params['branchId'] : ''
     const body = await request.json()
-    logMock('PUT', `/api/printing/config/${params['branchId']}`, 200)
+    logMock('PUT', `/api/printing/config/${branchId}`, 200)
     return HttpResponse.json({ success: true, ...body as Record<string, unknown> }, { status: 200 })
   }),
 
   http.get('*/api/printing/history/:branchId', ({ params }) => {
-    logMock('GET', `/api/printing/history/${params['branchId']}`, 200, `${mockPrintHistory.length} items`)
+    const branchId = typeof params['branchId'] === 'string' ? params['branchId'] : ''
+    logMock('GET', `/api/printing/history/${branchId}`, 200, `${mockPrintHistory.length} items`)
     return HttpResponse.json(mockPrintHistory, { status: 200 })
   }),
 ]

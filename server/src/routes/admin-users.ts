@@ -13,9 +13,10 @@ route.use('*', authMiddleware, requirePermission(['superadmin']));
 
 const idParam = z.object({ id: z.string().min(1).max(64) });
 
+const emailSchema = z.email();
 const updateSchema = z.object({
   name: z.string().min(1).max(100).optional(),
-  email: z.string().email().optional(),
+  email: emailSchema.optional(),
   phone: z.string().optional(),
   role: z.enum(['customer', 'merchant', 'courier', 'admin', 'superadmin']).optional(),
   is_active: z.boolean().optional(),

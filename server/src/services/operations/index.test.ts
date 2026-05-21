@@ -104,7 +104,7 @@ describe('generateNationalHolidays', () => {
 
     const easter = easterDate(2024);
     const expected = formatBR(new Date(easter.getFullYear(), easter.getMonth(), easter.getDate() - 2));
-    expect(holiday!.date).toBe(expected);
+    expect(holiday?.date).toBe(expected);
   });
 
   it('includes Corpus Christi 60 days after easter', () => {
@@ -113,7 +113,7 @@ describe('generateNationalHolidays', () => {
 
     const easter = easterDate(2024);
     const expected = formatBR(new Date(easter.getFullYear(), easter.getMonth(), easter.getDate() + 60));
-    expect(holiday!.date).toBe(expected);
+    expect(holiday?.date).toBe(expected);
   });
 
   it('returns 12 holiday entries for a standard year', () => {

@@ -4,8 +4,7 @@ import { FxImage } from '../../../components/ui/FxImage';
 import { roleLabels, useAuthSession } from '../../auth';
 import type { AuthUser, UserRole } from '../../auth';
 import { useBranches, useCompanies } from '../../../hooks/useMerchantData';
-import { usePlanLimits } from '../../enterprise';
-import { useAuditLog } from '../../enterprise';
+import { usePlanLimits , useAuditLog } from '../../enterprise';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
 

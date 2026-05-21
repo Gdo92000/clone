@@ -31,9 +31,9 @@ export function useSaveGlobalCoupon(editingId: string | null) {
       editingId ? globalCouponApi.update(editingId, data) : globalCouponApi.create(data),
     onSuccess: () => {
       successToast(editingId ? 'Cupom atualizado com sucesso!' : 'Cupom criado com sucesso!');
-      queryClient.invalidateQueries({ queryKey: superadminKeys.globalCoupons });
+      void queryClient.invalidateQueries({ queryKey: superadminKeys.globalCoupons });
     },
-    onError: (err: unknown) => errorToast(err instanceof Error ? err.message : 'Erro ao salvar'),
+    onError: (err: unknown) => { errorToast(err instanceof Error ? err.message : 'Erro ao salvar'); },
   });
 }
 
@@ -43,9 +43,9 @@ export function useDeleteGlobalCoupon() {
     mutationFn: (id: string) => globalCouponApi.delete(id),
     onSuccess: () => {
       infoToast('Cupom removido.');
-      queryClient.invalidateQueries({ queryKey: superadminKeys.globalCoupons });
+      void queryClient.invalidateQueries({ queryKey: superadminKeys.globalCoupons });
     },
-    onError: (err: unknown) => errorToast(err instanceof Error ? err.message : 'Erro ao remover'),
+    onError: (err: unknown) => { errorToast(err instanceof Error ? err.message : 'Erro ao remover'); },
   });
 }
 
@@ -55,9 +55,9 @@ export function useToggleGlobalCoupon() {
     mutationFn: (params: { id: string; data: Record<string, unknown> }) =>
       globalCouponApi.update(params.id, params.data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: superadminKeys.globalCoupons });
+      void queryClient.invalidateQueries({ queryKey: superadminKeys.globalCoupons });
     },
-    onError: (err: unknown) => errorToast(err instanceof Error ? err.message : 'Erro ao alternar'),
+    onError: (err: unknown) => { errorToast(err instanceof Error ? err.message : 'Erro ao alternar'); },
   });
 }
 
@@ -82,8 +82,8 @@ export function usePlatformMetrics() {
     queryKey: superadminKeys.platformMetrics,
     queryFn: async () => {
       const [companies, subscriptions] = await Promise.all([
-        merchantApi.getCompanies().catch((err) => { logger.error('Superadmin', 'Failed to fetch companies', err); return [] as unknown[]; }),
-        superadminSubscriptionApi.getSubscriptions().catch((err) => { logger.error('Superadmin', 'Failed to fetch subscriptions', err); return [] as unknown[]; }),
+        merchantApi.getCompanies().catch((err: unknown) => { logger.error('Superadmin', 'Failed to fetch companies', err); return [] as unknown[]; }),
+        superadminSubscriptionApi.getSubscriptions().catch((err: unknown) => { logger.error('Superadmin', 'Failed to fetch subscriptions', err); return [] as unknown[]; }),
       ]);
       return {
         totalCompanies: Array.isArray(companies) ? companies.length : 0,
@@ -108,7 +108,7 @@ export function useUpdateCommissionPlan() {
     mutationFn: ({ id, data }: { id: string; data: Record<string, unknown> }) =>
       commissionPlanApi.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: superadminKeys.commissionPlans });
+      void queryClient.invalidateQueries({ queryKey: superadminKeys.commissionPlans });
     },
   });
 }
@@ -151,11 +151,11 @@ export function useUpdateSubscriptionPlan(onRecordAudit: (userId: string, action
     mutationFn: ({ companyId, planId }: { companyId: string; planId: string }) =>
       superadminSubscriptionApi.updateSubscription(companyId, { plan_id: planId }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: saasKeys.subscriptions });
+      void queryClient.invalidateQueries({ queryKey: saasKeys.subscriptions });
       onRecordAudit(currentUserId ?? 'system', 'Alterou plano', 'Updated via API');
       successToast('Plano atualizado');
     },
-    onError: () => errorToast('Erro ao atualizar plano'),
+    onError: () => { errorToast('Erro ao atualizar plano'); },
   });
 }
 
@@ -165,11 +165,11 @@ export function useUpdateSubscriptionStatus(onRecordAudit: (userId: string, acti
     mutationFn: ({ companyId, billingStatus }: { companyId: string; billingStatus: string }) =>
       superadminSubscriptionApi.updateSubscription(companyId, { billing_status: billingStatus }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: saasKeys.subscriptions });
+      void queryClient.invalidateQueries({ queryKey: saasKeys.subscriptions });
       onRecordAudit(currentUserId ?? 'system', 'Alterou status financeiro', 'Updated via API');
       successToast('Status atualizado');
     },
-    onError: () => errorToast('Erro ao atualizar status'),
+    onError: () => { errorToast('Erro ao atualizar status'); },
   });
 }
 
@@ -179,10 +179,10 @@ export function useToggleSubscriptionAddon() {
     mutationFn: ({ subscriptionId, addonId }: { subscriptionId: string; addonId: string }) =>
       superadminSubscriptionApi.toggleAddon(subscriptionId, addonId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: saasKeys.subscriptions });
+      void queryClient.invalidateQueries({ queryKey: saasKeys.subscriptions });
       successToast('Addon atualizado');
     },
-    onError: () => errorToast('Erro ao alterar addon'),
+    onError: () => { errorToast('Erro ao alterar addon'); },
   });
 }
 
@@ -208,10 +208,10 @@ export function useAssignPermission() {
   return useMutation({
     mutationFn: (data: { role: string; permissionId: string }) => superadminApi.permissionApi.assign(data),
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: superadminKeys.permissionsByRole(variables.role) });
+      void queryClient.invalidateQueries({ queryKey: superadminKeys.permissionsByRole(variables.role) });
       successToast('Permissão atribuída');
     },
-    onError: () => errorToast('Erro ao atribuir permissão'),
+    onError: () => { errorToast('Erro ao atribuir permissão'); },
   });
 }
 
@@ -220,9 +220,9 @@ export function useRevokePermission() {
   return useMutation({
     mutationFn: (data: { role: string; permissionId: string }) => superadminApi.permissionApi.revoke(data),
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: superadminKeys.permissionsByRole(variables.role) });
+      void queryClient.invalidateQueries({ queryKey: superadminKeys.permissionsByRole(variables.role) });
       successToast('Permissão revogada');
     },
-    onError: () => errorToast('Erro ao revogar permissão'),
+    onError: () => { errorToast('Erro ao revogar permissão'); },
   });
 }

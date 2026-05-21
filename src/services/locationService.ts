@@ -1,6 +1,6 @@
 import type { Coordinates } from '../types/location';
 import { nominatimApi } from '../api/nominatimApi';
-import { ApiError } from '../api/httpClient';
+import { ApiError } from '../api';
 import { normalizeState } from '../lib/brazilStates';
 
 export interface City {
@@ -67,7 +67,7 @@ export async function reverseGeocode(
        a['village'] ??
        a['municipality'] ??
        a['county'] ??
-       data.display_name?.split(',')[0] ??
+       data.display_name.split(',')[0] ??
        'Cidade Desconhecida';
 
      const stateName = a['state'] ?? 'Estado Desconhecido';

@@ -7,7 +7,7 @@ import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { eq } from 'drizzle-orm';
 import { db } from './db';
-import { restaurants, menuItems } from './db/schema';
+import { restaurants, menuItems , reviews } from './db/schema';
 import operationsRoutes from './routes/operations';
 import holidaysRoutes from './routes/holidays';
 import authRoutes from './routes/auth';
@@ -56,7 +56,6 @@ import consumerReviewsRoutes from './routes/consumer-reviews';
 import consumerSupportRoutes from './routes/consumer-support';
 import consumerOrdersRoutes from './routes/consumer-orders';
 import permissionsRoutes from './routes/permissions';
-import { reviews } from './db/schema';
 import type { TokenPayload } from './auth/types';
 
 const app = new Hono();
@@ -233,7 +232,7 @@ const server = serve({ fetch: app.fetch, port }, () => {
 });
 
 startSessionCleanup();
-coverageCityService.seedFromRestaurants().catch((err) => {
+coverageCityService.seedFromRestaurants().catch((err: unknown) => {
   appLogger.error('Coverage city seed failed', err instanceof Error ? err : new Error(String(err)));
 });
 
@@ -250,7 +249,7 @@ function shutdown(signal: string) {
   }, 10_000).unref();
 }
 
-process.on('SIGTERM', () => shutdown('SIGTERM'));
-process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('SIGTERM', () => { shutdown('SIGTERM'); });
+process.on('SIGINT', () => { shutdown('SIGINT'); });
 
 export default app;

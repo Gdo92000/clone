@@ -8,8 +8,8 @@ const STALE_MEDIUM = 1000 * 60 * 2;
 
 export function useBranchStatus(branchId: string | undefined) {
   return useQuery<OpenStatus>({
-    queryKey: operationsKeys.status(branchId!),
-    queryFn: () => operationsApi.getStatus(branchId!),
+    queryKey: operationsKeys.status(branchId ?? ''),
+    queryFn: () => operationsApi.getStatus(branchId ?? ''),
     enabled: !!branchId,
     staleTime: STALE_SHORT,
     refetchInterval: STALE_SHORT,
@@ -18,8 +18,8 @@ export function useBranchStatus(branchId: string | undefined) {
 
 export function useTodayPeriods(branchId: string | undefined) {
   return useQuery<TimePeriod[]>({
-    queryKey: operationsKeys.todayPeriods(branchId!),
-    queryFn: () => operationsApi.getTodayPeriods(branchId!),
+    queryKey: operationsKeys.todayPeriods(branchId ?? ''),
+    queryFn: () => operationsApi.getTodayPeriods(branchId ?? ''),
     enabled: !!branchId,
     staleTime: STALE_SHORT,
     refetchInterval: STALE_SHORT,
@@ -28,8 +28,8 @@ export function useTodayPeriods(branchId: string | undefined) {
 
 export function useBusinessHours(branchId: string | undefined) {
   return useQuery<BusinessHour[]>({
-    queryKey: operationsKeys.hours(branchId!),
-    queryFn: () => operationsApi.getHours(branchId!),
+    queryKey: operationsKeys.hours(branchId ?? ''),
+    queryFn: () => operationsApi.getHours(branchId ?? ''),
     enabled: !!branchId,
     staleTime: STALE_MEDIUM,
   });
@@ -38,11 +38,11 @@ export function useBusinessHours(branchId: string | undefined) {
 export function useUpdateBusinessHours(branchId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: { branchId: string; hours: BusinessHourInput[] }) =>
-      operationsApi.updateHours(branchId!, data),
+    mutationFn: async (data: { branchId: string; hours: BusinessHourInput[] }) =>
+      operationsApi.updateHours(branchId ?? '', data),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: operationsKeys.hours(branchId!) });
-      void qc.invalidateQueries({ queryKey: operationsKeys.status(branchId!) });
+      void qc.invalidateQueries({ queryKey: operationsKeys.hours(branchId ?? '') });
+      void qc.invalidateQueries({ queryKey: operationsKeys.status(branchId ?? '') });
     },
   });
 }
@@ -57,8 +57,8 @@ interface BusinessHourInput {
 
 export function useHolidayOverrides(branchId: string | undefined) {
   return useQuery<HolidayOverride[]>({
-    queryKey: operationsKeys.holidayOverrides(branchId!),
-    queryFn: () => operationsApi.getHolidayOverrides(branchId!),
+    queryKey: operationsKeys.holidayOverrides(branchId ?? ''),
+    queryFn: () => operationsApi.getHolidayOverrides(branchId ?? ''),
     enabled: !!branchId,
     staleTime: STALE_MEDIUM,
   });
@@ -68,10 +68,10 @@ export function useCreateHolidayOverride(branchId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (data: Record<string, unknown>) =>
-      operationsApi.createHolidayOverride(branchId!, data),
+      operationsApi.createHolidayOverride(branchId ?? '', data),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: operationsKeys.holidayOverrides(branchId!) });
-      void qc.invalidateQueries({ queryKey: operationsKeys.status(branchId!) });
+      void qc.invalidateQueries({ queryKey: operationsKeys.holidayOverrides(branchId ?? '') });
+      void qc.invalidateQueries({ queryKey: operationsKeys.status(branchId ?? '') });
     },
   });
 }
@@ -79,18 +79,18 @@ export function useCreateHolidayOverride(branchId: string | undefined) {
 export function useDeleteHolidayOverride(branchId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => operationsApi.deleteHolidayOverride(branchId!, id),
+    mutationFn: (id: string) => operationsApi.deleteHolidayOverride(branchId ?? '', id),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: operationsKeys.holidayOverrides(branchId!) });
-      void qc.invalidateQueries({ queryKey: operationsKeys.status(branchId!) });
+      void qc.invalidateQueries({ queryKey: operationsKeys.holidayOverrides(branchId ?? '') });
+      void qc.invalidateQueries({ queryKey: operationsKeys.status(branchId ?? '') });
     },
   });
 }
 
 export function useSpecialDates(branchId: string | undefined) {
   return useQuery<SpecialDate[]>({
-    queryKey: operationsKeys.specialDates(branchId!),
-    queryFn: () => operationsApi.getSpecialDates(branchId!),
+    queryKey: operationsKeys.specialDates(branchId ?? ''),
+    queryFn: () => operationsApi.getSpecialDates(branchId ?? ''),
     enabled: !!branchId,
     staleTime: STALE_MEDIUM,
   });
@@ -100,10 +100,10 @@ export function useCreateSpecialDate(branchId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (data: Record<string, unknown>) =>
-      operationsApi.createSpecialDate(branchId!, data),
+      operationsApi.createSpecialDate(branchId ?? '', data),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: operationsKeys.specialDates(branchId!) });
-      void qc.invalidateQueries({ queryKey: operationsKeys.status(branchId!) });
+      void qc.invalidateQueries({ queryKey: operationsKeys.specialDates(branchId ?? '') });
+      void qc.invalidateQueries({ queryKey: operationsKeys.status(branchId ?? '') });
     },
   });
 }
@@ -111,10 +111,10 @@ export function useCreateSpecialDate(branchId: string | undefined) {
 export function useDeleteSpecialDate(branchId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => operationsApi.deleteSpecialDate(branchId!, id),
+    mutationFn: (id: string) => operationsApi.deleteSpecialDate(branchId ?? '', id),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: operationsKeys.specialDates(branchId!) });
-      void qc.invalidateQueries({ queryKey: operationsKeys.status(branchId!) });
+      void qc.invalidateQueries({ queryKey: operationsKeys.specialDates(branchId ?? '') });
+      void qc.invalidateQueries({ queryKey: operationsKeys.status(branchId ?? '') });
     },
   });
 }

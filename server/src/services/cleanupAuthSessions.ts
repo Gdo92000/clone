@@ -17,6 +17,6 @@ export async function cleanupAuthSessions(): Promise<void> {
 const CLEANUP_INTERVAL_MS = 60 * 60 * 1000;
 
 export function startSessionCleanup(intervalMs = CLEANUP_INTERVAL_MS): void {
-  cleanupAuthSessions().catch((err) => logger.error('Session cleanup failed on start', err));
-  setInterval(() => { cleanupAuthSessions().catch((err) => logger.error('Session cleanup failed', err)); }, intervalMs).unref();
+  cleanupAuthSessions().catch((err: unknown) => { logger.error('Session cleanup failed on start', err); });
+  setInterval(() => { cleanupAuthSessions().catch((err: unknown) => { logger.error('Session cleanup failed', err); }); }, intervalMs).unref();
 }

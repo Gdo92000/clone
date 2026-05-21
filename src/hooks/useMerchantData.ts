@@ -26,8 +26,8 @@ export function useBranches() {
 
 export function useBranchesByCompany(companyId: string | undefined) {
   return useQuery({
-    queryKey: merchantKeys.branchesByCompany(companyId!),
-    queryFn: () => getBranchesByCompany(companyId!),
+    queryKey: merchantKeys.branchesByCompany(companyId ?? ''),
+    queryFn: () => getBranchesByCompany(companyId ?? ''),
     enabled: !!companyId,
     staleTime: STALE_MEDIUM,
   });
@@ -39,8 +39,8 @@ export function useMenuItems() {
 
 export function useMenuItemsByBranch(branchId: string | undefined) {
   return useQuery({
-    queryKey: merchantKeys.menuItemsByBranch(branchId!),
-    queryFn: () => getMenuItemsByBranch(branchId!),
+    queryKey: merchantKeys.menuItemsByBranch(branchId ?? ''),
+    queryFn: () => getMenuItemsByBranch(branchId ?? ''),
     enabled: !!branchId,
     staleTime: STALE_MEDIUM,
   });
@@ -52,8 +52,8 @@ export function useOrders() {
 
 export function useOrdersByBranch(branchId: string | undefined) {
   return useQuery({
-    queryKey: merchantKeys.ordersByBranch(branchId!),
-    queryFn: () => getOrdersByBranch(branchId!),
+    queryKey: merchantKeys.ordersByBranch(branchId ?? ''),
+    queryFn: () => getOrdersByBranch(branchId ?? ''),
     enabled: !!branchId,
     staleTime: STALE_MEDIUM,
   });

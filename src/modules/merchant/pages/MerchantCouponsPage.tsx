@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { MerchantLayout } from '../components/MerchantLayout';
 import { Icon } from '../../../components/ui/Icon';
 import { Button } from '../../../components/ui/Button';
@@ -31,17 +31,15 @@ export function MerchantCouponsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<CouponForm>(emptyForm);
 
-  useEffect(() => {
-    if (!branchId && branches.length > 0) setBranchId(branches[0]!.id);
-  }, [branches, branchId]);
+  const effectiveBranchId = useMemo(() => branchId || (branches[0]?.id ?? ''), [branchId, branches]);
 
-  const { data: coupons = [] } = useCouponsByBranch(branchId);
+  const { data: coupons = [] } = useCouponsByBranch(effectiveBranchId);
 
-  const mutation = useSaveCoupon(editingId, branchId);
+  const mutation = useSaveCoupon(editingId, effectiveBranchId);
 
-  const toggleMutation = useToggleCoupon(branchId);
+  const toggleMutation = useToggleCoupon(effectiveBranchId);
 
-  const deleteMutation = useDeleteCoupon(branchId);
+  const deleteMutation = useDeleteCoupon(effectiveBranchId);
 
   const resetForm = () => { setForm(emptyForm); setShowForm(false); setEditingId(null); };
 
@@ -61,7 +59,7 @@ const openEdit = (c: MerchantCoupon) => {
     max_uses: c.max_uses,
     valid_until: c.valid_until,
     is_active: c.is_active,
-    rules: c.rules || {}
+    rules: c.rules
   });
   setEditingId(c.id);
   setShowForm(true);
@@ -70,7 +68,7 @@ const openEdit = (c: MerchantCoupon) => {
   const save = () => {
     if (!form.code.trim() || !form.description.trim()) return;
     mutation.mutate({
-      branch_id: branchId,
+      branch_id: effectiveBranchId,
       code: form.code,
       description: form.description,
       discount_type: form.discount_type,
@@ -94,7 +92,7 @@ const openEdit = (c: MerchantCoupon) => {
       <div className="flex gap-3">
         <select
           value={branchId}
-          onChange={(e) => setBranchId(e.target.value)}
+          onChange={(e) => { setBranchId(e.target.value); }}
           className="h-10 rounded-lg border border-border-default bg-surface-background px-3 text-sm"
         >
           {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}

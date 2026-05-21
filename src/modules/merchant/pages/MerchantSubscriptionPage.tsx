@@ -1,7 +1,6 @@
 import { MerchantLayout } from '../components/MerchantLayout';
 import { Icon } from '../../../components/ui/Icon';
-import { useSaasWorkspace } from '../../saas';
-import { calculateSubscriptionTotal } from '../../saas';
+import { useSaasWorkspace , calculateSubscriptionTotal } from '../../saas';
 import { useCompanies } from '../../../hooks/useMerchantData';
 
 export function MerchantSubscriptionPage() {

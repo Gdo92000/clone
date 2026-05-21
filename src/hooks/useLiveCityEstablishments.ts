@@ -36,7 +36,7 @@ export function useLiveCityEstablishments(
   loading: boolean;
   error: string | null;
   protection: ProtectionStatus;
-  search: () => void;
+      search: () => Promise<void>;
   clear: () => void;
 } {
   const { radiusKm = 5, limit = 40 } = options;
@@ -55,10 +55,10 @@ export function useLiveCityEstablishments(
 
   useEffect(() => {
     const abort = new AbortController();
-    findRegisteredCityCoverage(city?.name ?? '').then((sc) => {
+    void findRegisteredCityCoverage(city?.name ?? '').then((sc) => {
       if (!abort.signal.aborted) setSupportedCity(sc);
     });
-    return () => abort.abort();
+    return () => { abort.abort(); };
   }, [city]);
 
   const protection = useMemo<ProtectionStatus>(() => {
@@ -144,12 +144,14 @@ export function useLiveCityEstablishments(
           return dist <= protection.activeRadiusKm;
         })
         .map((r) => {
-          const distanceKm = calculateDistance(
-            coordinates.latitude,
-            coordinates.longitude,
-            r.coordinates!.lat,
-            r.coordinates!.lng,
-          );
+          const distanceKm = r.coordinates
+            ? calculateDistance(
+                coordinates.latitude,
+                coordinates.longitude,
+                r.coordinates.lat,
+                r.coordinates.lng,
+              )
+            : Infinity;
           const isSameNeighborhood =
             userNeighborhood != null &&
             r.neighborhood != null &&
@@ -160,8 +162,8 @@ export function useLiveCityEstablishments(
             name: r.name,
             category: r.cuisine,
             distanceKm,
-            latitude: r.coordinates!.lat,
-            longitude: r.coordinates!.lng,
+            latitude: r.coordinates?.lat ?? 0,
+            longitude: r.coordinates?.lng ?? 0,
             address: r.address ?? null,
             phone: r.phone ?? null,
             openingHours: null,

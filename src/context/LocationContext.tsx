@@ -8,9 +8,9 @@ import type { City } from '../services/locationService';
 import { logger } from '../lib/logger';
 
 interface LocationContextValue extends LocationState {
-  requestLocation: () => void;
+  requestLocation: () => Promise<void>;
   refreshLocation: () => void;
-  setManualCity: (cityName: string) => void;
+  setManualCity: (cityName: string) => Promise<void>;
   clearLocation: () => void;
 }
 
@@ -39,7 +39,7 @@ const hydrateFromCache = useCallback(async () => {
     const supported = await processSupportedCity(detectedCity, cache.coordinates);
     setState({ city: detectedCity, coordinates: cache.coordinates, source: cache.source, ...supported, status: 'SUCCESS', loading: false });
     } catch (error) {
-      logger.warn('Location', 'Erro ao hidratar localização do cache', { error: String(error) });
+      logger.warn('Location', 'Erro ao hidratar localização do cache', { error: error instanceof Error ? error.message : String(error) });
     }
 }, []);
 

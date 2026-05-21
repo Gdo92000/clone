@@ -37,6 +37,7 @@ export interface FeatureFlagDTO {
 export interface GlobalCouponDTO {
   id: string;
   code: string;
+  description?: string | null;
   discount: number;
   discount_type: string;
   min_order: number;

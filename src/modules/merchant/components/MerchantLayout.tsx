@@ -39,7 +39,7 @@ export function MerchantLayout({ title, children, actions }: MerchantLayoutProps
     <div className="min-h-screen bg-surface-background">
       <header className="sticky top-0 z-40 border-b border-border-default bg-surface-elevated">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3">
-          <button type="button" onClick={() => navigate('/')} className="flex items-center gap-2 shrink-0">
+          <button type="button" onClick={() => { void navigate('/'); }} className="flex items-center gap-2 shrink-0">
             <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-primary font-bold text-text-inverse">iF</span>
             <span className="font-display text-lg font-bold text-text-primary hidden sm:inline">Lojista</span>
           </button>

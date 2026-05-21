@@ -48,8 +48,8 @@ export function HomePage() {
         const distanceKm = calculateDistance(
           coordinates.latitude,
           coordinates.longitude,
-          r.coordinates!.lat,
-          r.coordinates!.lng,
+          r.coordinates?.lat ?? 0,
+          r.coordinates?.lng ?? 0,
         );
         const isSameNeighborhood =
           userNeighborhood != null &&
@@ -71,7 +71,7 @@ export function HomePage() {
 
   const featured = restaurants.filter((r) => r.isFeatured);
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = (e: React.SubmitEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       void navigate(restaurantsSearchHref(encodeURIComponent(searchQuery.trim())));
@@ -80,7 +80,7 @@ export function HomePage() {
 
   return (
     <div className="min-h-screen bg-surface-background">
-      <FxNavbar onCartClick={() => navigate(ROUTES.CART)} cartItemCount={cartItemCount} />
+      <FxNavbar onCartClick={() => { void navigate(ROUTES.CART); }} cartItemCount={cartItemCount} />
 
       <main className="max-w-7xl mx-auto px-4 py-6 space-y-10">
         <FxQueryBoundary isLoading={restaurantsLoading || categoriesLoading} isError={!!restaurantsError || !!categoriesError} error={restaurantsError ?? categoriesError ?? null}>
@@ -112,7 +112,7 @@ export function HomePage() {
             {categories.slice(0, 10).map((cat) => (
               <button
                 key={cat.id}
-                onClick={() => navigate(restaurantsCategoryHref(cat.slug))}
+                onClick={() => { void navigate(restaurantsCategoryHref(cat.slug)); }}
                 className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-surface-elevated border border-border-default hover:border-brand-primary hover:shadow-md hover:-translate-y-0.5 transition-all active:scale-95"
               >
                 <span className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-primary/10 to-brand-secondary/10 flex items-center justify-center text-3xl">
@@ -133,7 +133,7 @@ export function HomePage() {
                 Os melhores restaurantes
               </h2>
               <button
-                onClick={() => navigate(ROUTES.RESTAURANTS)}
+                onClick={() => { void navigate(ROUTES.RESTAURANTS); }}
                 className="text-sm font-medium text-brand-primary hover:text-brand-primary-hover transition-colors"
               >
                 Ver todos
@@ -145,7 +145,7 @@ export function HomePage() {
                   <FxRestaurantCard
                     restaurant={r}
                     variant="featured"
-                    onClick={() => navigate(restaurantDetailHref(r.id))}
+                    onClick={() => { void navigate(restaurantDetailHref(r.id)); }}
                   />
                 </div>
               ))}
@@ -179,7 +179,7 @@ export function HomePage() {
                   variant={restaurant.rating >= 4.7 ? 'featured' : 'default'}
                   showRealDistance={coordinates != null}
                   distanceKm={distanceKm}
-                  onClick={() => navigate(restaurantDetailHref(restaurant.id))}
+                  onClick={() => { void navigate(restaurantDetailHref(restaurant.id)); }}
                 />
               ))}
             </div>
@@ -197,7 +197,7 @@ export function HomePage() {
               <p className="text-brand-accent text-sm font-semibold uppercase tracking-wider">Cupom exclusivo</p>
               <h3 className="text-white font-display font-bold text-xl md:text-2xl mt-1">Ganhe frete grátis</h3>
               <p className="text-white/70 text-sm mt-1">Na primeira compra com o cupom BEMVINDO</p>
-              <button onClick={() => navigate(ROUTES.PROMOTIONS)} className="mt-3 bg-brand-primary text-white text-sm font-semibold px-5 py-2 rounded-full hover:bg-brand-primary-hover transition-all active:scale-95">
+              <button onClick={() => { void navigate(ROUTES.PROMOTIONS); }} className="mt-3 bg-brand-primary text-white text-sm font-semibold px-5 py-2 rounded-full hover:bg-brand-primary-hover transition-all active:scale-95">
                 Usar cupom
               </button>
             </div>
@@ -213,7 +213,7 @@ export function HomePage() {
             Cadastre seu restaurante ou mercado e comece a vender em minutos
           </p>
           <button
-            onClick={() => navigate(ROUTES.MERCHANT_LOGIN)}
+            onClick={() => { void navigate(ROUTES.MERCHANT_LOGIN); }}
             className="mt-4 bg-brand-primary text-text-inverse font-semibold px-6 py-3 rounded-full hover:bg-brand-primary-hover transition-all active:scale-95 inline-flex items-center gap-2"
           >
             <Icon name="ArrowRight" size={18} />

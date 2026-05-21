@@ -28,7 +28,7 @@ export function useSaveLoyaltyReward(editingId: string | null, branchId: string)
       void queryClient.invalidateQueries({ queryKey: merchantKeys.loyaltyRewards(branchId) });
       successToast('Recompensa salva com sucesso');
     },
-    onError: () => errorToast('Erro ao salvar recompensa'),
+    onError: () => { errorToast('Erro ao salvar recompensa'); },
   });
 }
 
@@ -40,6 +40,6 @@ export function useDeleteLoyaltyReward(branchId: string) {
       void queryClient.invalidateQueries({ queryKey: merchantKeys.loyaltyRewards(branchId) });
       successToast('Recompensa removida');
     },
-    onError: () => errorToast('Erro ao remover recompensa'),
+    onError: () => { errorToast('Erro ao remover recompensa'); },
   });
 }

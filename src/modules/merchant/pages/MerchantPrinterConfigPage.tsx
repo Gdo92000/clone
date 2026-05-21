@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from '../../../components/ui/Button';
 import { MerchantLayout } from '../components/MerchantLayout';
 import { useBranches } from '../../../hooks/useMerchantData';
+import type { PrintHistoryDTO } from '../../../dto/superadminDto';
 import { usePrinterConfig, usePrintHistory, useSavePrinterConfig } from '../../../hooks/useMerchantPrinterConfig';
 import { clsx } from 'clsx';
-import type { PrinterConfigDTO } from '../../../dto/superadminDto';
 
 interface PrinterConfig {
   printer_type: string;
@@ -18,11 +18,9 @@ export function MerchantPrinterConfigPage() {
   const { data: branches = [] } = useBranches();
   const [branchId, setBranchId] = useState('');
 
-  useEffect(() => {
-    if (!branchId && branches.length > 0) setBranchId(branches[0]!.id);
-  }, [branches, branchId]);
+  const effectiveBranchId = useMemo(() => branchId || (branches[0]?.id ?? ''), [branchId, branches]);
 
-  const { data: config } = usePrinterConfig(branchId);
+  const { data: config } = usePrinterConfig(effectiveBranchId);
 
   const [form, setForm] = useState<PrinterConfig>({
     printer_type: 'network',
@@ -31,22 +29,22 @@ export function MerchantPrinterConfigPage() {
     model: 'ESC/POS',
     enabled: true,
   });
+  const [hasSyncedForm, setHasSyncedForm] = useState(false);
 
-  useEffect(() => {
-    if (config) {
-      setForm({
-        printer_type: (config as PrinterConfigDTO).printer_type || 'network',
-        ip_address: (config as PrinterConfigDTO).ip_address || '',
-        port: (config as PrinterConfigDTO).port || 9100,
-        model: (config as PrinterConfigDTO).model || 'ESC/POS',
-        enabled: (config as PrinterConfigDTO).enabled ?? true,
-      });
-    }
-  }, [config]);
+  if (config && !hasSyncedForm) {
+    setHasSyncedForm(true);
+    setForm({
+      printer_type: config.printer_type || 'network',
+      ip_address: config.ip_address || '',
+      port: config.port || 9100,
+      model: config.model || 'ESC/POS',
+      enabled: config.enabled,
+    });
+  }
 
-  const saveMutation = useSavePrinterConfig(branchId);
+  const saveMutation = useSavePrinterConfig(effectiveBranchId);
 
-  const { data: history = [] } = usePrintHistory(branchId);
+  const { data: history = [] } = usePrintHistory(effectiveBranchId);
 
   return (
     <MerchantLayout
@@ -54,7 +52,7 @@ export function MerchantPrinterConfigPage() {
       actions={
         <select
           value={branchId}
-          onChange={(e) => setBranchId(e.target.value)}
+          onChange={(e) => { setBranchId(e.target.value); }}
           className="h-10 rounded-lg border border-border-default bg-surface-background px-3 text-sm"
         >
           {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
@@ -69,7 +67,7 @@ export function MerchantPrinterConfigPage() {
               <span className="text-sm font-medium text-text-primary">Tipo de Impressora</span>
               <select
                 value={form.printer_type}
-                onChange={(e) => setForm({ ...form, printer_type: e.target.value })}
+                onChange={(e) => { setForm({ ...form, printer_type: e.target.value }); }}
                 className="mt-1 h-10 w-full rounded-lg border border-border-default bg-surface-background px-3 text-sm"
               >
                 <option value="network">Rede (TCP/IP)</option>
@@ -85,7 +83,7 @@ export function MerchantPrinterConfigPage() {
                   <input
                     type="text"
                     value={form.ip_address}
-                    onChange={(e) => setForm({ ...form, ip_address: e.target.value })}
+                    onChange={(e) => { setForm({ ...form, ip_address: e.target.value }); }}
                     className="mt-1 h-10 w-full rounded-lg border border-border-default bg-surface-background px-3 text-sm"
                     placeholder="192.168.1.100"
                   />
@@ -95,7 +93,7 @@ export function MerchantPrinterConfigPage() {
                   <input
                     type="number"
                     value={form.port}
-                    onChange={(e) => setForm({ ...form, port: Number(e.target.value) })}
+                    onChange={(e) => { setForm({ ...form, port: Number(e.target.value) }); }}
                     className="mt-1 h-10 w-full rounded-lg border border-border-default bg-surface-background px-3 text-sm"
                   />
                 </label>
@@ -107,7 +105,7 @@ export function MerchantPrinterConfigPage() {
               <input
                 type="text"
                 value={form.model}
-                onChange={(e) => setForm({ ...form, model: e.target.value })}
+                onChange={(e) => { setForm({ ...form, model: e.target.value }); }}
                 className="mt-1 h-10 w-full rounded-lg border border-border-default bg-surface-background px-3 text-sm"
               />
             </label>
@@ -117,11 +115,11 @@ export function MerchantPrinterConfigPage() {
               <input
                 type="checkbox"
                 checked={form.enabled}
-                onChange={(e) => setForm({ ...form, enabled: e.target.checked })}
+                onChange={(e) => { setForm({ ...form, enabled: e.target.checked }); }}
               />
             </label>
 
-            <Button onClick={() =>     saveMutation.mutate(form as unknown as Record<string, unknown>)} loading={saveMutation.isPending} disabled={saveMutation.isPending} className="w-full">
+            <Button onClick={() =>     { saveMutation.mutate(form as unknown as Record<string, unknown>); }} loading={saveMutation.isPending} disabled={saveMutation.isPending} className="w-full">
               {saveMutation.isPending ? 'Salvando...' : 'Salvar Configurações'}
             </Button>
           </div>
@@ -153,7 +151,7 @@ export function MerchantPrinterConfigPage() {
                     <td colSpan={3} className="py-4 text-center text-text-secondary">Nenhuma impressão realizada.</td>
                   </tr>
                 ) : (
-                  history.map((job: any) => (
+                  history.map((job: PrintHistoryDTO) => (
                     <tr key={job.id} className="hover:bg-surface-background transition-colors">
                       <td className="py-2">#{job.order_id.slice(-6)}</td>
                       <td className="py-2">

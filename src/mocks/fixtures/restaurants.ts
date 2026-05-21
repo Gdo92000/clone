@@ -11,26 +11,23 @@ export const mockCategories: CategoryDTO[] = [
   { id: 'cat-8', name: 'Saudável', icon: '🥗', slug: 'saudavel' },
 ]
 
-const mockAdditives: AdditiveDTO[] = [
-  { id: 'add-1', name: 'Bacon extra', price: 4.50 },
-  { id: 'add-2', name: 'Queijo cheddar', price: 3.00 },
-  { id: 'add-3', name: 'Molho especial', price: 2.00 },
-  { id: 'add-4', name: 'Batata frita', price: 6.00 },
-  { id: 'add-5', name: 'Refrigerante', price: 5.00 },
-  { id: 'add-6', name: 'Sobremesa', price: 8.00 },
-]
+const a0: AdditiveDTO = { id: 'add-1', name: 'Bacon extra', price: 4.50 };
+const a1: AdditiveDTO = { id: 'add-2', name: 'Queijo cheddar', price: 3.00 };
+const a2: AdditiveDTO = { id: 'add-3', name: 'Molho especial', price: 2.00 };
+const a3: AdditiveDTO = { id: 'add-4', name: 'Batata frita', price: 6.00 };
+const a5: AdditiveDTO = { id: 'add-6', name: 'Sobremesa', price: 8.00 };
 
 export const mockMenuItems: MenuItemDTO[] = [
-  { id: 'item-1', restaurant_id: 'rest-1', name: 'X-Burger Clássico', description: 'Hambúrguer 180g, queijo, alface, tomate e molho especial', price: 28.90, original_price: 32.90, image_url: '/mock/burger1.jpg', category: 'Hambúrgueres', is_available: true, additives: [mockAdditives[0]!, mockAdditives[1]!] },
-  { id: 'item-2', restaurant_id: 'rest-1', name: 'X-Bacon Supreme', description: 'Hambúrguer 250g, bacon crocante, cheddar, onion rings', price: 34.90, image_url: '/mock/burger2.jpg', category: 'Hambúrgueres', is_available: true, additives: [mockAdditives[0]!, mockAdditives[2]!] },
-  { id: 'item-3', restaurant_id: 'rest-1', name: 'Combo Familiar', description: '2 hambúrgueres, batata frita, 2 refrigerantes', price: 59.90, image_url: '/mock/combo1.jpg', category: 'Hambúrgueres', is_available: true, additives: [mockAdditives[0]!, mockAdditives[1]!, mockAdditives[2]!, mockAdditives[3]!] },
-  { id: 'item-4', restaurant_id: 'rest-2', name: 'Pizza Margherita', description: 'Molho de tomate, mussarela, manjericão fresco', price: 42.90, image_url: '/mock/pizza1.jpg', category: 'Pizzas', is_available: true, additives: [mockAdditives[2]!, mockAdditives[5]!] },
-  { id: 'item-5', restaurant_id: 'rest-2', name: 'Pizza Pepperoni', description: 'Pepperoni, mussarela, orégano', price: 45.90, image_url: '/mock/pizza2.jpg', category: 'Pizzas', is_available: true, additives: [mockAdditives[0]!, mockAdditives[2]!] },
-  { id: 'item-6', restaurant_id: 'rest-3', name: 'Sushi Combo 20 peças', description: '20 peças variadas: salmão, atum, kappa maki', price: 54.90, image_url: '/mock/sushi1.jpg', category: 'Japonesa', is_available: true, additives: [mockAdditives[5]!] },
+  { id: 'item-1', restaurant_id: 'rest-1', name: 'X-Burger Clássico', description: 'Hambúrguer 180g, queijo, alface, tomate e molho especial', price: 28.90, original_price: 32.90, image_url: '/mock/burger1.jpg', category: 'Hambúrgueres', is_available: true, additives: [a0, a1] },
+  { id: 'item-2', restaurant_id: 'rest-1', name: 'X-Bacon Supreme', description: 'Hambúrguer 250g, bacon crocante, cheddar, onion rings', price: 34.90, image_url: '/mock/burger2.jpg', category: 'Hambúrgueres', is_available: true, additives: [a0, a2] },
+  { id: 'item-3', restaurant_id: 'rest-1', name: 'Combo Familiar', description: '2 hambúrgueres, batata frita, 2 refrigerantes', price: 59.90, image_url: '/mock/combo1.jpg', category: 'Hambúrgueres', is_available: true, additives: [a0, a1, a2, a3] },
+  { id: 'item-4', restaurant_id: 'rest-2', name: 'Pizza Margherita', description: 'Molho de tomate, mussarela, manjericão fresco', price: 42.90, image_url: '/mock/pizza1.jpg', category: 'Pizzas', is_available: true, additives: [a2, a5] },
+  { id: 'item-5', restaurant_id: 'rest-2', name: 'Pizza Pepperoni', description: 'Pepperoni, mussarela, orégano', price: 45.90, image_url: '/mock/pizza2.jpg', category: 'Pizzas', is_available: true, additives: [a0, a2] },
+  { id: 'item-6', restaurant_id: 'rest-3', name: 'Sushi Combo 20 peças', description: '20 peças variadas: salmão, atum, kappa maki', price: 54.90, image_url: '/mock/sushi1.jpg', category: 'Japonesa', is_available: true, additives: [a5] },
   { id: 'item-7', restaurant_id: 'rest-3', name: 'Temaki Salmão', description: 'Temaki de salmão fresco com cream cheese', price: 18.90, image_url: '/mock/temaki1.jpg', category: 'Japonesa', is_available: true, additives: [] },
-  { id: 'item-8', restaurant_id: 'rest-4', name: 'Tacos (3 unidades)', description: 'Tacos de carne, guacamole, sour cream', price: 32.90, image_url: '/mock/taco1.jpg', category: 'Mexicana', is_available: true, additives: [mockAdditives[2]!] },
-  { id: 'item-9', restaurant_id: 'rest-5', name: 'Açaí 500ml', description: 'Açaí puro com banana, granola, leite condensado', price: 22.90, image_url: '/mock/acai1.jpg', category: 'Açaí & Sorvetes', is_available: false, additives: [mockAdditives[5]!] },
-  { id: 'item-10', restaurant_id: 'rest-6', name: 'Salada Caesar', description: 'Alface, frango grelhado, croutons, parmesão', price: 26.90, image_url: '/mock/salad1.jpg', category: 'Saudável', is_available: true, additives: [mockAdditives[2]!] },
+  { id: 'item-8', restaurant_id: 'rest-4', name: 'Tacos (3 unidades)', description: 'Tacos de carne, guacamole, sour cream', price: 32.90, image_url: '/mock/taco1.jpg', category: 'Mexicana', is_available: true, additives: [a2] },
+  { id: 'item-9', restaurant_id: 'rest-5', name: 'Açaí 500ml', description: 'Açaí puro com banana, granola, leite condensado', price: 22.90, image_url: '/mock/acai1.jpg', category: 'Açaí & Sorvetes', is_available: false, additives: [a5] },
+  { id: 'item-10', restaurant_id: 'rest-6', name: 'Salada Caesar', description: 'Alface, frango grelhado, croutons, parmesão', price: 26.90, image_url: '/mock/salad1.jpg', category: 'Saudável', is_available: true, additives: [a2] },
 ]
 
 export const mockRestaurants: RestaurantDTO[] = [

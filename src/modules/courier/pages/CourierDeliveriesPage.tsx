@@ -28,7 +28,7 @@ export function CourierDeliveriesPage() {
       orderId: o.id,
       customerName: o.customerName,
       address: o.customerAddress,
-      status: statuses[Math.min(progress, statuses.length - 1)]!,
+      status: statuses[Math.min(progress, statuses.length - 1)] ?? 'available',
       earnings: idx === 0 ? 8.5 : 10.25,
       distanceKm: idx === 0 ? 3.4 : 5.1,
     };

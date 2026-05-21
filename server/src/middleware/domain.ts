@@ -5,7 +5,7 @@ import { companies } from '../db/schema';
 
 export const domainMiddleware: MiddlewareHandler = async (c, next) => {
   const host = c.req.header('host');
-  if (!host) return await next();
+  if (!host) { await next(); return; }
 
   const domain = host.split(':')[0];
 

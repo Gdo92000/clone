@@ -9,8 +9,9 @@ export const coverageHandlers = [
   }),
 
   http.get('*/api/coverage-cities/:id', ({ params }) => {
-    const city = mockCoverageCities.find(c => c.id === params['id'])
-    logMock('GET', `/api/coverage-cities/${params['id']}`, city ? 200 : 404)
+    const id = typeof params['id'] === 'string' ? params['id'] : ''
+    const city = mockCoverageCities.find(c => c.id === id)
+    logMock('GET', `/api/coverage-cities/${id}`, city ? 200 : 404)
     return city
       ? HttpResponse.json(city, { status: 200 })
       : HttpResponse.json({ error: 'Not found' }, { status: 404 })
@@ -23,19 +24,22 @@ export const coverageHandlers = [
   }),
 
   http.put('*/api/coverage-cities/admin/:id', async ({ params, request }) => {
+    const id = typeof params['id'] === 'string' ? params['id'] : ''
     const body = await request.json()
-    logMock('PUT', `/api/coverage-cities/admin/${params['id']}`, 200)
+    logMock('PUT', `/api/coverage-cities/admin/${id}`, 200)
     return HttpResponse.json({ success: true, ...body as Record<string, unknown> }, { status: 200 })
   }),
 
   http.post('*/api/coverage-cities/admin/:id/toggle', ({ params }) => {
-    const city = mockCoverageCities.find(c => c.id === params['id'])
-    logMock('POST', `/api/coverage-cities/admin/${params['id']}/toggle`, 200)
+    const id = typeof params['id'] === 'string' ? params['id'] : ''
+    const city = mockCoverageCities.find(c => c.id === id)
+    logMock('POST', `/api/coverage-cities/admin/${id}/toggle`, 200)
     return HttpResponse.json({ ...city, is_active: !city?.is_active }, { status: 200 })
   }),
 
   http.delete('*/api/coverage-cities/admin/:id', ({ params }) => {
-    logMock('DELETE', `/api/coverage-cities/admin/${params['id']}`, 200)
+    const id = typeof params['id'] === 'string' ? params['id'] : ''
+    logMock('DELETE', `/api/coverage-cities/admin/${id}`, 200)
     return HttpResponse.json({ success: true }, { status: 200 })
   }),
 

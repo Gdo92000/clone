@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { db } from '../db';
 import { subscriptionAddons } from '../db/schema';
 import { authMiddleware } from '../middleware/auth';
@@ -17,9 +17,9 @@ route.post('/toggle', zValidator('json', z.object({
 })), async (c) => {
   const { subscriptionId, addonId } = c.req.valid('json');
   
-  const existing = await db.select().from(subscriptionAddons)
-    .where(eq(subscriptionAddons.subscription_id, subscriptionId))
-    .and(eq(subscriptionAddons.addon_id, addonId))
+  const existing = await db.select()
+    .from(subscriptionAddons)
+    .where(and(eq(subscriptionAddons.subscription_id, subscriptionId), eq(subscriptionAddons.addon_id, addonId)))
     .limit(1);
   
   if (existing.length) {

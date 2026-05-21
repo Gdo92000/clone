@@ -13,9 +13,9 @@ const route = new Hono();
 route.use('*', authMiddleware, requirePermission({ roles: ['superadmin', 'admin', 'merchant'] }));
 
 route.get('/config/:branchId', requireTenantOwnership('branchId'), async (c) => {
-  const { branchId } = c.req.param();
-  const [config] = await db.select().from(printerConfigs).where(eq(printerConfigs.branch_id, branchId));
-  return config ? c.json(config) : c.json({ enabled: false }, 200);
+  const branchId = c.req.param('branchId');
+  const configs = await db.select().from(printerConfigs).where(eq(printerConfigs.branch_id, branchId)).limit(1);
+  return configs.length ? c.json(configs[0]) : c.json({ enabled: false }, 200);
 });
 
 route.put('/config/:branchId', requireTenantOwnership('branchId'), zValidator('json', z.object({
@@ -25,11 +25,11 @@ route.put('/config/:branchId', requireTenantOwnership('branchId'), zValidator('j
   model: z.string().optional(),
   enabled: z.boolean().optional(),
 })), async (c) => {
-  const { branchId } = c.req.param();
+  const branchId = c.req.param('branchId');
   const data = c.req.valid('json');
   
-  const [existing] = await db.select().from(printerConfigs).where(eq(printerConfigs.branch_id, branchId));
-  if (existing) {
+  const existingConfigs = await db.select().from(printerConfigs).where(eq(printerConfigs.branch_id, branchId)).limit(1);
+  if (existingConfigs.length) {
     await db.update(printerConfigs).set({ ...data, updated_at: new Date() }).where(eq(printerConfigs.branch_id, branchId));
   } else {
     await db.insert(printerConfigs).values({ branch_id: branchId, ...data });
@@ -38,7 +38,7 @@ route.put('/config/:branchId', requireTenantOwnership('branchId'), zValidator('j
 });
 
 route.get('/history/:branchId', requireTenantOwnership('branchId'), async (c) => {
-  const { branchId } = c.req.param();
+  const branchId = c.req.param('branchId');
   const jobs = await db.select().from(printJobs).where(eq(printJobs.branch_id, branchId)).orderBy(printJobs.created_at);
   return c.json(jobs);
 });

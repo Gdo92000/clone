@@ -7,8 +7,8 @@ import { ExperienceLayout } from '../components/ExperienceLayout';
 function orderToFinanceRow(order: ConsumerOrderDTO, index: number) {
   return {
     id: `fin-${index}`,
-    title: `Pedido #${order.id ?? index + 1}`,
-    amount: order.total ?? 0,
+    title: `Pedido #${order.id}`,
+    amount: order.total,
     detail: order.status ? `Status: ${order.status}` : 'Pedido realizado',
   } as const;
 }

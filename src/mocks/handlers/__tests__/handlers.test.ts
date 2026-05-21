@@ -24,7 +24,7 @@ describe('Auth', () => {
   it('POST /api/auth/login returns 200 with token', async () => {
     const res = await api().post('/api/auth/login', { email: 'admin@admin.com', password: 'admin' })
     expect(res.status).toBe(200)
-    const body = await res.json()
+    const body = await res.json() as { token: string; user: { email: string } }
     expect(body.token).toBe('mock-jwt-token-superadmin')
     expect(body.user.email).toBe('admin@admin.com')
   })
@@ -34,7 +34,7 @@ describe('Auth', () => {
       headers: { Authorization: 'Bearer mock-jwt-token-superadmin' },
     })
     expect(res.status).toBe(200)
-    const body = await res.json()
+    const body = await res.json() as { id: string }
     expect(body.id).toBe('user-1')
   })
 
@@ -48,7 +48,7 @@ describe('Restaurants', () => {
   it('GET /api/restaurants returns list', async () => {
     const res = await api().get('/api/restaurants')
     expect(res.status).toBe(200)
-    const body = await res.json()
+    const body = await res.json() as Array<Record<string, unknown>>
     expect(Array.isArray(body)).toBe(true)
     expect(body.length).toBe(8)
   })
@@ -56,17 +56,17 @@ describe('Restaurants', () => {
   it('GET /api/restaurants/:id returns single', async () => {
     const res = await api().get('/api/restaurants/rest-1')
     expect(res.status).toBe(200)
-    const body = await res.json()
+    const body = await res.json() as { name: string }
     expect(body.name).toBe('Burger House')
   })
 
   it('GET /api/menu-items returns items with both restaurant_id and branch_id', async () => {
     const res = await api().get('/api/menu-items')
     expect(res.status).toBe(200)
-    const body = await res.json()
+    const body = await res.json() as Array<Record<string, unknown>>
     expect(body.length).toBeGreaterThan(0)
-    expect(body[0].restaurant_id).toBeDefined()
-    expect(body[0].branch_id).toBe(body[0].restaurant_id)
+    expect(body[0]?.restaurant_id).toBeDefined()
+    expect(body[0]?.branch_id).toBe(body[0]?.restaurant_id)
   })
 })
 
@@ -74,7 +74,7 @@ describe('Merchant', () => {
   it('GET /api/companies returns list', async () => {
     const res = await api().get('/api/companies')
     expect(res.status).toBe(200)
-    const body = await res.json()
+    const body = await res.json() as Array<Record<string, unknown>>
     expect(Array.isArray(body)).toBe(true)
     expect(body.length).toBe(3)
   })
@@ -82,26 +82,26 @@ describe('Merchant', () => {
   it('GET /api/merchant-coupons uses correct field names', async () => {
     const res = await api().get('/api/merchant-coupons?branch_id=branch-1')
     expect(res.status).toBe(200)
-    const body = await res.json()
-    expect(body[0].discount_value).toBe('10')
-    expect(body[0].valid_until).toBeDefined()
-    expect(body[0].is_active).toBe(true)
+    const body = await res.json() as Array<Record<string, unknown>>
+    expect(body[0]?.discount_value).toBe('10')
+    expect(body[0]?.valid_until).toBeDefined()
+    expect(body[0]?.is_active).toBe(true)
   })
 
   it('GET /api/campaigns returns typed fields', async () => {
     const res = await api().get('/api/campaigns')
     expect(res.status).toBe(200)
-    const body = await res.json()
-    expect(body[0].discount).toBe('10%')
-    expect(body[0].status).toBe('active')
+    const body = await res.json() as Array<Record<string, unknown>>
+    expect(body[0]?.discount).toBe('10%')
+    expect(body[0]?.status).toBe('active')
   })
 
   it('GET /api/branches/:branchId/orders returns filtered orders', async () => {
     const res = await api().get('/api/branches/branch-1/orders')
     expect(res.status).toBe(200)
-    const body = await res.json()
+    const body = await res.json() as Array<Record<string, unknown>>
     expect(Array.isArray(body)).toBe(true)
-    body.forEach((o: Record<string, unknown>) => expect(o['branch_id']).toBe('branch-1'))
+    body.forEach((o: Record<string, unknown>) => { expect(o['branch_id']).toBe('branch-1'); })
   })
 })
 
@@ -109,7 +109,7 @@ describe('Operations', () => {
   it('GET /api/operations/:branchId/status returns OpenStatus shape', async () => {
     const res = await api().get('/api/operations/branch-1/status')
     expect(res.status).toBe(200)
-    const body = await res.json()
+    const body = await res.json() as { isOpen: boolean; currentPeriod: Record<string, unknown>; reason: string }
     expect(body.isOpen).toBe(true)
     expect(body.currentPeriod).toEqual({ openTime: '08:00', closeTime: '23:00' })
     expect(body.reason).toBe('open')
@@ -118,7 +118,7 @@ describe('Operations', () => {
   it('GET /api/holidays/date/:date returns an array', async () => {
     const res = await api().get('/api/holidays/date/2026-01-01')
     expect(res.status).toBe(200)
-    const body = await res.json()
+    const body = await res.json() as Array<Record<string, unknown>>
     expect(Array.isArray(body)).toBe(true)
     expect(body.length).toBe(1)
   })
@@ -126,9 +126,9 @@ describe('Operations', () => {
   it('GET /api/holidays uses scope instead of type', async () => {
     const res = await api().get('/api/holidays')
     expect(res.status).toBe(200)
-    const body = await res.json()
-    expect(body[0].scope).toBe('national')
-    expect(body[0].type).toBeUndefined()
+    const body = await res.json() as Array<Record<string, unknown>>
+    expect(body[0]?.scope).toBe('national')
+    expect(body[0]?.type).toBeUndefined()
   })
 })
 
@@ -136,9 +136,9 @@ describe('Coverage', () => {
   it('GET /api/coverage-cities returns list with created_at', async () => {
     const res = await api().get('/api/coverage-cities')
     expect(res.status).toBe(200)
-    const body = await res.json()
+    const body = await res.json() as Array<Record<string, unknown>>
     expect(body.length).toBe(3)
-    expect(body[0].created_at).toBeDefined()
+    expect(body[0]?.created_at).toBeDefined()
   })
 })
 
@@ -146,15 +146,15 @@ describe('Subscription-addons', () => {
   it('GET /api/subscription-addons returns list', async () => {
     const res = await api().get('/api/subscription-addons')
     expect(res.status).toBe(200)
-    const body = await res.json()
+    const body = await res.json() as Array<Record<string, unknown>>
     expect(Array.isArray(body)).toBe(true)
-    expect(body[0].subscription_id).toBe('comp-1')
+    expect(body[0]?.subscription_id).toBe('comp-1')
   })
 
   it('POST /api/subscription-addons/toggle returns 200', async () => {
     const res = await api().post('/api/subscription-addons/toggle', { subscriptionId: 'comp-1', addonId: 'addon-1' })
     expect(res.status).toBe(200)
-    const body = await res.json()
+    const body = await res.json() as { success: boolean }
     expect(body.success).toBe(true)
   })
 })
@@ -163,7 +163,7 @@ describe('Printing', () => {
   it('GET /api/printing/config/:branchId returns config', async () => {
     const res = await api().get('/api/printing/config/branch-1')
     expect(res.status).toBe(200)
-    const body = await res.json()
+    const body = await res.json() as { printer_type: string; enabled: boolean }
     expect(body.printer_type).toBe('network')
     expect(body.enabled).toBe(true)
   })
@@ -171,7 +171,7 @@ describe('Printing', () => {
   it('GET /api/printing/history/:branchId returns list', async () => {
     const res = await api().get('/api/printing/history/branch-1')
     expect(res.status).toBe(200)
-    const body = await res.json()
+    const body = await res.json() as Array<Record<string, unknown>>
     expect(Array.isArray(body)).toBe(true)
     expect(body.length).toBe(3)
   })
@@ -182,7 +182,7 @@ describe('Scenario behavior', () => {
     setScenario('empty_store')
     const res = await api().get('/api/orders')
     expect(res.status).toBe(200)
-    const body = await res.json()
+    const body = await res.json() as unknown[]
     expect(body).toEqual([])
   })
 
@@ -190,7 +190,7 @@ describe('Scenario behavior', () => {
     setScenario('kitchen_congested')
     const res = await api().get('/api/orders')
     expect(res.status).toBe(200)
-    const body = await res.json()
+    const body = await res.json() as Array<Record<string, unknown>>
     body.forEach((o: Record<string, unknown>) => {
       if (o.status !== 'delivered') expect(o.status).toBe('pending')
     })
@@ -200,7 +200,7 @@ describe('Scenario behavior', () => {
     setScenario('merchant_blocked')
     const res = await api().post('/api/orders/order-1/status', { status: 'preparing' })
     expect(res.status).toBe(403)
-    const body = await res.json()
+    const body = await res.json() as { error: string }
     expect(body.error).toContain('bloqueada')
   })
 
@@ -208,7 +208,7 @@ describe('Scenario behavior', () => {
     setScenario('payment_declined')
     const res = await api().post('/api/loyalty/me/loyalty/redeem', { rewardId: 'reward-1' })
     expect(res.status).toBe(402)
-    const body = await res.json()
+    const body = await res.json() as { error: string }
     expect(body.error).toContain('recusado')
   })
 
@@ -216,15 +216,15 @@ describe('Scenario behavior', () => {
     setScenario('tenant_expired')
     const res = await api().get('/api/subscriptions')
     expect(res.status).toBe(200)
-    const body = await res.json()
-    body.forEach((s: Record<string, unknown>) => expect(s.billing_status).toBe('cancelled'))
+    const body = await res.json() as Array<Record<string, unknown>>
+    body.forEach((s: Record<string, unknown>) => { expect(s.billing_status).toBe('cancelled'); })
   })
 
   it('courier_offline scenario sets isOpen to false', async () => {
     setScenario('courier_offline')
     const res = await api().get('/api/operations/branch-1/status')
     expect(res.status).toBe(200)
-    const body = await res.json()
+    const body = await res.json() as { isOpen: boolean; reason: string }
     expect(body.isOpen).toBe(false)
     expect(body.reason).toBe('closed')
   })
@@ -233,7 +233,7 @@ describe('Scenario behavior', () => {
     setScenario('merchant_blocked')
     const res = await api().get('/api/companies')
     expect(res.status).toBe(200)
-    const body = await res.json()
-    body.forEach((c: Record<string, unknown>) => expect(c.plan).toBe('blocked'))
+    const body = await res.json() as Array<Record<string, unknown>>
+    body.forEach((c: Record<string, unknown>) => { expect(c.plan).toBe('blocked'); })
   })
 })

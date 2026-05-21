@@ -9,18 +9,20 @@ export const restaurantHandlers = [
   }),
 
   http.get('*/api/restaurants/:id', ({ params }) => {
-    const restaurant = mockRestaurants.find(r => r.id === params['id'])
+    const id = typeof params['id'] === 'string' ? params['id'] : ''
+    const restaurant = mockRestaurants.find(r => r.id === id)
     if (!restaurant) {
-      logMock('GET', `/api/restaurants/${params['id']}`, 404)
+      logMock('GET', `/api/restaurants/${id}`, 404)
       return HttpResponse.json({ error: 'Not found' }, { status: 404 })
     }
-    logMock('GET', `/api/restaurants/${params['id']}`, 200)
+    logMock('GET', `/api/restaurants/${id}`, 200)
     return HttpResponse.json(restaurant, { status: 200 })
   }),
 
   http.get('*/api/restaurants/:id/menu-items', ({ params }) => {
-    const items = params['id'] ? mockMenuItems.filter(m => m.restaurant_id === params['id']) : mockMenuItems
-    logMock('GET', `/api/restaurants/${params['id']}/menu-items`, 200, `${items.length} items`)
+    const id = typeof params['id'] === 'string' ? params['id'] : ''
+    const items = id ? mockMenuItems.filter(m => m.restaurant_id === id) : mockMenuItems
+    logMock('GET', `/api/restaurants/${id}/menu-items`, 200, `${items.length} items`)
     return HttpResponse.json(items, { status: 200 })
   }),
 
@@ -34,12 +36,13 @@ export const restaurantHandlers = [
   }),
 
   http.get('*/api/menu-items/:id', ({ params }) => {
-    const item = mockMenuItems.find(m => m.id === params['id'])
+    const id = typeof params['id'] === 'string' ? params['id'] : ''
+    const item = mockMenuItems.find(m => m.id === id)
     if (!item) {
-      logMock('GET', `/api/menu-items/${params['id']}`, 404)
+      logMock('GET', `/api/menu-items/${id}`, 404)
       return HttpResponse.json({ error: 'Not found' }, { status: 404 })
     }
-    logMock('GET', `/api/menu-items/${params['id']}`, 200)
+    logMock('GET', `/api/menu-items/${id}`, 200)
     return HttpResponse.json(item, { status: 200 })
   }),
 

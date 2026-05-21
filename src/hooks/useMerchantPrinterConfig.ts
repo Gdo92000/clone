@@ -31,6 +31,6 @@ export function useSavePrinterConfig(branchId: string) {
       successToast('Configuração de impressora salva');
       void queryClient.invalidateQueries({ queryKey: merchantKeys.printerConfig(branchId) });
     },
-    onError: () => errorToast('Erro ao salvar configuração'),
+    onError: () => { errorToast('Erro ao salvar configuração'); },
   });
 }

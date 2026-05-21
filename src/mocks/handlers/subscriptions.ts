@@ -12,8 +12,9 @@ export const subscriptionHandlers = [
   }),
 
   http.get('*/api/plans/:id', ({ params }) => {
-    const plan = mockPlans.find(p => p.id === params['id'])
-    logMock('GET', `/api/plans/${params['id']}`, plan ? 200 : 404)
+    const id = typeof params['id'] === 'string' ? params['id'] : ''
+    const plan = mockPlans.find(p => p.id === id)
+    logMock('GET', `/api/plans/${id}`, plan ? 200 : 404)
     return plan
       ? HttpResponse.json(plan, { status: 200 })
       : HttpResponse.json({ error: 'Not found' }, { status: 404 })
@@ -26,8 +27,9 @@ export const subscriptionHandlers = [
   }),
 
   http.put('*/api/plans/:id', async ({ params, request }) => {
+    const id = typeof params['id'] === 'string' ? params['id'] : ''
     const body = await request.json()
-    logMock('PUT', `/api/plans/${params['id']}`, 200)
+    logMock('PUT', `/api/plans/${id}`, 200)
     return HttpResponse.json({ success: true, ...body as Record<string, unknown> }, { status: 200 })
   }),
 
@@ -65,8 +67,9 @@ export const subscriptionHandlers = [
   }),
 
   http.put('*/api/subscriptions/:id', async ({ params, request }) => {
+    const id = typeof params['id'] === 'string' ? params['id'] : ''
     const body = await request.json()
-    logMock('PUT', `/api/subscriptions/${params['id']}`, 200)
+    logMock('PUT', `/api/subscriptions/${id}`, 200)
     return HttpResponse.json({ success: true, ...body as Record<string, unknown> }, { status: 200 })
   }),
 
@@ -79,8 +82,9 @@ export const subscriptionHandlers = [
   }),
 
   http.get('*/api/invoices/:companyId', ({ params }) => {
-    const invoices = mockInvoices.filter(i => i.company_id === params['companyId'])
-    logMock('GET', `/api/invoices/${params['companyId']}`, 200)
+    const companyId = typeof params['companyId'] === 'string' ? params['companyId'] : ''
+    const invoices = mockInvoices.filter(i => i.company_id === companyId)
+    logMock('GET', `/api/invoices/${companyId}`, 200)
     return HttpResponse.json(invoices, { status: 200 })
   }),
 ]

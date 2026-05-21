@@ -22,13 +22,13 @@ function formatMessage(level: LogLevel, context: string, message: string): strin
 export const logger = {
   debug(context: string, message: string, meta?: Record<string, unknown>): void {
     if (shouldLog('debug')) {
-      console.debug(formatMessage('debug', context, message), meta ?? '');
+      console.warn(formatMessage('debug', context, message), meta ?? '');
     }
   },
 
   info(context: string, message: string, meta?: Record<string, unknown>): void {
     if (shouldLog('info')) {
-      console.info(formatMessage('info', context, message), meta ?? '');
+      console.warn(formatMessage('info', context, message), meta ?? '');
     }
   },
 
