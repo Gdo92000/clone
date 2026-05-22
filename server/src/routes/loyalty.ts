@@ -75,8 +75,8 @@ route.post('/me/loyalty/redeem', zValidator('json', z.object({
 });
 
 // Merchant routes
-route.use('/settings/*', authMiddleware, requirePermission(['superadmin', 'admin', 'merchant']), requireTenantOwnership('branchId'));
-route.use('/rewards/*', authMiddleware, requirePermission(['superadmin', 'admin', 'merchant']), requireTenantOwnership('branchId'));
+route.use('/settings/*', authMiddleware, requirePermission({ roles: ['superadmin', 'admin', 'merchant'] }), requireTenantOwnership('branchId'));
+route.use('/rewards/*', authMiddleware, requirePermission({ roles: ['superadmin', 'admin', 'merchant'] }), requireTenantOwnership('branchId'));
 
 route.get('/settings/:branchId', async (c) => {
   const { branchId } = c.req.param();

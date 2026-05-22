@@ -9,7 +9,7 @@ import { requirePermission } from '../middleware/permission';
 
 const route = new Hono();
 
-route.use('*', authMiddleware, requirePermission(['superadmin']));
+route.use('*', authMiddleware, requirePermission({ roles: ['superadmin'] }));
 
 const idParam = z.object({ id: z.string().min(1).max(64) });
 

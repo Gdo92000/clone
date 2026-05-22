@@ -1,4 +1,4 @@
-export { ApiError, get, post, put, del } from './httpClient';
+export { ApiError, get, post, put, patch, del } from './httpClient';
 export { restaurantApi } from './restaurantApi';
 export { merchantApi } from './merchantApi';
 export { subscriptionApi } from './subscriptionApi';

@@ -6,8 +6,8 @@ import { restaurants } from '../db/schema/core';
 export interface CoverageCityInput {
   name: string;
   state: string;
-  latitude: number;
-  longitude: number;
+  latitude: string;
+  longitude: string;
   radiusKm?: number;
 }
 
@@ -23,16 +23,24 @@ export async function getCoverageCity(id: string) {
 
 export async function createCoverageCity(input: CoverageCityInput) {
   const id = `city-${input.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
-  await db.insert(coverageCities).values({ id, ...input, radius_km: input.radiusKm ?? 18, restaurant_count: 0 });
+  await db.insert(coverageCities).values({
+    id,
+    name: input.name,
+    state: input.state,
+    latitude: input.latitude,
+    longitude: input.longitude,
+    radius_km: input.radiusKm ?? 18,
+    restaurant_count: 0,
+  });
   return getCoverageCity(id);
 }
 
 export async function updateCoverageCity(id: string, input: Partial<CoverageCityInput>) {
-  const updateData: Record<string, unknown> = {};
+  const updateData: Partial<typeof coverageCities.$inferInsert> = {};
   if (input.name !== undefined) updateData.name = input.name;
   if (input.state !== undefined) updateData.state = input.state;
-  if (input.latitude !== undefined) updateData.latitude = String(input.latitude);
-  if (input.longitude !== undefined) updateData.longitude = String(input.longitude);
+  if (input.latitude !== undefined) updateData.latitude = input.latitude;
+  if (input.longitude !== undefined) updateData.longitude = input.longitude;
   if (input.radiusKm !== undefined) updateData.radius_km = input.radiusKm;
   if (Object.keys(updateData).length === 0) return getCoverageCity(id);
   await db.update(coverageCities).set(updateData).where(eq(coverageCities.id, id));

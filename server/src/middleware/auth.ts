@@ -14,9 +14,7 @@ export function getAuthMiddleware(): MiddlewareHandler {
 export const authMiddleware: MiddlewareHandler = async (c, next) => {
   const jwtMiddleware = getAuthMiddleware();
   try {
-    await jwtMiddleware(c, () => {
-      return;
-    });
+    await jwtMiddleware(c, async () => {});
   } catch {
     return;
   }

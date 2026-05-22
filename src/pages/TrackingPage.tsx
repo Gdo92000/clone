@@ -3,6 +3,7 @@ import { FxOrderStatus, type OrderStatusStep } from '../components/commerce/FxOr
 import { FxPriceTag } from '../components/commerce/FxPriceTag';
 import { FxPageNavbar } from '../components/navigation/FxPageNavbar';
 import { Button } from '../components/ui/Button';
+import { useSSEOrderTracking } from '../hooks/useSSE';
 import { useOrderTracking } from '../hooks/useOrderTracking';
 import { ROUTES } from '../lib/routes';
 
@@ -23,7 +24,10 @@ const orderItems = [
 
 export function TrackingPage() {
   const navigate = useNavigate();
-  const { currentStatus } = useOrderTracking({ steps: orderSteps, pollingInterval: 10000 });
+  const sseTracking = useSSEOrderTracking({ steps: orderSteps });
+  const pollingTracking = useOrderTracking({ steps: orderSteps, pollingInterval: 10000 });
+  const currentStatus = sseTracking.connected ? sseTracking.currentStatus : pollingTracking.currentStatus;
+  const connected = sseTracking.connected;
   const [orderId] = [('PED-2024-0001')];
   const [restaurantName] = [('Pizza Brescian')];
 
@@ -35,7 +39,10 @@ export function TrackingPage() {
       <main>
         <div className="max-w-lg mx-auto px-4 py-4 space-y-6">
           <div className="text-center">
-            <p className="text-sm text-text-secondary mb-1">Pedido</p>
+            <div className="flex items-center justify-center gap-2 mb-1">
+              {connected && <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" title="Tempo real" />}
+              <p className="text-sm text-text-secondary">Pedido</p>
+            </div>
             <p className="text-lg font-bold text-text-primary">{orderId}</p>
             <p className="text-sm text-text-tertiary">{restaurantName}</p>
           </div>

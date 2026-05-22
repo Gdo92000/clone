@@ -24,10 +24,10 @@ export interface IpApiResponse {
 export const ipApi = {
   // For ipapi.co
   getLocationByIp: (): Promise<IpApiResponse> => {
-    return httpClient.get<IpApiResponse>('/api/ipapi/json/');
+    return httpClient.get<IpApiResponse>('/ipapi/json/');
   },
 
   getLocationByIpAlternative: (): Promise<IpApiResponse> => {
-    return httpClient.get<IpApiResponse>('/api/ip-api/json/');
+    return httpClient.get<IpApiResponse>('/ip-api/json/');
   }
 };

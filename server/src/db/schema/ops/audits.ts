@@ -6,7 +6,7 @@ export const auditEvents = pgTable('audit_events', {
   actor_id: text('actor_id').references(() => users.id).notNull(),
   action: text('action').notNull(),
   target: text('target').notNull(),
-  metadata: jsonb('metadata'),
+  metadata: jsonb('metadata').$type<Record<string, unknown>>(),
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
 }, (table) => [
   index('idx_audit_events_created').on(table.created_at),

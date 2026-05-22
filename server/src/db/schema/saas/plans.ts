@@ -26,6 +26,6 @@ export const capabilities = pgTable('capabilities', {
   category: capabilityCategory('category').notNull(),
   charge_type: billingChargeType('charge_type').notNull().default('included'),
   required_plan: planId('required_plan'),
-  dependencies: jsonb('dependencies'),
+  dependencies: jsonb('dependencies').$type<string[]>(),
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });

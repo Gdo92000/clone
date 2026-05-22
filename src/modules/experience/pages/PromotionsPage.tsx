@@ -4,7 +4,7 @@ import { ExperienceLayout } from '../components/ExperienceLayout';
 import { useGlobalCoupons } from '../../../hooks/useSuperadminData';
 
 function isActiveGlobalCoupon(c: GlobalCouponDTO): boolean {
-  return c.active;
+  return c.is_active;
 }
 
 export function PromotionsPage() {
@@ -19,8 +19,8 @@ export function PromotionsPage() {
             <p className="text-sm font-bold text-brand-primary">{coupon.code}</p>
             <h2 className="mt-2 font-semibold text-text-primary">{coupon.description ?? `Desconto no pedido`}</h2>
             <p className="mt-1 text-sm text-text-secondary">
-              {coupon.discount_type === 'percentage' ? `${coupon.discount}% de desconto` : `R$ ${coupon.discount.toFixed(2).replace('.', ',')} de desconto`}
-              {coupon.min_order > 0 ? ` | Pedido mínimo: R$ ${coupon.min_order.toFixed(2).replace('.', ',')}` : ''}
+              {coupon.discount_type === 'percentage' ? `${coupon.discount_value}% de desconto` : `R$ ${Number(coupon.discount_value).toFixed(2).replace('.', ',')} de desconto`}
+              {coupon.min_order ? ` | Pedido mínimo: R$ ${Number(coupon.min_order).toFixed(2).replace('.', ',')}` : ''}
             </p>
           </article>
         ))}

@@ -2,6 +2,7 @@ import type { ErrorHandler } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { logger } from './logger';
+import { NODE_ENV } from '../config';
 
 export class AppError extends Error {
   statusCode: ContentfulStatusCode;
@@ -36,7 +37,7 @@ export const errorHandler: ErrorHandler = (err, c) => {
     try { return c.get('requestId') as string | undefined; } catch { return undefined; }
   })();
 
-  const isDev = process.env.NODE_ENV !== 'production';
+  const isDev = NODE_ENV !== 'production';
 
   if (err instanceof AppError) {
     if (err.statusCode >= 500) logger.error(err.message, err, { requestId: reqId });
@@ -58,7 +59,7 @@ export const errorHandler: ErrorHandler = (err, c) => {
 
   const isZodError = typeof err === 'object' && 'name' in err && (err as { name?: string }).name === 'ZodError';
   if (isZodError) {
-    const issues = (err as { issues: unknown[] }).issues;
+    const issues = (err as unknown as { issues: unknown[] }).issues;
     logger.warn('Zod validation error', { requestId: reqId, issues });
     return c.json({ error: 'Dados inválidos', details: issues, requestId: reqId }, 400);
   }

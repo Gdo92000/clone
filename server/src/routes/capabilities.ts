@@ -29,14 +29,14 @@ route.get('/', async (c) => {
   return c.json(all);
 });
 
-route.post('/', authMiddleware, requirePermission(['superadmin', 'admin']), zValidator('json', createSchema), async (c) => {
+route.post('/', authMiddleware, requirePermission({ roles: ['superadmin', 'admin'] }), zValidator('json', createSchema), async (c) => {
   const data = c.req.valid('json');
   const id = crypto.randomUUID();
   await db.insert(capabilities).values({ ...data, id, created_at: new Date() } as typeof capabilities.$inferInsert);
   return c.json({ success: true, id }, 201);
 });
 
-route.put('/:id', authMiddleware, requirePermission(['superadmin', 'admin']), zValidator('param', idParam), zValidator('json', updateSchema), async (c) => {
+route.put('/:id', authMiddleware, requirePermission({ roles: ['superadmin', 'admin'] }), zValidator('param', idParam), zValidator('json', updateSchema), async (c) => {
   const { id } = c.req.valid('param');
   const data = c.req.valid('json');
   const existing = await db.select().from(capabilities).where(eq(capabilities.id, id)).limit(1);
@@ -45,7 +45,7 @@ route.put('/:id', authMiddleware, requirePermission(['superadmin', 'admin']), zV
   return c.json({ success: true });
 });
 
-route.delete('/:id', authMiddleware, requirePermission(['superadmin', 'admin']), zValidator('param', idParam), async (c) => {
+route.delete('/:id', authMiddleware, requirePermission({ roles: ['superadmin', 'admin'] }), zValidator('param', idParam), async (c) => {
   const { id } = c.req.valid('param');
   const existing = await db.select().from(capabilities).where(eq(capabilities.id, id)).limit(1);
   if (!existing.length) return c.json({ error: 'Not found' }, 404);

@@ -11,7 +11,7 @@ import type { TokenPayload } from '../auth/types';
 
 const route = new Hono();
 
-route.use('*', authMiddleware, requirePermission(['superadmin', 'admin', 'merchant']));
+route.use('*', authMiddleware, requirePermission({ roles: ['superadmin', 'admin', 'merchant'] }));
 
 const idParam = z.object({ id: z.string().min(1).max(64) });
 
@@ -41,20 +41,21 @@ route.get('/', async (c) => {
   }
 
   const user = await db.select({ company_id: users.company_id, branch_id: users.branch_id }).from(users).where(eq(users.id, payload.sub)).limit(1);
-  const userData = user[0];
 
   if (payload.role === 'admin') {
     if (branchId) {
        const branch = await db.select().from(branches).where(eq(branches.id, branchId)).limit(1);
-       if (!branch.length || branch[0].company_id !== userData.company_id) return c.json({ error: 'Forbidden' }, 403);
+       if (!branch.length || branch[0].company_id !== user[0].company_id) return c.json({ error: 'Forbidden' }, 403);
        return c.json(await db.select().from(merchantCoupons).where(eq(merchantCoupons.branch_id, branchId)));
     }
-    const companyBranches = await db.select({ id: branches.id }).from(branches).where(eq(branches.company_id, userData.company_id));
+    if (!user[0].company_id) return c.json({ error: 'User not linked to company' }, 500);
+    const companyBranches = await db.select({ id: branches.id }).from(branches).where(eq(branches.company_id, user[0].company_id));
     const branchIds = companyBranches.map(b => b.id);
     return c.json(await db.select().from(merchantCoupons).where(inArray(merchantCoupons.branch_id, branchIds)));
-  } else {
-    return c.json(await db.select().from(merchantCoupons).where(eq(merchantCoupons.branch_id, userData.branch_id)));
   }
+
+  if (!user[0].branch_id) return c.json({ error: 'User not linked to branch' }, 500);
+  return c.json(await db.select().from(merchantCoupons).where(eq(merchantCoupons.branch_id, user[0].branch_id)));
 });
 
 route.get('/:id', requireTenantOwnership('branchId'), zValidator('param', idParam), async (c) => {

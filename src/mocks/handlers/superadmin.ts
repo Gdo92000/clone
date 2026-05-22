@@ -10,15 +10,36 @@ import { logMock } from '../logger'
 export const superadminHandlers = [
   http.get('*/api/admin/users', () => {
     logMock('GET', '/api/admin/users', 200)
-    return HttpResponse.json(mockAdminUsers, { status: 200 })
+    const adminUsers = mockAdminUsers.map(u => ({
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      phone: null as string | null,
+      role: u.role,
+      is_active: u.active,
+      company_id: null as string | null,
+      branch_id: null as string | null,
+      created_at: new Date().toISOString(),
+    }))
+    return HttpResponse.json(adminUsers, { status: 200 })
   }),
 
   http.get('*/api/admin/users/:id', ({ params }) => {
     const id = typeof params['id'] === 'string' ? params['id'] : ''
-    const user = mockAdminUsers.find(u => u.id === id)
-    logMock('GET', `/api/admin/users/${id}`, user ? 200 : 404)
-    return user
-      ? HttpResponse.json(user, { status: 200 })
+    const u = mockAdminUsers.find(u => u.id === id)
+    logMock('GET', `/api/admin/users/${id}`, u ? 200 : 404)
+    return u
+      ? HttpResponse.json({
+          id: u.id,
+          name: u.name,
+          email: u.email,
+          phone: null as string | null,
+          role: u.role,
+          is_active: u.active,
+          company_id: null as string | null,
+          branch_id: null as string | null,
+          created_at: new Date().toISOString(),
+        }, { status: 200 })
       : HttpResponse.json({ error: 'Not found' }, { status: 404 })
   }),
 
@@ -97,21 +118,29 @@ export const superadminHandlers = [
     return HttpResponse.json(mockGlobalCoupons, { status: 200 })
   }),
 
-  http.post('*/api/global-coupons', async ({ request }) => {
-    const body = await request.json()
+  http.post('*/api/global-coupons', () => {
     logMock('POST', '/api/global-coupons', 201)
-    return HttpResponse.json({ success: true, id: 'gc-new', ...body as Record<string, unknown> }, { status: 201 })
+    return HttpResponse.json({ success: true, id: 'gc-new' }, { status: 201 })
   }),
 
-  http.put('*/api/global-coupons/:id', async ({ params, request }) => {
+  http.put('*/api/global-coupons/:id', ({ params }) => {
     const id = typeof params['id'] === 'string' ? params['id'] : ''
-    const body = await request.json()
+    const coupon = mockGlobalCoupons.find(c => c.id === id)
+    if (!coupon) {
+      logMock('PUT', `/api/global-coupons/${id}`, 404)
+      return HttpResponse.json({ error: 'Not found' }, { status: 404 })
+    }
     logMock('PUT', `/api/global-coupons/${id}`, 200)
-    return HttpResponse.json({ success: true, ...body as Record<string, unknown> }, { status: 200 })
+    return HttpResponse.json({ success: true }, { status: 200 })
   }),
 
   http.delete('*/api/global-coupons/:id', ({ params }) => {
     const id = typeof params['id'] === 'string' ? params['id'] : ''
+    const coupon = mockGlobalCoupons.find(c => c.id === id)
+    if (!coupon) {
+      logMock('DELETE', `/api/global-coupons/${id}`, 404)
+      return HttpResponse.json({ error: 'Not found' }, { status: 404 })
+    }
     logMock('DELETE', `/api/global-coupons/${id}`, 200)
     return HttpResponse.json({ success: true }, { status: 200 })
   }),

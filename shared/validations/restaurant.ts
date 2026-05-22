@@ -18,10 +18,10 @@ export const restaurantSchema = z.object({
   state: z.string().length(2, 'UF inválida'),
   zipCode: z.string().regex(/^\d{5}-?\d{3}$/, 'CEP inválido').max(9).optional(),
   phone: z.string().max(20).optional(),
-  deliveryFee: z.coerce.number().min(0).optional(),
+  deliveryFee: z.string().optional(),
   deliveryTime: z.string().max(50).optional(),
-  latitude: z.coerce.number().min(-90).max(90).optional(),
-  longitude: z.coerce.number().min(-180).max(180).optional(),
+  latitude: z.string().optional(),
+  longitude: z.string().optional(),
 });
 
 export const restaurantFiltersSchema = z.object({

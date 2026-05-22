@@ -10,6 +10,7 @@ import { authMiddleware, getTokenPayload } from '../middleware/auth';
 import { rateLimit } from '../middleware/rateLimit';
 import { createAuditLog } from '../services/auditLogService';
 import { logger } from '../lib/logger';
+import { refreshTokenCount } from '../middleware/metrics';
 
 const auth = new Hono();
 
@@ -49,7 +50,12 @@ auth.post('/login', rateLimit(10, 60_000), zValidator('json', loginSchema), asyn
       const result = await provider.login(input, { ip, userAgent });
       return c.json(result);
     } catch (err) {
-      logger.error('Auth', 'Login failed', err instanceof Error ? err : new Error(String(err)), { email: input.email, ip: ip ?? undefined });
+      const e = err as Error & { retryAfter?: number };
+      if (e.retryAfter) {
+        c.header('Retry-After', String(e.retryAfter));
+        return c.json({ error: e.message, retryAfter: e.retryAfter }, 429);
+      }
+      logger.error('Login failed', err instanceof Error ? err : new Error(String(err)), { email: input.email, ip: ip ?? undefined });
       return c.json({ error: 'Email ou senha inválidos' }, 401);
     }
 });
@@ -88,9 +94,11 @@ auth.post('/refresh', rateLimit(10, 60_000), zValidator('json', refreshSchema), 
 
   try {
       const result = await provider.refresh(refreshToken);
+      refreshTokenCount.inc({ status: 'success' });
       return c.json(result);
     } catch (err) {
-      logger.error('Auth', 'Token refresh failed', err instanceof Error ? err : new Error(String(err)));
+      refreshTokenCount.inc({ status: 'failure' });
+      logger.error('Token refresh failed', err instanceof Error ? err : new Error(String(err)));
       return c.json({ error: 'Token inválido' }, 401);
     }
 });
@@ -164,7 +172,7 @@ protectedAuth.post('/logout', async (c) => {
       const provider = getAuthProvider();
       await provider.logout(payload.session_id);
     }
-  } catch (err: unknown) { logger.error('Auth', 'Logout failed', err instanceof Error ? err : new Error(String(err))); }
+  } catch (err: unknown) { logger.error('Logout failed', err instanceof Error ? err : new Error(String(err))); }
   return c.json({ success: true });
 });
 
@@ -176,7 +184,7 @@ protectedAuth.get('/me', async (c) => {
     const user = await provider.getCurrentUser(payload.sub);
     return c.json(user);
   } catch (err: unknown) {
-    logger.error('Auth', 'Failed to get current user', err instanceof Error ? err : new Error(String(err)), { sub: payload.sub });
+    logger.error('Failed to get current user', err instanceof Error ? err : new Error(String(err)), { sub: payload.sub });
     return c.json({ error: 'Não foi possível obter dados do usuário' }, 401);
   }
 });

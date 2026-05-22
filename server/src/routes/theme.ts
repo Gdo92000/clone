@@ -2,8 +2,9 @@ import { Hono } from 'hono';
 import { eq } from 'drizzle-orm';
 import { db } from '../db';
 import { companies } from '../db/schema';
+import type { AppVariables } from '../types/hono';
 
-const route = new Hono();
+const route = new Hono<{ Variables: Pick<AppVariables, 'resolvedCompanyId'> }>();
  
 route.get('/me/theme', async (c) => {
   const companyId = c.get('resolvedCompanyId');

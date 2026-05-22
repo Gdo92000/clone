@@ -106,7 +106,7 @@ export function HomePage() {
 
         <section>
           <h2 className="font-display font-bold text-lg text-text-primary mb-4">
-            Você tem fome do qu??
+            Você tem fome do quê?
           </h2>
           <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
             {categories.slice(0, 10).map((cat) => (

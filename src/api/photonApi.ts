@@ -27,6 +27,6 @@ export interface PhotonFeature {
 
 export const photonApi = {
   search: (query: string): Promise<{ features?: PhotonFeature[] } | null> => {
-    return httpClient.get<{ features?: PhotonFeature[] } | null>(`/api/photon?q=${encodeURIComponent(query)}&limit=8&lang=default`);
+    return httpClient.get<{ features?: PhotonFeature[] } | null>(`/photon?q=${encodeURIComponent(query)}&limit=8&lang=default`);
   }
 };

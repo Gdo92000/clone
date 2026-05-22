@@ -36,7 +36,7 @@ route.get('/:id', zValidator('param', idParam), async (c) => {
   return c.json(item[0]);
 });
 
-route.post('/', authMiddleware, requirePermission(['superadmin', 'admin']), zValidator('json', createSchema), async (c) => {
+route.post('/', authMiddleware, requirePermission({ roles: ['superadmin', 'admin'] }), zValidator('json', createSchema), async (c) => {
   const data = c.req.valid('json');
   const id = data.name.toLowerCase() as 'basic' | 'pro' | 'premium';
   const existing = await db.select().from(plans).where(eq(plans.id, id)).limit(1);
@@ -45,7 +45,7 @@ route.post('/', authMiddleware, requirePermission(['superadmin', 'admin']), zVal
   return c.json({ success: true }, 201);
 });
 
-route.put('/:id', authMiddleware, requirePermission(['superadmin', 'admin']), zValidator('param', idParam), zValidator('json', updateSchema), async (c) => {
+route.put('/:id', authMiddleware, requirePermission({ roles: ['superadmin', 'admin'] }), zValidator('param', idParam), zValidator('json', updateSchema), async (c) => {
   const { id } = c.req.valid('param');
   const data = c.req.valid('json');
   const existing = await db.select().from(plans).where(eq(plans.id, id)).limit(1);

@@ -9,24 +9,29 @@ export const authHandlers = [
     const result = loginMock(email, password)
     if (!result) {
       logMock('POST', '/api/auth/login', 401)
-      return HttpResponse.json({ error: 'Credenciais inválidas' }, { status: 401 })
+      return HttpResponse.json({ error: 'Email ou senha inválidos' }, { status: 401 })
     }
     logMock('POST', '/api/auth/login', 200, { user: result.user.email })
     return HttpResponse.json(result, { status: 200 })
   }),
 
   http.post('*/api/auth/register', async ({ request }) => {
-    const body = await request.json() as { name?: string; email?: string }
+    const body = await request.json() as { name?: string; email?: string; password?: string }
+    const existing = mockUsers.find(u => u.email === body.email)
+    if (existing) {
+      logMock('POST', '/api/auth/register', 409)
+      return HttpResponse.json({ error: 'Email já cadastrado' }, { status: 409 })
+    }
     logMock('POST', '/api/auth/register', 201)
-    return HttpResponse.json({
-      user: { id: 'user-new', name: body.name, email: body.email, role: 'customer', avatar_url: '', active: true },
-      token: 'mock-jwt-token-new',
-      refreshToken: 'mock-refresh-token',
-      expiresIn: 86400,
-    }, { status: 201 })
+    return HttpResponse.json({ success: true, id: 'user-new' }, { status: 201 })
   }),
 
-  http.post('*/api/auth/refresh', () => {
+  http.post('*/api/auth/refresh', async ({ request }) => {
+    const body = await request.json() as { refreshToken?: string } | null
+    if (!body?.refreshToken) {
+      logMock('POST', '/api/auth/refresh', 401)
+      return HttpResponse.json({ error: 'Refresh token inválido' }, { status: 401 })
+    }
     logMock('POST', '/api/auth/refresh', 200)
     return HttpResponse.json({
       accessToken: 'mock-jwt-token-refreshed',
@@ -48,10 +53,5 @@ export const authHandlers = [
     const user = mockUsers[0]
     logMock('GET', '/api/auth/me', 200)
     return HttpResponse.json(user, { status: 200 })
-  }),
-
-  http.get('*/api/users', () => {
-    logMock('GET', '/api/users', 200)
-    return HttpResponse.json(mockUsers, { status: 200 })
   }),
 ]

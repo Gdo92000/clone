@@ -2,6 +2,7 @@ import { pgEnum, pgTable, text, numeric, integer, jsonb, timestamp, index } from
 import { users } from './users';
 import { addresses } from './addresses';
 import { restaurants, menuItems } from '../core';
+import type { OrderAdditive } from '../../jsonb-types';
 
 export const orderStatus = pgEnum('order_status', ['confirmed', 'preparing', 'ready', 'dispatched', 'delivered', 'cancelled']);
 export const deliveryType = pgEnum('delivery_type', ['delivery', 'pickup']);
@@ -37,7 +38,7 @@ export const orderItems = pgTable('order_items', {
   name: text('name').notNull(),
   quantity: integer('quantity').notNull().default(1),
   price: numeric('price', { precision: 10, scale: 2 }).notNull(),
-  additives: jsonb('additives'),
+  additives: jsonb('additives').$type<OrderAdditive[]>(),
   notes: text('notes'),
 }, (table) => [
   index('idx_order_items_order').on(table.order_id),

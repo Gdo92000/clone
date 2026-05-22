@@ -6,6 +6,7 @@ import { db } from '../../db';
 import { users, authSessions } from '../../db/schema';
 import { JWT_SECRET } from '../../config';
 import { createAuditLog } from '../../services/auditLogService';
+import { recordFailedAttempt, isLockedOut, getRemainingLockoutSeconds, clearAttempts } from '../../services/loginLockout';
 import type { AuthProvider, TokenPayload, AuthTokens, LoginInput, LoginResult, RefreshResult, AuthUserDTO } from '../types';
 
 const ACCESS_TOKEN_TTL = 60 * 15;
@@ -44,14 +45,19 @@ export const localAuthProvider: AuthProvider = {
     return bcrypt.compare(password, hash);
   },
 
-  async generateTokens(payload: TokenPayload): Promise<AuthTokens> {
-    const now = nowUnix();
-    const accessToken = await sign(
-      { ...payload, exp: now + ACCESS_TOKEN_TTL, iat: now },
-      JWT_SECRET,
-    );
-    return { accessToken, refreshToken: '', expiresIn: ACCESS_TOKEN_TTL };
-  },
+   async generateTokens(payload: TokenPayload): Promise<AuthTokens> {
+     const now = nowUnix();
+     // Ensure company_id is included in JWT payload for tenant context
+     const tokenPayload = {
+       ...payload,
+       company_id: payload.company_id ?? null
+     };
+     const accessToken = await sign(
+       { ...tokenPayload, exp: now + ACCESS_TOKEN_TTL, iat: now },
+       JWT_SECRET,
+     );
+     return { accessToken, refreshToken: '', expiresIn: ACCESS_TOKEN_TTL };
+   },
 
   async verifyToken(token: string): Promise<TokenPayload> {
     const result = await verify(token, JWT_SECRET, 'HS256');
@@ -76,11 +82,17 @@ export const localAuthProvider: AuthProvider = {
     const match = await bcrypt.compare(refreshTokenRaw, session.refresh_token_hash);
     if (!match) throw new Error('Token inválido');
 
-    const user = await db.select().from(users).where(eq(users.id, session.user_id)).limit(1);
-    if (!user.length) throw new Error('Usuário não encontrado');
+     const user = await db.select().from(users).where(eq(users.id, session.user_id)).limit(1);
+     if (!user.length) throw new Error('Usuário não encontrado');
 
-    await db.update(authSessions).set({ last_used_at: sql`now()` }).where(eq(authSessions.id, session.id));
-    return { sub: user[0].id, email: user[0].email, role: user[0].role, session_id: session.id };
+     await db.update(authSessions).set({ last_used_at: sql`now()` }).where(eq(authSessions.id, session.id));
+     return { 
+       sub: user[0].id, 
+       email: user[0].email, 
+       role: user[0].role, 
+       session_id: session.id,
+       company_id: user[0].company_id,
+     };
   },
 
   middleware() {
@@ -88,22 +100,33 @@ export const localAuthProvider: AuthProvider = {
   },
 
   async login(input: LoginInput, deviceInfo?: { ip?: string; userAgent?: string }): Promise<LoginResult> {
+    const ip = deviceInfo?.ip;
+    if (isLockedOut(input.email, ip)) {
+      const retryAfter = getRemainingLockoutSeconds(input.email, ip);
+      throw Object.assign(new Error(`Conta bloqueada temporariamente. Tente novamente em ${retryAfter} segundos.`), { retryAfter });
+    }
+
     const rows = await db.select().from(users).where(eq(users.email, input.email)).limit(1);
     if (!rows.length) {
+      recordFailedAttempt(input.email, ip);
       await createAuditLog({ action: 'LOGIN_FAILED', metadata: { email: input.email }, ipAddress: deviceInfo?.ip, userAgent: deviceInfo?.userAgent });
       throw new Error('Usuário ou senha inválidos');
     }
 
     const user = rows[0];
     if (!user.password_hash) {
+      recordFailedAttempt(input.email, ip);
       throw new Error('Usuário ou senha inválidos');
     }
 
     const passwordMatch = await bcrypt.compare(input.password, user.password_hash);
     if (!passwordMatch) {
+      recordFailedAttempt(input.email, ip);
       await createAuditLog({ userId: user.id, action: 'LOGIN_FAILED', ipAddress: deviceInfo?.ip, userAgent: deviceInfo?.userAgent });
       throw new Error('Usuário ou senha inválidos');
     }
+
+    clearAttempts(input.email, ip);
 
     const sessionId = crypto.randomUUID();
     const refreshTokenRaw = crypto.randomUUID();
@@ -115,7 +138,12 @@ export const localAuthProvider: AuthProvider = {
       session_id: sessionId,
     };
 
-    const tokens = await localAuthProvider.generateTokens(payload);
+    // Ensure company_id is included in payload for token generation
+    const tokenPayload = {
+      ...payload,
+      company_id: payload.company_id ?? null
+    };
+    const tokens = await localAuthProvider.generateTokens(tokenPayload);
 
     const refreshTokenHash = await bcrypt.hash(refreshTokenRaw, 6);
     await db.insert(authSessions).values({

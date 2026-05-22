@@ -16,8 +16,8 @@ export const proxyHandlers = [
 
   http.get('*/api/nominatim/reverse', ({ request }) => {
     const url = new URL(request.url)
-    const lat = url.searchParams.get('lat') ?? '-23.5505'
-    const lon = url.searchParams.get('lon') ?? '-46.6333'
+    const lat = parseFloat(url.searchParams.get('lat') ?? '-23.5505')
+    const lon = parseFloat(url.searchParams.get('lon') ?? '-46.6333')
     logMock('GET', `/api/nominatim/reverse?lat=${lat}&lon=${lon}`, 200)
     return HttpResponse.json({
       lat,

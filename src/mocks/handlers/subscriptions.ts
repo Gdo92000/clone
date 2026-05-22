@@ -43,17 +43,10 @@ export const subscriptionHandlers = [
     return HttpResponse.json(items, { status: 200 })
   }),
 
-  http.get('*/api/subscription-addons', () => {
-    logMock('GET', '/api/subscription-addons', 200)
-    return HttpResponse.json([
-      { subscription_id: 'comp-1', addon_id: 'addon-1', activated_at: new Date().toISOString() },
-    ], { status: 200 })
-  }),
-
   http.post('*/api/subscription-addons/toggle', async ({ request }) => {
     const body = await request.json() as { subscriptionId?: string; addonId?: string }
     logMock('POST', '/api/subscription-addons/toggle', 200, `addonId=${body.addonId}`)
-    return HttpResponse.json({ success: true }, { status: 200 })
+    return HttpResponse.json({ success: true, active: true }, { status: 200 })
   }),
 
   http.get('*/api/subscriptions', () => {

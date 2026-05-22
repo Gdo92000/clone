@@ -3,6 +3,18 @@ import { Counter, Histogram, Gauge, collectDefaultMetrics, register } from 'prom
 
 collectDefaultMetrics({ prefix: 'fluxds_' });
 
+export const refreshTokenCount = new Counter({
+  name: 'fluxds_auth_refresh_total',
+  help: 'Total refresh token attempts',
+  labelNames: ['status'] as const,
+});
+
+export const httpRetryCount = new Counter({
+  name: 'fluxds_http_retries_total',
+  help: 'Total HTTP retry attempts',
+  labelNames: ['method', 'path'] as const,
+});
+
 export const httpRequestCount = new Counter({
   name: 'fluxds_http_requests_total',
   help: 'Total HTTP requests',

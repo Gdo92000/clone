@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { LocationProvider } from './context/LocationContext';
 import { ThemeProvider } from '../packages/ui/src/context';
 import { ToastProvider } from './providers/ToastProvider';
+import { OnlineStatusProvider } from './providers/OnlineStatusProvider';
 import { QueryProvider } from './providers/QueryProvider';
 import { PublicLayout } from './layouts/PublicLayout';
 import { DashboardLayout } from './layouts/DashboardLayout';
@@ -252,6 +253,7 @@ function App() {
   return (
     <ErrorBoundary>
     <QueryProvider>
+      <OnlineStatusProvider>
       <LocationProvider>
         <BrowserRouter>
           <ThemeAwareProvider>
@@ -349,6 +351,7 @@ function App() {
           </ThemeAwareProvider>
         </BrowserRouter>
       </LocationProvider>
+      </OnlineStatusProvider>
     </QueryProvider>
     </ErrorBoundary>
   );

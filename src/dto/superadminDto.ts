@@ -38,20 +38,39 @@ export interface GlobalCouponDTO {
   id: string;
   code: string;
   description?: string | null;
-  discount: number;
   discount_type: string;
-  min_order: number;
+  discount_value: string;
+  min_order: string | null;
   max_uses: number;
   current_uses: number;
-  active: boolean;
-  expires_at: string;
+  valid_from: string;
+  valid_until: string;
+  is_active: boolean;
+  created_at: string | null;
+}
+
+export interface CreateGlobalCouponInput {
+  code: string;
+  description?: string;
+  discount_type: string;
+  discount_value: string;
+  min_order?: string;
+  max_uses?: number;
+  valid_from: string;
+  valid_until: string;
+  is_active?: boolean;
 }
 
 export interface PermissionDTO {
   id: string;
-  role: string;
-  resource: string;
-  action: string;
+  key: string;
+  name: string;
+  description: string | null;
+  created_at: string | null;
+}
+
+export interface RolePermissionDTO {
+  permission_id: string;
   name: string;
 }
 
@@ -217,4 +236,16 @@ export interface ReviewDTO {
   author: string;
   rating: number;
   body: string;
+}
+
+export interface AdminUserDTO {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  role: string;
+  is_active: boolean;
+  company_id: string | null;
+  branch_id: string | null;
+  created_at: string | null;
 }

@@ -7,5 +7,5 @@ export const subscriptionApi = {
   getSubscriptions: () => get<CompanySubscriptionDTO[]>('/subscriptions'),
   getInvoices: () => get<BillingInvoiceDTO[]>('/invoices'),
   getSubscriptionByCompany: (companyId: string) =>
-    get<CompanySubscriptionDTO>(`/companies/${companyId}/subscription`),
+    get<CompanySubscriptionDTO>(`/subscriptions/${companyId}`),
 };

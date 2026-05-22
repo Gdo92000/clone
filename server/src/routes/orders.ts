@@ -6,8 +6,12 @@ import { db } from '../db';
 import { merchantOrders, orders, loyaltySettings, userLoyaltyPoints, subscriptions, subscriptionAddons, addons } from '../db/schema';
 import { PrintingService } from '../services/printing/service';
 import { logger } from '../lib/logger';
+import { tenantIsolationMiddleware } from '../lib/tenant';
 
 const route = new Hono();
+
+// Apply tenant isolation middleware to all routes in this group
+route.use('*', tenantIsolationMiddleware());
 
 const idParam = z.object({ id: z.string().min(1).max(64) });
 

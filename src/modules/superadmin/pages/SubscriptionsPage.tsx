@@ -31,6 +31,16 @@ interface SubRow {
   addon_ids?: string[];
 }
 
+function toCompanySubscription(sub: SubRow): CompanySubscription {
+  return {
+    companyId: sub.company_id,
+    planId: sub.plan_id as PlanId,
+    billingStatus: sub.billing_status,
+    currentPeriodEndsAt: sub.current_period_ends_at,
+    addonIds: sub.addon_ids ?? [],
+  };
+}
+
 export function SubscriptionsPage() {
   const { data: companies = [], isLoading, error } = useCompanies();
   const { currentUser } = useAuthSession();
@@ -67,6 +77,7 @@ export function SubscriptionsPage() {
       <section className="space-y-4">
         {subscriptions.map((subscription: SubRow) => {
           const company = companies.find((item) => item.id === subscription.company_id);
+          const sub = toCompanySubscription(subscription);
           return (
             <article key={subscription.company_id} className="rounded-xl border border-border-default bg-surface-elevated p-4">
               <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
@@ -76,10 +87,10 @@ export function SubscriptionsPage() {
                     {billingLabels[subscription.billing_status] || 'Desconhecido'} - ciclo ate {subscription.current_period_ends_at}
                   </p>
                   <p className="mt-2 font-bold text-text-primary">
-                    {formatCurrency(calculateSubscriptionTotal(subscription as unknown as CompanySubscription, plans, addons))}/mes
+                    {formatCurrency(calculateSubscriptionTotal(sub, plans, addons))}/mes
                   </p>
                   <p className="mt-1 text-sm text-brand-secondary">
-                    Proration simulado: {formatCurrency(calculateSubscriptionTotal(subscription as unknown as CompanySubscription, plans, addons) / 30)} por dia restante.
+                    Proration simulado: {formatCurrency(calculateSubscriptionTotal(sub, plans, addons) / 30)} por dia restante.
                   </p>
                 </div>
                 <div className="grid grid-cols-1 gap-2 md:grid-cols-2">

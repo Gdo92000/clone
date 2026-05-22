@@ -26,7 +26,7 @@ export function usePrintHistory(branchId: string) {
 export function useSavePrinterConfig(branchId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: Record<string, unknown>) => merchantApi.savePrinterConfig(branchId, data),
+    mutationFn: (data: Partial<PrinterConfigDTO>) => merchantApi.savePrinterConfig(branchId, data),
     onSuccess: () => {
       successToast('Configuração de impressora salva');
       void queryClient.invalidateQueries({ queryKey: merchantKeys.printerConfig(branchId) });

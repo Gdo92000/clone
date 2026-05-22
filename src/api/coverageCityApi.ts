@@ -1,4 +1,4 @@
-import { get, post, put, del } from './httpClient';
+import { get, post, put, patch, del } from './httpClient';
 
 export interface CoverageCityDTO {
   id: string;
@@ -15,11 +15,11 @@ export interface CoverageCityDTO {
 export const coverageCityApi = {
   list: () => get<CoverageCityDTO[]>('/coverage-cities'),
   getById: (id: string) => get<CoverageCityDTO>(`/coverage-cities/${id}`),
-  create: (data: { name: string; state: string; latitude: number; longitude: number; radiusKm?: number }) =>
+  create: (data: { name: string; state: string; latitude: string; longitude: string; radiusKm?: number }) =>
     post<CoverageCityDTO>('/coverage-cities/admin', data),
-  update: (id: string, data: Partial<{ name: string; state: string; latitude: number; longitude: number; radiusKm: number }>) =>
+  update: (id: string, data: Partial<{ name: string; state: string; latitude: string; longitude: string; radiusKm: number }>) =>
     put<CoverageCityDTO>(`/coverage-cities/admin/${id}`, data),
-  toggle: (id: string) => post<CoverageCityDTO>(`/coverage-cities/admin/${id}/toggle`),
+  toggle: (id: string) => patch<CoverageCityDTO>(`/coverage-cities/admin/${id}/toggle`),
   delete: (id: string) => del<Record<string, never>>(`/coverage-cities/admin/${id}`),
   seed: () => post<{ seeded: number; reason?: string }>('/coverage-cities/admin/seed'),
 };

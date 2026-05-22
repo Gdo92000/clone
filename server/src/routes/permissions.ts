@@ -45,11 +45,10 @@ route.post('/assign', zValidator('json', z.object({
   return c.json({ success: true });
 });
 
-route.delete('/revoke', zValidator('json', z.object({
-  role: z.string(),
-  permissionId: z.string(),
-})), async (c) => {
-  const { role, permissionId } = c.req.valid('json');
+const roleParam = z.object({ role: z.string(), permissionId: z.string() });
+
+route.delete('/revoke/:role/:permissionId', zValidator('param', roleParam), async (c) => {
+  const { role, permissionId } = c.req.valid('param');
   await db.delete(rolePermissions)
     .where(and(eq(rolePermissions.role, role), eq(rolePermissions.permission_id, permissionId)));
   return c.json({ success: true });

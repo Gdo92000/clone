@@ -19,10 +19,10 @@ export interface ViaCepResponse {
 
 export const viaCepApi = {
   lookup: (cep: string): Promise<ViaCepResponse> => {
-    return httpClient.get<ViaCepResponse>(`/api/viacep/ws/${cep}/json/`);
+    return httpClient.get<ViaCepResponse>(`/viacep/ws/${cep}/json/`);
   },
 
   lookupByAddress: (uf: string, localidade: string, logradouro: string): Promise<ViaCepResponse[]> => {
-    return httpClient.get<ViaCepResponse[]>(`/api/viacep/ws/${uf}/${localidade}/${logradouro}/json/`);
+    return httpClient.get<ViaCepResponse[]>(`/viacep/ws/${uf}/${localidade}/${logradouro}/json/`);
   }
 };

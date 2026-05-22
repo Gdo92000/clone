@@ -1,5 +1,6 @@
 import { pgTable, text, boolean, timestamp, jsonb } from 'drizzle-orm/pg-core';
 import { planId, plans } from '../saas/plans';
+import type { ThemeConfig } from '../../jsonb-types';
  
 export const companies = pgTable('companies', {
   id: text('id').primaryKey(),
@@ -7,7 +8,7 @@ export const companies = pgTable('companies', {
   document: text('document'),
   plan_id: planId('plan_id').references(() => plans.id),
   custom_domain: text('custom_domain').unique(),
-  theme_config: jsonb('theme_config').default({}),
+  theme_config: jsonb('theme_config').$type<ThemeConfig>().default({}),
   is_active: boolean('is_active').default(true),
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
   updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow(),

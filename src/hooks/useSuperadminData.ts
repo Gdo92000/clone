@@ -12,6 +12,7 @@ import {
 import { superadminKeys, saasKeys } from '../api/queryKeys';
 import { errorToast, infoToast, successToast } from '../lib/toast';
 import { logger } from '../lib/logger';
+import type { CreateGlobalCouponInput } from '../dto/superadminDto';
 
 const STALE = 1000 * 60 * 5;
 const STALE_LONG = 1000 * 60 * 10;
@@ -27,7 +28,7 @@ export function useGlobalCoupons() {
 export function useSaveGlobalCoupon(editingId: string | null) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: Record<string, unknown>) =>
+    mutationFn: (data: CreateGlobalCouponInput) =>
       editingId ? globalCouponApi.update(editingId, data) : globalCouponApi.create(data),
     onSuccess: () => {
       successToast(editingId ? 'Cupom atualizado com sucesso!' : 'Cupom criado com sucesso!');
@@ -52,7 +53,7 @@ export function useDeleteGlobalCoupon() {
 export function useToggleGlobalCoupon() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (params: { id: string; data: Record<string, unknown> }) =>
+    mutationFn: (params: { id: string; data: Partial<CreateGlobalCouponInput> }) =>
       globalCouponApi.update(params.id, params.data),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: superadminKeys.globalCoupons });

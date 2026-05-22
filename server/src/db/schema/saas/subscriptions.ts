@@ -8,7 +8,7 @@ export const invoiceStatus = pgEnum('invoice_status', ['open', 'paid', 'overdue'
 export const subscriptions = pgTable('subscriptions', {
   company_id: text('company_id').primaryKey().references(() => companies.id),
   plan_id: planId('plan_id').notNull(),
-  addon_ids: jsonb('addon_ids'),
+  addon_ids: jsonb('addon_ids').$type<string[]>(),
   billing_status: billingStatus('billing_status').notNull().default('trial'),
   trial_ends_at: timestamp('trial_ends_at', { withTimezone: true }),
   current_period_ends_at: timestamp('current_period_ends_at', { withTimezone: true }).notNull(),

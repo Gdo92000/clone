@@ -2,11 +2,12 @@ import type { MiddlewareHandler } from 'hono';
 
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  "script-src 'self'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: https:",
-  "connect-src 'self' https://nominatim.openstreetmap.org https://photon.komoot.io http://ip-api.com ws: wss:",
+  "connect-src 'self' https://nominatim.openstreetmap.org https://photon.komoot.io https://ip-api.com ws: wss:",
   "font-src 'self' data:",
+  "object-src 'none'",
   "frame-ancestors 'none'",
   "form-action 'self'",
   "base-uri 'self'",

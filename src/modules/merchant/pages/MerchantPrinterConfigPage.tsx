@@ -2,17 +2,9 @@ import { useState, useMemo } from 'react';
 import { Button } from '../../../components/ui/Button';
 import { MerchantLayout } from '../components/MerchantLayout';
 import { useBranches } from '../../../hooks/useMerchantData';
-import type { PrintHistoryDTO } from '../../../dto/superadminDto';
+import type { PrinterConfigDTO, PrintHistoryDTO } from '../../../dto/superadminDto';
 import { usePrinterConfig, usePrintHistory, useSavePrinterConfig } from '../../../hooks/useMerchantPrinterConfig';
 import { clsx } from 'clsx';
-
-interface PrinterConfig {
-  printer_type: string;
-  ip_address: string;
-  port: number;
-  model: string;
-  enabled: boolean;
-}
 
 export function MerchantPrinterConfigPage() {
   const { data: branches = [] } = useBranches();
@@ -22,7 +14,7 @@ export function MerchantPrinterConfigPage() {
 
   const { data: config } = usePrinterConfig(effectiveBranchId);
 
-  const [form, setForm] = useState<PrinterConfig>({
+  const [form, setForm] = useState<PrinterConfigDTO>({
     printer_type: 'network',
     ip_address: '',
     port: 9100,
@@ -119,7 +111,7 @@ export function MerchantPrinterConfigPage() {
               />
             </label>
 
-            <Button onClick={() =>     { saveMutation.mutate(form as unknown as Record<string, unknown>); }} loading={saveMutation.isPending} disabled={saveMutation.isPending} className="w-full">
+            <Button onClick={() => { saveMutation.mutate(form); }} loading={saveMutation.isPending} disabled={saveMutation.isPending} className="w-full">
               {saveMutation.isPending ? 'Salvando...' : 'Salvar Configurações'}
             </Button>
           </div>

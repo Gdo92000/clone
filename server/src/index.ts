@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { csrf } from 'hono/csrf';
+import { bodyLimit } from 'hono/body-limit';
 import { logger } from 'hono/logger';
 import { serve } from '@hono/node-server';
 import { zValidator } from '@hono/zod-validator';
@@ -36,9 +37,11 @@ import printingRoutes from './routes/printing';
 import { authMiddleware } from './middleware/auth';
 import { requirePermission } from './middleware/permission';
 import { requestId } from './middleware/requestId';
+import { requestContext } from './middleware/context';
 import { securityHeaders } from './middleware/securityHeaders';
 import { domainMiddleware } from './middleware/domain';
-import { ALLOWED_ORIGINS } from './config';
+import { rateLimit } from './middleware/rateLimit';
+import { ALLOWED_ORIGINS, PORT, NODE_ENV, MAX_BODY_SIZE } from './config';
 import { errorHandler } from './lib/errors';
 import { logger as appLogger } from './lib/logger';
 import { checkHealth, READY_STATE } from './lib/health';
@@ -56,11 +59,14 @@ import consumerReviewsRoutes from './routes/consumer-reviews';
 import consumerSupportRoutes from './routes/consumer-support';
 import consumerOrdersRoutes from './routes/consumer-orders';
 import permissionsRoutes from './routes/permissions';
+import sseRoutes from './routes/sse';
 import type { TokenPayload } from './auth/types';
+import type { AppVariables } from './types/hono';
 
-const app = new Hono();
+const app = new Hono<{ Variables: AppVariables }>();
 
 app.use('*', requestId);
+app.use('*', requestContext);
 app.use('*', securityHeaders);
 app.use('*', csrf());
 app.use('*', domainMiddleware);
@@ -74,6 +80,8 @@ app.use('*', cors({
 }));
 app.use('*', logger());
 
+app.use('/api/*', bodyLimit({ maxSize: MAX_BODY_SIZE }));
+
 app.use('*', metricsHandler);
 
 app.onError(errorHandler);
@@ -83,22 +91,37 @@ app.get('/api/metrics', async (c) => {
   return c.body(await getMetrics());
 });
 
+app.route('/api/realtime', sseRoutes);
+
 // Public routes
 app.get('/api/health/live', (c) => {
-  return c.json({ status: 'ok', timestamp: new Date().toISOString(), uptime: process.uptime(), requestId: c.get('requestId') });
+  const reqId = c.get('requestId');
+  return c.json({ status: 'ok', timestamp: new Date().toISOString(), uptime: process.uptime(), requestId: reqId });
 });
 
 app.get('/api/health/ready', async (c) => {
-  const result = await checkHealth(c.get('requestId'));
+  const reqId = c.get('requestId');
+  const result = await checkHealth(reqId);
   if (result.database === 'down') return c.json(result, 503);
   return c.json(result);
 });
 
 app.get('/api/health', async (c) => {
-  return c.json(await checkHealth(c.get('requestId')));
+  const reqId = c.get('requestId');
+  return c.json(await checkHealth(reqId));
 });
 
 app.route('/api/auth', authRoutes);
+
+// Rate limit for public API routes (auth already has stricter per-route limits)
+app.use('/api/restaurants*', rateLimit(60, 60_000));
+app.use('/api/categories*', rateLimit(60, 60_000));
+app.use('/api/menu-items*', rateLimit(60, 60_000));
+app.use('/api/coverage-cities*', rateLimit(60, 60_000));
+app.use('/api/plans*', rateLimit(60, 60_000));
+app.use('/api/capabilities*', rateLimit(60, 60_000));
+app.use('/api/theme*', rateLimit(60, 60_000));
+app.use('/api/reviews*', rateLimit(60, 60_000));
 
 const idParam = z.object({ id: z.string().min(1).max(64) });
 
@@ -131,6 +154,7 @@ app.route('/api/theme', themeRoutes);
 // Protected routes (require JWT)
 const api = new Hono();
 api.use('*', authMiddleware);
+api.use('*', rateLimit(120, 60_000));
 
 api.post('/restaurants', zValidator('json', restaurantSchema), requirePermission({ roles: ['superadmin', 'admin'] }), async (c) => {
   const data = c.req.valid('json');
@@ -154,11 +178,11 @@ api.post('/restaurants', zValidator('json', restaurantSchema), requirePermission
     state: data.state,
     zip_code: data.zipCode ?? null,
     phone: data.phone ?? null,
-    delivery_fee: data.deliveryFee !== undefined ? String(data.deliveryFee) : null,
+    delivery_fee: data.deliveryFee ?? null,
     delivery_time: data.deliveryTime ?? null,
-    latitude: data.latitude !== undefined ? String(data.latitude) : null,
-    longitude: data.longitude !== undefined ? String(data.longitude) : null,
-  } as typeof restaurants.$inferInsert);
+    latitude: data.latitude ?? null,
+    longitude: data.longitude ?? null,
+  });
 
   return c.json({ success: true, id }, 201);
 });
@@ -224,11 +248,9 @@ api.post('/reviews', zValidator('json', reviewCreateSchema), async (c) => {
 
 app.route('/api', api);
 
-const port = Number(process.env.PORT) || 3001;
-
-const server = serve({ fetch: app.fetch, port }, () => {
+const server = serve({ fetch: app.fetch, port: PORT }, () => {
   READY_STATE.ready = true;
-  appLogger.info(`Server started`, { port, nodeEnv: process.env.NODE_ENV ?? 'development' });
+  appLogger.info(`Server started`, { port: PORT, nodeEnv: NODE_ENV });
 });
 
 startSessionCleanup();

@@ -29,14 +29,14 @@ route.post('/validate', zValidator('json', z.object({
 
   if (!cp.is_active) return c.json({ error: 'Este cupom não está mais ativo' }, 400);
   if (new Date() > new Date(cp.valid_until)) return c.json({ error: 'Este cupom expirou' }, 400);
-  if (cp.max_uses !== null && cp.current_uses >= cp.max_uses) return c.json({ error: 'Limite de usos atingido' }, 400);
+  if (cp.max_uses !== null && (cp.current_uses ?? 0) >= cp.max_uses) return c.json({ error: 'Limite de usos atingido' }, 400);
   if (Number(cp.min_order) > total) {
     return c.json({ error: `Valor mínimo do pedido para este cupom é R$ ${cp.min_order}` }, 400);
   }
 
   // Advanced Rules
-  const rules = cp.rules || {};
-  if (rules.first_order_only) {
+  const rules = cp.rules;
+  if (rules?.first_order_only) {
     const prevOrders = await db.select().from(orders)
       .where(and(eq(orders.user_id, payload.sub), eq(orders.restaurant_id, branchId)))
       .limit(1);

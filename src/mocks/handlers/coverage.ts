@@ -30,11 +30,13 @@ export const coverageHandlers = [
     return HttpResponse.json({ success: true, ...body as Record<string, unknown> }, { status: 200 })
   }),
 
-  http.post('*/api/coverage-cities/admin/:id/toggle', ({ params }) => {
+  http.patch('*/api/coverage-cities/admin/:id/toggle', ({ params }) => {
     const id = typeof params['id'] === 'string' ? params['id'] : ''
     const city = mockCoverageCities.find(c => c.id === id)
-    logMock('POST', `/api/coverage-cities/admin/${id}/toggle`, 200)
-    return HttpResponse.json({ ...city, is_active: !city?.is_active }, { status: 200 })
+    logMock('PATCH', `/api/coverage-cities/admin/${id}/toggle`, 200)
+    return city
+      ? HttpResponse.json({ ...city, is_active: !city.is_active }, { status: 200 })
+      : HttpResponse.json({ error: 'Not found' }, { status: 404 })
   }),
 
   http.delete('*/api/coverage-cities/admin/:id', ({ params }) => {
@@ -45,6 +47,6 @@ export const coverageHandlers = [
 
   http.post('*/api/coverage-cities/admin/seed', () => {
     logMock('POST', '/api/coverage-cities/admin/seed', 200)
-    return HttpResponse.json({ seeded: mockCoverageCities.length }, { status: 200 })
+    return HttpResponse.json({ seeded: mockCoverageCities.length, totalRestaurants: 8 }, { status: 200 })
   }),
 ]

@@ -21,13 +21,13 @@ publicRoutes.get('/:id', async (c) => {
 });
 
 const adminRoutes = new Hono();
-adminRoutes.use('*', authMiddleware, requirePermission(['superadmin', 'admin']));
+adminRoutes.use('*', authMiddleware, requirePermission({ roles: ['superadmin', 'admin'] }));
 
 const inputSchema = z.object({
   name: z.string().min(1).max(100),
   state: z.string().min(1).max(50),
-  latitude: z.number().min(-90).max(90),
-  longitude: z.number().min(-180).max(180),
+  latitude: z.string(),
+  longitude: z.string(),
   radiusKm: z.number().int().min(1).max(200).optional(),
 });
 

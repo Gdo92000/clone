@@ -14,7 +14,7 @@ export function PermissionManagementPage() {
   const revokeMutation = useRevokePermission();
 
   const isPermissionAssigned = (permId: string) => {
-    return (rolePermissions as unknown as Array<{ permission_id: string }>).some((p) => p.permission_id === permId);
+    return rolePermissions.some((p) => p.permission_id === permId);
   };
 
   return (
@@ -52,7 +52,7 @@ export function PermissionManagementPage() {
             {allPermissions.length === 0 ? (
               <div className="p-8 text-center text-text-secondary">Nenhuma permissão cadastrada.</div>
             ) : (
-              (allPermissions as unknown as Array<{ id: string; name: string; description?: string; key: string }>).map((perm) => (
+              allPermissions.map((perm) => (
                 <div key={perm.id} className="px-6 py-4 flex items-center justify-between hover:bg-surface-background transition-colors">
                   <div>
                     <p className="font-medium text-text-primary">{perm.name}</p>

@@ -60,7 +60,7 @@ export function CityRestaurantsPage() {
             <div className="flex gap-2">
               <button
                 type="button"
-                onClick={() => { void refreshLocation(); }}
+                onClick={() => { refreshLocation(); }}
                 disabled={locationLoading || loading}
                 className="h-11 w-11 rounded-lg border border-border-default text-text-primary hover:border-brand-primary disabled:opacity-50"
                 title="Atualizar localizacao"

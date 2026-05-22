@@ -3,23 +3,13 @@ import { PageHeader } from '../../../components/ui/PageHeader';
 import { Icon } from '../../../components/ui/Icon';
 import { Button } from '../../../components/ui/Button';
 import { useGlobalCoupons, useSaveGlobalCoupon, useDeleteGlobalCoupon, useToggleGlobalCoupon } from '../../../hooks/useSuperadminData';
-import type { GlobalCouponDTO } from '../../../dto/superadminDto';
+import type { GlobalCouponDTO, CreateGlobalCouponInput } from '../../../dto/superadminDto';
 import { clsx } from 'clsx';
 import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
 
-interface GlobalCouponForm {
-  code: string;
-  discount: number;
-  discount_type: string;
-  min_order: number;
-  max_uses: number;
-  active: boolean;
-  expires_at: string;
-}
-
-const emptyForm: GlobalCouponForm = {
-  code: '', discount: 10, discount_type: 'percentage',
-  min_order: 0, max_uses: 100, active: true, expires_at: '',
+const emptyForm: CreateGlobalCouponInput = {
+  code: '', discount_value: '10', discount_type: 'percentage',
+  min_order: '', max_uses: 100, valid_from: '', valid_until: '',
 };
 
 export function CouponsPage() {
@@ -28,7 +18,7 @@ export function CouponsPage() {
   const [showInactive, setShowInactive] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState<GlobalCouponForm>(emptyForm);
+  const [form, setForm] = useState<CreateGlobalCouponInput>(emptyForm);
 
   const saveMutation = useSaveGlobalCoupon(editingId);
   const removeMutation = useDeleteGlobalCoupon();
@@ -36,20 +26,20 @@ export function CouponsPage() {
 
   const filtered = coupons.filter((c) => {
     const matchSearch = c.code.toLowerCase().includes(search.toLowerCase());
-    return matchSearch && (showInactive || c.active);
+    return matchSearch && (showInactive || c.is_active);
   });
 
   const resetForm = () => { setForm(emptyForm); setShowForm(false); setEditingId(null); };
 
   const openNew = () => {
-    setForm({ ...emptyForm, expires_at: new Date(Date.now() + 90 * 86400000).toISOString().slice(0, 10) });
+    setForm({ ...emptyForm, valid_from: new Date().toISOString().slice(0, 10), valid_until: new Date(Date.now() + 90 * 86400000).toISOString().slice(0, 10) });
     setShowForm(true);
   };
 
   const openEdit = (c: GlobalCouponDTO) => {
     setForm({
-      code: c.code, discount: c.discount, discount_type: c.discount_type,
-      min_order: c.min_order, max_uses: c.max_uses, active: c.active, expires_at: c.expires_at.slice(0, 10),
+      code: c.code, discount_value: c.discount_value, discount_type: c.discount_type,
+      min_order: c.min_order ?? '', max_uses: c.max_uses, valid_from: c.valid_from.slice(0, 10), valid_until: c.valid_until.slice(0, 10),
     });
     setEditingId(c.id);
     setShowForm(true);
@@ -57,12 +47,12 @@ export function CouponsPage() {
 
   const save = () => {
     if (!form.code.trim()) return;
-    saveMutation.mutate(form as unknown as Record<string, unknown>, { onSuccess: () => { resetForm(); } });
+    saveMutation.mutate(form, { onSuccess: () => { resetForm(); } });
   };
 
   const remove = (id: string) => { removeMutation.mutate(id); };
 
-  const toggleActive = (coupon: GlobalCouponDTO) => { toggleMutation.mutate({ id: coupon.id, data: { active: !coupon.active } }); };
+  const toggleActive = (coupon: GlobalCouponDTO) => { toggleMutation.mutate({ id: coupon.id, data: { is_active: !coupon.is_active } }); };
 
   const usagePercent = (c: GlobalCouponDTO) => Math.round((c.current_uses / c.max_uses) * 100);
 
@@ -104,12 +94,12 @@ export function CouponsPage() {
                 </div>
                 <div>
                   <label className="text-xs text-text-secondary font-medium">Valor</label>
-                  <input type="number" value={form.discount} onChange={(e) => { setForm({ ...form, discount: Number(e.target.value) }); }}
+                  <input type="number" value={form.discount_value} onChange={(e) => { setForm({ ...form, discount_value: e.target.value }); }}
                     className="w-full h-10 px-3 rounded-lg bg-surface-background border border-border-default text-text-primary text-sm mt-1 focus:outline-none focus:border-border-focus" min={0} />
                 </div>
                 <div>
                   <label className="text-xs text-text-secondary font-medium">Pedido mínimo (R$)</label>
-                  <input type="number" value={form.min_order} onChange={(e) => { setForm({ ...form, min_order: Number(e.target.value) }); }}
+                  <input type="number" value={form.min_order} onChange={(e) => { setForm({ ...form, min_order: e.target.value }); }}
                     className="w-full h-10 px-3 rounded-lg bg-surface-background border border-border-default text-text-primary text-sm mt-1 focus:outline-none focus:border-border-focus" min={0} />
                 </div>
                 <div>
@@ -117,9 +107,14 @@ export function CouponsPage() {
                   <input type="number" value={form.max_uses} onChange={(e) => { setForm({ ...form, max_uses: Number(e.target.value) }); }}
                     className="w-full h-10 px-3 rounded-lg bg-surface-background border border-border-default text-text-primary text-sm mt-1 focus:outline-none focus:border-border-focus" min={1} />
                 </div>
-                <div>
+                <div className="col-span-2">
+                  <label className="text-xs text-text-secondary font-medium">Válido de</label>
+                  <input type="date" value={form.valid_from} onChange={(e) => { setForm({ ...form, valid_from: e.target.value }); }}
+                    className="w-full h-10 px-3 rounded-lg bg-surface-background border border-border-default text-text-primary text-sm mt-1 focus:outline-none focus:border-border-focus" />
+                </div>
+                <div className="col-span-2">
                   <label className="text-xs text-text-secondary font-medium">Válido até</label>
-                  <input type="date" value={form.expires_at} onChange={(e) => { setForm({ ...form, expires_at: e.target.value }); }}
+                  <input type="date" value={form.valid_until} onChange={(e) => { setForm({ ...form, valid_until: e.target.value }); }}
                     className="w-full h-10 px-3 rounded-lg bg-surface-background border border-border-default text-text-primary text-sm mt-1 focus:outline-none focus:border-border-focus" />
                 </div>
               </div>
@@ -133,19 +128,19 @@ export function CouponsPage() {
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {filtered.map((coupon) => (
-            <article key={coupon.id} className={clsx('rounded-xl border bg-surface-elevated p-4 transition-all', coupon.active ? 'border-border-default' : 'border-border-disabled opacity-70')}>
+            <article key={coupon.id} className={clsx('rounded-xl border bg-surface-elevated p-4 transition-all', coupon.is_active ? 'border-border-default' : 'border-border-disabled opacity-70')}>
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="font-mono font-bold text-lg text-brand-primary">{coupon.code}</span>
-                    <span className={clsx('px-2 py-0.5 rounded-full text-xs font-medium', coupon.active ? 'bg-feedback-success/10 text-feedback-success' : 'bg-text-disabled/10 text-text-disabled')}>{coupon.active ? 'Ativo' : 'Inativo'}</span>
+                    <span className={clsx('px-2 py-0.5 rounded-full text-xs font-medium', coupon.is_active ? 'bg-feedback-success/10 text-feedback-success' : 'bg-text-disabled/10 text-text-disabled')}>{coupon.is_active ? 'Ativo' : 'Inativo'}</span>
                   </div>
                 </div>
               </div>
               <div className="space-y-2 text-sm">
-                <div className="flex justify-between"><span className="text-text-tertiary">Desconto</span><span className="font-semibold text-text-primary">{coupon.discount_type === 'percentage' ? `${coupon.discount}%` : `R$ ${coupon.discount.toFixed(2)}`}</span></div>
-                <div className="flex justify-between"><span className="text-text-tertiary">Pedido mín.</span><span className="font-medium text-text-primary">R$ {coupon.min_order.toFixed(2).replace('.', ',')}</span></div>
-                <div className="flex justify-between"><span className="text-text-tertiary">Validade</span><span className="font-medium text-text-primary">{new Date(coupon.expires_at).toLocaleDateString('pt-BR')}</span></div>
+                <div className="flex justify-between"><span className="text-text-tertiary">Desconto</span><span className="font-semibold text-text-primary">{coupon.discount_type === 'percentage' ? `${coupon.discount_value}%` : `R$ ${Number(coupon.discount_value).toFixed(2)}`}</span></div>
+                <div className="flex justify-between"><span className="text-text-tertiary">Pedido mín.</span><span className="font-medium text-text-primary">R$ {Number(coupon.min_order ?? 0).toFixed(2).replace('.', ',')}</span></div>
+                <div className="flex justify-between"><span className="text-text-tertiary">Validade</span><span className="font-medium text-text-primary">{new Date(coupon.valid_until).toLocaleDateString('pt-BR')}</span></div>
                 <div className="flex justify-between"><span className="text-text-tertiary">Usos</span><span className="font-medium text-text-primary">{coupon.current_uses}/{coupon.max_uses}</span></div>
               </div>
               <div className="mt-3 h-1.5 rounded-full bg-surface-background overflow-hidden">
@@ -153,7 +148,7 @@ export function CouponsPage() {
               </div>
               <p className="text-xs text-text-tertiary mt-1">{usagePercent(coupon)}% utilizado</p>
               <div className="flex gap-2 mt-4 pt-3 border-t border-border-default">
-                <Button variant="outline" intent="secondary" size="sm" className="flex-1" disabled={toggleMutation.isPending} onClick={() => { toggleActive(coupon); }}>{coupon.active ? 'Pausar' : 'Ativar'}</Button>
+                <Button variant="outline" intent="secondary" size="sm" className="flex-1" disabled={toggleMutation.isPending} onClick={() => { toggleActive(coupon); }}>{coupon.is_active ? 'Pausar' : 'Ativar'}</Button>
                 <Button variant="outline" intent="secondary" size="sm" className="flex-1" onClick={() => { openEdit(coupon); }}>Editar</Button>
                 <button onClick={() => { remove(coupon.id); }} disabled={removeMutation.isPending} className="p-2 rounded-lg hover:bg-surface-background transition-colors disabled:opacity-50" title="Excluir"><Icon name="Trash2" size={16} className="text-text-tertiary hover:text-feedback-error" /></button>
               </div>

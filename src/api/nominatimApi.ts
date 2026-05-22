@@ -19,18 +19,18 @@ export interface NominatimSearchResult {
 }
 
 export interface NominatimReverseResult {
-  lat: string;
-  lon: string;
+  lat: number;
+  lon: number;
   display_name: string;
   address?: Record<string, string | undefined>;
 }
 
 export const nominatimApi = {
   search: (query: string): Promise<NominatimSearchResult[]> => {
-    return httpClient.get<NominatimSearchResult[]>(`/api/nominatim/search?format=json&limit=1&addressdetails=1&q=${encodeURIComponent(query)}`);
+    return httpClient.get<NominatimSearchResult[]>(`/nominatim/search?format=json&limit=1&addressdetails=1&q=${encodeURIComponent(query)}`);
   },
 
   reverse: (lat: number, lon: number): Promise<NominatimReverseResult | null> => {
-    return httpClient.get<NominatimReverseResult | null>(`/api/nominatim/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1&zoom=18`);
+    return httpClient.get<NominatimReverseResult | null>(`/nominatim/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1&zoom=18`);
   }
 };

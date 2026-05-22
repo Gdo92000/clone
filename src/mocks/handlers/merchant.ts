@@ -25,13 +25,6 @@ export const merchantHandlers = [
     return HttpResponse.json(branches, { status: 200 })
   }),
 
-  http.get('*/api/companies/:companyId/subscription', () => {
-    const scenario = getCurrentScenario()
-    const billing_status = scenario === 'tenant_expired' ? 'cancelled' : 'active'
-    logMock('GET', '/api/companies/:id/subscription', 200, billing_status)
-    return HttpResponse.json({ company_id: 'comp-1', plan_id: 'pro', billing_status }, { status: 200 })
-  }),
-
   http.get('*/api/branches', ({ request }) => {
     const url = new URL(request.url)
     const companyId = url.searchParams.get('company_id')
@@ -100,10 +93,9 @@ export const merchantHandlers = [
     return HttpResponse.json(orders, { status: 200 })
   }),
 
-  http.post('*/api/orders/:orderId/status', async ({ params, request }) => {
+  http.post('*/api/orders/:orderId/status', ({ params }) => {
     const orderId = typeof params['orderId'] === 'string' ? params['orderId'] : ''
     const scenario = getCurrentScenario()
-    const body = await request.json() as { status?: string }
 
     if (scenario === 'merchant_blocked') {
       logMock('POST', `/api/orders/${orderId}/status`, 403)
@@ -111,7 +103,7 @@ export const merchantHandlers = [
     }
 
     logMock('POST', `/api/orders/${orderId}/status`, 200)
-    return HttpResponse.json({ success: true, status: body.status }, { status: 200 })
+    return HttpResponse.json({ success: true }, { status: 200 })
   }),
 
   http.get('*/api/branch-settings/:branchId', ({ params }) => {
@@ -144,15 +136,24 @@ export const merchantHandlers = [
     return HttpResponse.json({ success: true, id: 'coup-new', ...body as Record<string, unknown> }, { status: 201 })
   }),
 
-  http.put('*/api/merchant-coupons/:id', async ({ params, request }) => {
+  http.put('*/api/merchant-coupons/:id', ({ params }) => {
     const id = typeof params['id'] === 'string' ? params['id'] : ''
-    const body = await request.json()
+    const coupon = mockCoupons.find(c => c.id === id)
+    if (!coupon) {
+      logMock('PUT', `/api/merchant-coupons/${id}`, 404)
+      return HttpResponse.json({ error: 'Not found' }, { status: 404 })
+    }
     logMock('PUT', `/api/merchant-coupons/${id}`, 200)
-    return HttpResponse.json({ success: true, ...body as Record<string, unknown> }, { status: 200 })
+    return HttpResponse.json({ success: true }, { status: 200 })
   }),
 
   http.delete('*/api/merchant-coupons/:id', ({ params }) => {
     const id = typeof params['id'] === 'string' ? params['id'] : ''
+    const coupon = mockCoupons.find(c => c.id === id)
+    if (!coupon) {
+      logMock('DELETE', `/api/merchant-coupons/${id}`, 404)
+      return HttpResponse.json({ error: 'Not found' }, { status: 404 })
+    }
     logMock('DELETE', `/api/merchant-coupons/${id}`, 200)
     return HttpResponse.json({ success: true }, { status: 200 })
   }),

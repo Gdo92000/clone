@@ -6,12 +6,14 @@ import type {
   FeatureFlagDTO,
   GlobalCouponDTO,
   PermissionDTO,
+  RolePermissionDTO,
   CapabilityDTO,
   CommissionPlanDTO,
   PlatformMetricsDTO,
   SubscriptionPlanDTO,
   AddonDTO,
   SubscriptionDTO,
+  CreateGlobalCouponInput,
 } from '../dto/superadminDto';
 
 export const notificationsApi = {
@@ -38,8 +40,8 @@ export const featureFlagApi = {
 
 export const globalCouponApi = {
   list: () => get<GlobalCouponDTO[]>('/global-coupons'),
-  create: (data: Record<string, unknown>) => post<GlobalCouponDTO>('/global-coupons', data),
-  update: (id: string, data: Record<string, unknown>) => put<GlobalCouponDTO>(`/global-coupons/${id}`, data),
+  create: (data: CreateGlobalCouponInput) => post<GlobalCouponDTO>('/global-coupons', data),
+  update: (id: string, data: Partial<CreateGlobalCouponInput>) => put<GlobalCouponDTO>(`/global-coupons/${id}`, data),
   delete: (id: string) => del<Record<string, never>>(`/global-coupons/${id}`),
 };
 
@@ -53,7 +55,7 @@ export const subscriptionApi = {
 
 export const permissionApi = {
   list: () => get<PermissionDTO[]>('/permissions'),
-  getByRole: (role: string) => get<PermissionDTO[]>(`/permissions/role/${role}`),
+   getByRole: (role: string) => get<RolePermissionDTO[]>(`/permissions/role/${role}`),
   assign: (data: { role: string; permissionId: string }) => post<Record<string, never>>('/permissions/assign', data),
   revoke: (data: { role: string; permissionId: string }) => del<Record<string, never>>(`/permissions/revoke/${data.role}/${data.permissionId}`),
 };

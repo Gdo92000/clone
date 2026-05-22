@@ -58,13 +58,16 @@ export interface FeatureFlag {
 export interface GlobalCoupon {
   id: string
   code: string
-  discount: number
+  description: string | null
   discount_type: string
-  min_order: number
+  discount_value: string
+  min_order: string | null
   max_uses: number
   current_uses: number
-  active: boolean
-  expires_at: string
+  valid_from: string
+  valid_until: string
+  is_active: boolean
+  created_at: string
 }
 
 export interface Permission {
@@ -155,6 +158,11 @@ export interface ConsumerLoyalty {
   }>
 }
 
+export const mockGlobalCoupons: GlobalCoupon[] = [
+  { id: 'gc-1', code: 'BEMVINDO10', description: '10% off em pedidos acima de R$ 20', discount_type: 'percentage', discount_value: '10', min_order: '20', max_uses: 1000, current_uses: 234, valid_from: new Date(Date.now() - 30 * 86400000).toISOString(), valid_until: new Date(Date.now() + 90 * 86400000).toISOString(), is_active: true, created_at: new Date(Date.now() - 30 * 86400000).toISOString() },
+  { id: 'gc-2', code: 'FRETEGRATIS10', description: null, discount_type: 'fixed', discount_value: '10', min_order: '30', max_uses: 500, current_uses: 89, valid_from: new Date(Date.now() - 30 * 86400000).toISOString(), valid_until: new Date(Date.now() + 60 * 86400000).toISOString(), is_active: true, created_at: new Date(Date.now() - 30 * 86400000).toISOString() },
+]
+
 export const mockNotifications: Notification[] = [
   { id: 'notif-1', title: 'Novo pedido', message: 'Pedido #order-1 foi criado', type: 'order', read: false, created_at: new Date().toISOString() },
   { id: 'notif-2', title: 'Assinatura próxima do vencimento', message: 'Sua assinatura vence em 5 dias', type: 'billing', read: false, created_at: new Date(Date.now() - 86400000).toISOString() },
@@ -180,11 +188,6 @@ export const mockFeatureFlags: FeatureFlag[] = [
   { id: 'ff-4', key: 'ai_recommendations', name: 'Recomendações IA', enabled: false, description: 'Recomendações baseadas em IA' },
 ]
 
-export const mockGlobalCoupons: GlobalCoupon[] = [
-  { id: 'gc-1', code: 'BEMVINDO10', discount: 10, discount_type: 'percentage', min_order: 20, max_uses: 1000, current_uses: 234, active: true, expires_at: new Date(Date.now() + 90 * 86400000).toISOString() },
-  { id: 'gc-2', code: 'FRETEGRATIS10', discount: 10, discount_type: 'fixed', min_order: 30, max_uses: 500, current_uses: 89, active: true, expires_at: new Date(Date.now() + 60 * 86400000).toISOString() },
-]
-
 export const mockPermissions: Permission[] = [
   { id: 'perm-1', role: 'superadmin', resource: 'all', action: '*', name: 'Acesso total' },
   { id: 'perm-2', role: 'admin', resource: 'orders', action: 'crud', name: 'Gerenciar pedidos' },
@@ -205,7 +208,7 @@ export const mockCapabilities: Capability[] = [
 export const mockCommissionPlans: CommissionPlan[] = [
   { plan_id: 'basic', marketplace_fee: '12', delivery_fee: '8', payment_fee: '3.5', additional_fees: [] },
   { plan_id: 'pro', marketplace_fee: '8', delivery_fee: '5', payment_fee: '2.5', additional_fees: [{ label: 'Marketing', percentage: 2 }] },
-  { plan_id: 'enterprise', marketplace_fee: '5', delivery_fee: '3', payment_fee: '1.5', additional_fees: [{ label: 'Marketing', percentage: 1.5 }] },
+  { plan_id: 'premium', marketplace_fee: '5', delivery_fee: '3', payment_fee: '1.5', additional_fees: [{ label: 'Marketing', percentage: 1.5 }] },
 ]
 
 export const mockPlatformMetrics: PlatformMetrics = {

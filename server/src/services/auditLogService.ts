@@ -9,9 +9,11 @@ export type AuditAction =
   | 'TOKEN_REFRESH'
   | 'PASSWORD_CHANGE'
   | 'PASSWORD_RESET_REQUEST'
+  | 'PASSWORD_RESET_REQUESTED'
   | 'PASSWORD_RESET_CONFIRM'
   | 'REGISTER'
-  | 'SESSION_REVOKED';
+  | 'SESSION_REVOKED'
+  | 'AUTH_FAILED';
 
 export async function createAuditLog(params: {
   userId?: string;

@@ -143,19 +143,12 @@ describe('Coverage', () => {
 })
 
 describe('Subscription-addons', () => {
-  it('GET /api/subscription-addons returns list', async () => {
-    const res = await api().get('/api/subscription-addons')
-    expect(res.status).toBe(200)
-    const body = await res.json() as Array<Record<string, unknown>>
-    expect(Array.isArray(body)).toBe(true)
-    expect(body[0]?.subscription_id).toBe('comp-1')
-  })
-
-  it('POST /api/subscription-addons/toggle returns 200', async () => {
+  it('POST /api/subscription-addons/toggle returns success with active state', async () => {
     const res = await api().post('/api/subscription-addons/toggle', { subscriptionId: 'comp-1', addonId: 'addon-1' })
     expect(res.status).toBe(200)
-    const body = await res.json() as { success: boolean }
+    const body = await res.json() as { success: boolean; active: boolean }
     expect(body.success).toBe(true)
+    expect(body.active).toBe(true)
   })
 })
 

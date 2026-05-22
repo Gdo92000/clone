@@ -12,6 +12,8 @@ type PrinterConfig = InferSelectModel<typeof printerConfigs>;
 function getPrintDriver(config: PrinterConfig): PrinterDriver {
   switch (config.printer_type) {
     case 'network':
+      if (!config.ip_address) throw new Error('Network printer missing IP address');
+      if (config.port === null) throw new Error('Network printer missing port');
       return new NetworkPrinterDriver(config.ip_address, config.port);
     default:
       throw new Error(`Unsupported printer type: ${config.printer_type}`);

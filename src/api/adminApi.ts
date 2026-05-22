@@ -1,9 +1,9 @@
 import { get, put } from './httpClient';
-import type { AuthUserDTO } from '../dto/authDto';
+import type { AdminUserDTO } from '../dto/superadminDto';
 
 export const adminApi = {
-  getUsers: () => get<AuthUserDTO[]>('/admin/users'),
-  getUser: (id: string) => get<AuthUserDTO>(`/admin/users/${id}`),
+  getUsers: () => get<AdminUserDTO[]>('/admin/users'),
+  getUser: (id: string) => get<AdminUserDTO>(`/admin/users/${id}`),
   updateUser: (id: string, data: Partial<{ name: string; role: string; is_active: boolean }>) =>
-    put<AuthUserDTO>(`/admin/users/${id}`, data),
+    put<{ success: boolean }>(`/admin/users/${id}`, data),
 };

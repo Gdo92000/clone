@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import { mockOperationHours, mockOperationStatus, mockHolidays } from '../fixtures/operations'
+import { mockBusinessHours, mockOperationStatus, mockHolidays, mockTodayPeriods } from '../fixtures/operations'
 import { logMock } from '../logger'
 import { getCurrentScenario } from '../scenarios'
 
@@ -17,12 +17,12 @@ export const operationHandlers = [
   http.get('*/api/operations/:branchId/today-periods', ({ params }) => {
     const branchId = typeof params['branchId'] === 'string' ? params['branchId'] : ''
     logMock('GET', `/api/operations/${branchId}/today-periods`, 200)
-    return HttpResponse.json([{ open: '08:00', close: '23:00' }], { status: 200 })
+    return HttpResponse.json(mockTodayPeriods, { status: 200 })
   }),
 
   http.get('*/api/operations/:branchId/hours', ({ params }) => {
     const branchId = typeof params['branchId'] === 'string' ? params['branchId'] : ''
-    const hours = mockOperationHours.filter(h => h.branch_id === branchId)
+    const hours = mockBusinessHours.filter(h => h.branch_id === branchId)
     logMock('GET', `/api/operations/${branchId}/hours`, 200)
     return HttpResponse.json(hours, { status: 200 })
   }),
