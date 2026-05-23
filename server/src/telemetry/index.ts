@@ -1,0 +1,1 @@
+export { initTelemetry, startTelemetry, shutdownTelemetry, isTelemetryEnabled, openSpan, closeSpan, withSpan, recordSpanMetric, getActiveSpanNames, type TelemetryInitResult, type ISpan, type SpanTag } from './router';
