@@ -47,6 +47,7 @@
     }
   },
   "instructions": [
+    "docs/_index.md",
     "AGENTS.md",
     ".opencode/ag-kit-main/AGENT_FLOW.md"
   ],

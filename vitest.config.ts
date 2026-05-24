@@ -19,8 +19,23 @@ export default defineConfig({
     projects: [
       {
         test: {
+          name: 'server-routes',
+          include: ['server/src/routes/routes.test.ts'],
+          environment: 'node',
+          globals: true,
+          pool: 'forks',
+          poolOptions: {
+            threads: {
+              singleFork: true,
+            },
+          },
+        },
+      },
+      {
+        test: {
           name: 'server',
           include: ['server/src/**/*.test.ts'],
+          exclude: ['server/src/routes/routes.test.ts'],
           environment: 'node',
           globals: true,
         },

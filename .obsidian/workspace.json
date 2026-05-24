@@ -1,0 +1,225 @@
+{
+  "main": {
+    "id": "9154be05222630c0",
+    "type": "split",
+    "children": [
+      {
+        "id": "def8f774131e612b",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "d2df1444a4bac8ef",
+            "type": "leaf",
+            "state": {
+              "type": "graph",
+              "state": {},
+              "icon": "lucide-git-fork",
+              "title": "Visualização em gráfico"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "2f64341d43a99324",
+    "type": "split",
+    "children": [
+      {
+        "id": "c29efa1e864420f7",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "49f682de209a23e3",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Explorador de arquivos"
+            }
+          },
+          {
+            "id": "d3b8a361d702324a",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Procurar"
+            }
+          },
+          {
+            "id": "06a17cb52876d4a5",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Marcadores"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 223.5,
+    "collapsed": true
+  },
+  "right": {
+    "id": "2487096164c66e62",
+    "type": "split",
+    "children": [
+      {
+        "id": "50fcd768f8c9d72f",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "cce9c6b228ab8502",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": true,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Links inversos"
+            }
+          },
+          {
+            "id": "ce9a0aa6d56b931c",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Links de saída"
+            }
+          },
+          {
+            "id": "96f72dab4e8a127a",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Etiquetas"
+            }
+          },
+          {
+            "id": "8f65cd04b412427a",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "Todas as propriedades"
+            }
+          },
+          {
+            "id": "27be509a241f226d",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Sumário"
+            }
+          }
+        ],
+        "currentTab": 4
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Abrir a troca rápida": false,
+      "graph:Abrir visualização em gráfico": false,
+      "canvas:Criar novo canvas": false,
+      "daily-notes:Abrir a nota de hoje": false,
+      "templates:Inserir modelo": false,
+      "command-palette:Abrir paleta de comandos": false,
+      "bases:Criar nova base": false
+    }
+  },
+  "active": "d2df1444a4bac8ef",
+  "lastOpenFiles": [
+    "__rzi_4908.15864.rartemp",
+    "flux-template-clean.zip",
+    "__rzi_5424.35251.rartemp",
+    "__rzi_5424.27865.rartemp",
+    "flux-template.zip",
+    "docs/obsidian/archive/server_out.txt",
+    "docs/obsidian/archive/server_log.txt",
+    "docs/obsidian/archive/server_err.txt",
+    "docs/obsidian/archive/_server_err.txt",
+    "docs/obsidian/archive/_auth3_out.txt",
+    "docs/obsidian/archive/_auth3_err.txt",
+    "docs/testing/TESTING.md",
+    "docs/database/DATABASE.md",
+    "docs/guides/Wiki Central.md",
+    "docs/guides/GETTING-STARTED.md",
+    "docs/guides/DEVELOPMENT.md",
+    "docs/guides/CONFIGURATION.md",
+    "docs/architecture/kitchen-auto-print-addon.md",
+    "docs/architecture/FRONTEND_BACKEND_CONTRACT.md",
+    "docs/architecture/ARCHITECTURE.md",
+    "docs/api/routes.md",
+    "docs/api/API.md",
+    "docs/obsidian/archive/SNAPSHOT-docs-2026-05-24.md",
+    "docs/obsidian/mocs/_index.md",
+    "docs/obsidian/system/_index.md",
+    "docs/obsidian/system/AUTO_LINKING.md",
+    "docs/obsidian/system/KNOWLEDGE_DECAY.md",
+    "docs/obsidian/system/ORPHAN_REPORT.md",
+    "docs/obsidian/system/SEMANTIC_SCORING.md",
+    "docs/obsidian/system/MEMORY_LIFECYCLE.md",
+    "docs/obsidian/system/VECTOR_SEARCH.md",
+    "docs/obsidian/system/RETRIEVAL_RULES.md",
+    "docs/obsidian/system/GRAPH_HEALTH.md",
+    "docs/obsidian/system/SEMANTIC_INDEX.md",
+    "docs/obsidian/system/System Index.md",
+    "AGENTS.md",
+    "Sem título.canvas",
+    "dist/pwa-icon-512x512.png",
+    "dist/pwa-icon-192x192.png",
+    "public/pwa-icon-512x512.png",
+    "public/pwa-icon-192x192.png"
+  ]
+}

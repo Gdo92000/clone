@@ -63,14 +63,30 @@ export async function seedFromRestaurants() {
   const existing = await db.select({ count: sql<number>`count(*)` }).from(coverageCities);
   if (existing[0]?.count > 0) return { seeded: 0, reason: 'already_seeded' };
 
-  const all = await db.select({ city: restaurants.city }).from(restaurants).where(sql`${restaurants.city} IS NOT NULL`);
-  const unique = [...new Set(all.map((r) => r.city))];
-  if (unique.length === 0) return { seeded: 0, reason: 'no_restaurants' };
+  const all = await db.select({ city: restaurants.city, lat: restaurants.latitude, lng: restaurants.longitude }).from(restaurants).where(sql`${restaurants.city} IS NOT NULL`);
+  if (all.length === 0) return { seeded: 0, reason: 'no_restaurants' };
+
+  const cityGroups = new Map<string, { name: string; lats: number[]; lngs: number[] }>();
+  for (const r of all) {
+    const name = r.city;
+    if (!name) continue;
+    const g = cityGroups.get(name);
+    const lat = r.lat !== null ? Number(r.lat) : null;
+    const lng = r.lng !== null ? Number(r.lng) : null;
+    if (g) {
+      if (lat !== null) g.lats.push(lat);
+      if (lng !== null) g.lngs.push(lng);
+    } else {
+      cityGroups.set(name, { name, lats: lat !== null ? [lat] : [], lngs: lng !== null ? [lng] : [] });
+    }
+  }
 
   let seeded = 0;
-  for (const name of unique) {
-    const id = `city-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
-    await db.insert(coverageCities).values({ id, name, state: 'SP', latitude: '0', longitude: '0', radius_km: 18, restaurant_count: 0 }).onConflictDoNothing();
+  for (const [, g] of cityGroups) {
+    const avgLat = g.lats.length > 0 ? g.lats.reduce((a, b) => a + b, 0) / g.lats.length : -23.5;
+    const avgLng = g.lngs.length > 0 ? g.lngs.reduce((a, b) => a + b, 0) / g.lngs.length : -46.6;
+    const id = `city-${g.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+    await db.insert(coverageCities).values({ id, name: g.name, state: 'SP', latitude: String(avgLat), longitude: String(avgLng), radius_km: 18, restaurant_count: 0 }).onConflictDoNothing();
     seeded++;
   }
   return { seeded };

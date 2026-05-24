@@ -6,9 +6,9 @@ import { logger } from 'hono/logger';
 import { serve } from '@hono/node-server';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
-import { eq } from 'drizzle-orm';
-import { db } from './db';
-import { restaurants, menuItems , reviews } from './db/schema';
+import { eq, and, isNull, lt } from 'drizzle-orm';
+import { db, createDatabase } from './db';
+import { restaurants, menuItems, reviews } from './db/schema';
 import operationsRoutes from './routes/operations';
 import holidaysRoutes from './routes/holidays';
 import authRoutes from './routes/auth';
@@ -41,7 +41,7 @@ import { requestContext } from './middleware/context';
 import { securityHeaders } from './middleware/securityHeaders';
 import { domainMiddleware } from './middleware/domain';
 import { rateLimit } from './middleware/rateLimit';
-import { ALLOWED_ORIGINS, PORT, NODE_ENV, MAX_BODY_SIZE } from './config';
+import { env, ALLOWED_ORIGINS, PORT, NODE_ENV, MAX_BODY_SIZE, DATABASE_PROVIDER } from './config';
 import { errorHandler } from './lib/errors';
 import { logger as appLogger } from './lib/logger';
 import { checkHealth, READY_STATE } from './lib/health';
@@ -85,6 +85,8 @@ app.use('/api/*', bodyLimit({ maxSize: MAX_BODY_SIZE }));
 app.use('*', metricsHandler);
 
 app.onError(errorHandler);
+
+createDatabase(env);
 
 app.get('/api/metrics', async (c) => {
   c.header('Content-Type', 'text/plain');
@@ -214,13 +216,6 @@ api.route('/loyalty', loyaltyRoutes);
 api.route('/coupons/validate', couponEngineRoutes);
 api.route('/printing', printingRoutes);
 api.route('/permissions', permissionsRoutes);
-
-
-
-
-
-
-
 
 const reviewCreateSchema = z.object({
   restaurant_id: z.string().min(1).max(64),

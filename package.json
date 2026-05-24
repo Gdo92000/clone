@@ -8,7 +8,9 @@
     "dev:client": "vite --host",
     "dev:server": "tsx watch server/src/index.ts",
     "build": "tsc -b && vite build",
-    "lint": "eslint .",
+    "lint": "eslint . --cache --cache-strategy content",
+    "lint:full": "eslint . --cache --cache-strategy content --cache-location node_modules/.cache/eslint",
+    "lint:no-cache": "eslint .",
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run",
@@ -42,6 +44,7 @@
     "tailwind-merge": "^3.5.0",
     "tailwind-variants": "^3.2.2",
     "tailwindcss": "^4.2.4",
+    "vite-plugin-pwa": "^1.3.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -77,6 +80,7 @@
     "jsdom": "^29.1.1",
     "msw": "^2.14.6",
     "pino-pretty": "^13.1.3",
+    "rollup-plugin-visualizer": "^7.0.1",
     "tsx": "^4.22.0",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.58.2",

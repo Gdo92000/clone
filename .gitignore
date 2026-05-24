@@ -24,6 +24,9 @@ dist-ssr
 *.sln
 *.sw?
 
+# ESLint cache
+.eslintcache
+
 # Debug / temp files
 _auth*
 _server*

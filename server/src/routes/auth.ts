@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { setCookie, getCookie } from 'hono/cookie';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import crypto from 'node:crypto';
@@ -11,6 +12,7 @@ import { rateLimit } from '../middleware/rateLimit';
 import { createAuditLog } from '../services/auditLogService';
 import { logger } from '../lib/logger';
 import { refreshTokenCount } from '../middleware/metrics';
+import { REFRESH_COOKIE_NAME, REFRESH_COOKIE_OPTIONS } from '../lib/cookieConfig';
 
 const auth = new Hono();
 
@@ -28,7 +30,7 @@ const registerSchema = z.object({
 });
 
 const refreshSchema = z.object({
-  refreshToken: z.string().min(1),
+  refreshToken: z.string().min(1).optional(),
 });
 
 const forgotPasswordSchema = z.object({
@@ -48,7 +50,8 @@ auth.post('/login', rateLimit(10, 60_000), zValidator('json', loginSchema), asyn
 
   try {
       const result = await provider.login(input, { ip, userAgent });
-      return c.json(result);
+      setCookie(c, REFRESH_COOKIE_NAME, result.refreshToken, REFRESH_COOKIE_OPTIONS);
+      return c.json({ user: result.user, token: result.token, expiresIn: result.expiresIn });
     } catch (err) {
       const e = err as Error & { retryAfter?: number };
       if (e.retryAfter) {
@@ -89,11 +92,16 @@ auth.post('/register', rateLimit(5, 60_000), zValidator('json', registerSchema),
 });
 
 auth.post('/refresh', rateLimit(10, 60_000), zValidator('json', refreshSchema), async (c) => {
-  const { refreshToken } = c.req.valid('json');
+  const bodyRefresh = c.req.valid('json').refreshToken;
+  const allCookies = getCookie(c);
+  const refreshToken = REFRESH_COOKIE_NAME in allCookies ? allCookies[REFRESH_COOKIE_NAME] : bodyRefresh;
+  if (!refreshToken) return c.json({ error: 'Token inválido' }, 401);
+
   const provider = getAuthProvider();
 
   try {
       const result = await provider.refresh(refreshToken);
+      setCookie(c, REFRESH_COOKIE_NAME, refreshToken, REFRESH_COOKIE_OPTIONS);
       refreshTokenCount.inc({ status: 'success' });
       return c.json(result);
     } catch (err) {
@@ -173,6 +181,7 @@ protectedAuth.post('/logout', async (c) => {
       await provider.logout(payload.session_id);
     }
   } catch (err: unknown) { logger.error('Logout failed', err instanceof Error ? err : new Error(String(err))); }
+  setCookie(c, REFRESH_COOKIE_NAME, '', { ...REFRESH_COOKIE_OPTIONS, maxAge: 0 });
   return c.json({ success: true });
 });
 

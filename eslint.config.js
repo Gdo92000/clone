@@ -20,6 +20,7 @@ export default tseslint.config(
       '.windsurf/',
       'coverage/',
       '*.d.ts',
+      '.eslintcache',
     ],
   },
 
@@ -39,7 +40,16 @@ export default tseslint.config(
 
     languageOptions: {
       parserOptions: {
-        project: ['./tsconfig.eslint.json'],
+        projectService: {
+          allowDefaultProject: [
+            'src/test/*.ts',
+            'src/services/*.test.ts',
+            'src/hooks/*.test.tsx',
+            'src/mocks/handlers/__tests__/*.test.ts',
+            'src/repositories/*.test.ts',
+            'src/components/commerce/*.test.tsx',
+          ],
+        },
         tsconfigRootDir: import.meta.dirname,
       },
     },
@@ -54,6 +64,13 @@ export default tseslint.config(
     settings: {
       react: {
         version: 'detect',
+      },
+      'import/resolver': {
+        typescript: {
+          project: [
+            './tsconfig.app.json',
+          ],
+        },
       },
     },
 
@@ -95,8 +112,8 @@ export default tseslint.config(
         },
       ],
 
-      // Imports
-      'import/no-cycle': 'error',
+      // Imports — maxDepth evita percorrer o grafo inteiro
+      'import/no-cycle': ['error', { maxDepth: 10 }],
       'import/no-duplicates': 'error',
 
       // Arquitetura
@@ -127,7 +144,7 @@ export default tseslint.config(
 
     languageOptions: {
       parserOptions: {
-        project: ['./server/tsconfig.eslint.json'],
+        projectService: true,
         tsconfigRootDir: import.meta.dirname,
       },
     },
@@ -135,6 +152,16 @@ export default tseslint.config(
     plugins: {
       'unused-imports': unusedImportsPlugin,
       import: importPlugin,
+    },
+
+    settings: {
+      'import/resolver': {
+        typescript: {
+          project: [
+            './server/tsconfig.json',
+          ],
+        },
+      },
     },
 
     rules: {
@@ -159,7 +186,7 @@ export default tseslint.config(
       '@typescript-eslint/no-misused-promises': 'error',
       '@typescript-eslint/consistent-type-imports': 'error',
 
-      'import/no-cycle': 'error',
+      'import/no-cycle': ['error', { maxDepth: 10 }],
       'import/no-duplicates': 'error',
 
       'no-console': [

@@ -85,7 +85,7 @@ describe('Route integration tests', () => {
       expect(res.status).toBe(200);
       const body = await res.json() as BodyRecord[];
       expect(Array.isArray(body)).toBe(true);
-    }, 15000);
+    }, 10000);
 
     it('GET / returns plans from DB', async () => {
       selectMock.mockImplementation(() => mockSelect([{ id: 'basic', name: 'Básico', monthly_price: '29.90', is_active: true }]));
@@ -163,15 +163,127 @@ describe('Route integration tests', () => {
   });
 
   describe('Coverage cities', () => {
+    const mockCity = { id: 'city-franca', name: 'Franca', state: 'SP', latitude: '-20.5355', longitude: '-47.4011', radius_km: 18, restaurant_count: 0, is_active: true, created_at: new Date().toISOString() };
+
     it('GET / returns cities', async () => {
-      selectMock.mockImplementation(() => mockSelect([{ id: '1', city: 'Franca', state: 'SP', is_active: true }]));
+      selectMock.mockImplementation(() => mockSelect([mockCity]));
       const { default: route } = await import('./coverage-cities');
       const app = new Hono().route('/api/coverage-cities', route);
       const res = await app.request('/api/coverage-cities');
       expect(res.status).toBe(200);
       const body = await res.json() as BodyRecord[];
       expect(body).toHaveLength(1);
-      expect(body[0].city).toBe('Franca');
+      expect(body[0].name).toBe('Franca');
+    });
+
+    it('GET / returns empty array when no cities', async () => {
+      selectMock.mockImplementation(() => mockSelect([]));
+      const { default: route } = await import('./coverage-cities');
+      const app = new Hono().route('/api/coverage-cities', route);
+      const res = await app.request('/api/coverage-cities');
+      expect(res.status).toBe(200);
+      const body = await res.json() as BodyRecord[];
+      expect(body).toHaveLength(0);
+    });
+
+    it('GET /:id returns city when found', async () => {
+      selectMock.mockImplementation(() => mockSelectWithLimit([mockCity]));
+      const { default: route } = await import('./coverage-cities');
+      const app = new Hono().route('/api/coverage-cities', route);
+      const res = await app.request('/api/coverage-cities/city-franca');
+      expect(res.status).toBe(200);
+      const body = await res.json() as BodyRecord;
+      expect(body.id).toBe('city-franca');
+    });
+
+    it('GET /:id returns 404 when not found', async () => {
+      selectMock.mockImplementation(() => mockSelectWithLimit([]));
+      const { default: route } = await import('./coverage-cities');
+      const app = new Hono().route('/api/coverage-cities', route);
+      const res = await app.request('/api/coverage-cities/city-unknown');
+      expect(res.status).toBe(404);
+    });
+
+    it('POST /admin creates coverage city', async () => {
+      selectMock.mockImplementation(() => mockSelectWithLimit([mockCity]));
+      const { default: route } = await import('./coverage-cities');
+      const app = new Hono().route('/api/coverage-cities', route);
+      const res = await app.request('/api/coverage-cities/admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer t' },
+        body: JSON.stringify({ name: 'Franca', state: 'SP', latitude: '-20.5355', longitude: '-47.4011' }),
+      });
+      expect(res.status).toBe(201);
+    });
+
+    it('POST /admin returns 400 for invalid body', async () => {
+      const { default: route } = await import('./coverage-cities');
+      const app = new Hono().route('/api/coverage-cities', route);
+      const res = await app.request('/api/coverage-cities/admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer t' },
+        body: JSON.stringify({}),
+      });
+      expect(res.status).toBe(400);
+    });
+
+    it('PUT /admin/:id updates coverage city', async () => {
+      selectMock.mockImplementation(() => mockSelectWithLimit([mockCity]));
+      const { default: route } = await import('./coverage-cities');
+      const app = new Hono().route('/api/coverage-cities', route);
+      const res = await app.request('/api/coverage-cities/admin/city-franca', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer t' },
+        body: JSON.stringify({ radiusKm: 25 }),
+      });
+      expect(res.status).toBe(200);
+    });
+
+    it('PUT /admin/:id returns 404 for unknown city', async () => {
+      selectMock.mockImplementation(() => mockSelectWithLimit([]));
+      const { default: route } = await import('./coverage-cities');
+      const app = new Hono().route('/api/coverage-cities', route);
+      const res = await app.request('/api/coverage-cities/admin/city-unknown', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer t' },
+        body: JSON.stringify({ radiusKm: 25 }),
+      });
+      expect(res.status).toBe(404);
+    });
+
+    it('PATCH /admin/:id/toggle flips active status', async () => {
+      selectMock.mockImplementation(() => mockSelectWithLimit([mockCity]));
+      updateMock.mockReturnValue({ set: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) }) });
+      const { default: route } = await import('./coverage-cities');
+      const app = new Hono().route('/api/coverage-cities', route);
+      const res = await app.request('/api/coverage-cities/admin/city-franca/toggle', {
+        method: 'PATCH',
+        headers: { Authorization: 'Bearer t' },
+      });
+      expect(res.status).toBe(200);
+    });
+
+    it('DELETE /admin/:id removes coverage city', async () => {
+      const { default: route } = await import('./coverage-cities');
+      const app = new Hono().route('/api/coverage-cities', route);
+      const res = await app.request('/api/coverage-cities/admin/city-franca', {
+        method: 'DELETE',
+        headers: { Authorization: 'Bearer t' },
+      });
+      expect(res.status).toBe(200);
+    });
+
+    it('POST /admin/seed seeds from restaurants', async () => {
+      selectMock.mockImplementation(() => mockSelect([]));
+      const { default: route } = await import('./coverage-cities');
+      const app = new Hono().route('/api/coverage-cities', route);
+      const res = await app.request('/api/coverage-cities/admin/seed', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer t' },
+      });
+      expect(res.status).toBe(200);
+      const body = await res.json() as BodyRecord;
+      expect(body).toHaveProperty('seeded');
     });
   });
 

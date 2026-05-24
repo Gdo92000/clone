@@ -70,11 +70,10 @@ export function ThemeProvider({
     return () => mediaQuery.removeEventListener('change', handler);
   }, [theme]);
 
-  const value: ThemeContextValue = {
-    theme,
-    resolvedTheme,
-    setTheme,
-  };
+  const value = useMemo<ThemeContextValue>(
+    () => ({ theme, resolvedTheme, setTheme }),
+    [theme, resolvedTheme, setTheme],
+  );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }

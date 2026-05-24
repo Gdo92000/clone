@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import basicSsl from '@vitejs/plugin-basic-ssl'
+import { visualizer } from 'rollup-plugin-visualizer'
 
 function getMockFlag(): boolean {
   return process.env['VITE_MOCK'] === 'true'
@@ -13,6 +14,12 @@ export default defineConfig(() => ({
   plugins: [
     react(),
     basicSsl(),
+    visualizer({
+      filename: 'dist/stats.html',
+      open: false,
+      gzipSize: true,
+      brotliSize: false,
+    }),
   ],
   server: {
     host: true,
@@ -55,8 +62,17 @@ export default defineConfig(() => ({
           if (id.includes('node_modules/react') || id.includes('node_modules/scheduler')) {
             return 'vendor-react';
           }
+          if (id.includes('node_modules/leaflet')) {
+            return 'vendor-leaflet';
+          }
           if (id.includes('node_modules/lucide-react')) {
             return 'vendor-icons';
+          }
+          if (id.includes('node_modules/@tanstack')) {
+            return 'vendor-tanstack';
+          }
+          if (id.includes('node_modules/react-router') || id.includes('node_modules/@remix-run')) {
+            return 'vendor-router';
           }
           if (id.includes('node_modules/')) {
             return 'vendor-other';
