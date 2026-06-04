@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { merchantApi } from '../api';
 import { orderListDtoToModel } from '../mappers/merchantMapper';
 import { courierKeys } from '../api/queryKeys';
@@ -13,6 +13,19 @@ export function useCourierDeliveries() {
       return orderListDtoToModel(orders).filter((o) => o.deliveryType === 'delivery');
     },
     staleTime: STALE,
+  });
+}
+
+export function useUpdateDeliveryStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ orderId, deliveryStatus }: { orderId: string; deliveryStatus: 'in_route' | 'delivered' }) => {
+      const status: 'dispatched' | 'delivered' = deliveryStatus === 'in_route' ? 'dispatched' : 'delivered';
+      await merchantApi.updateOrderStatus(orderId, status);
+    },
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: courierKeys.deliveries });
+    },
   });
 }
 

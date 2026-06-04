@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import type { Coordinates } from '../types/location';
+import type { Coordinates } from '../domain/geospatial/geodesy';
 import { progressiveGeolocation } from '../services/geolocationService';
 
 export type { Coordinates };

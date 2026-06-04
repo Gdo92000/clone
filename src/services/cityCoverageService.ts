@@ -1,5 +1,5 @@
 import { coverageCityApi } from '../api/coverageCityApi';
-import { calculateDistance } from './locationService';
+import { calculateDistance } from '../domain/geospatial/geodesy';
 import type { Restaurant } from '../types';
 import { logger } from '../lib/logger';
 

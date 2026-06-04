@@ -4,7 +4,7 @@ import { FxPageNavbar } from '../components/navigation/FxPageNavbar';
 import { Icon } from '../components/ui/Icon';
 import { useLocationContext } from '../context/LocationContext';
 import { useLiveCityEstablishments } from '../hooks';
-import { formatDistance } from '../services/locationService';
+import { formatDistance } from '../domain/geospatial/geodesy';
 
 const radiusOptions = [2, 5, 8, 12] as const;
 

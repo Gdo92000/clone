@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useLocationContext } from '../context/LocationContext';
 import { useRestaurants } from './useRestaurants';
-import { calculateDistance } from '../services/locationService';
+import { calculateDistance } from '../domain/geospatial/geodesy';
 import type { Restaurant } from '../types';
 
 export interface NearbyRestaurant extends Restaurant {

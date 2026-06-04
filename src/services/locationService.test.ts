@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateDistance, formatDistance } from './locationService';
+import { calculateDistance, formatDistance } from '../domain/geospatial/geodesy';
 
 describe('calculateDistance (Haversine)', () => {
   it('returns 0 for same coordinates', () => {

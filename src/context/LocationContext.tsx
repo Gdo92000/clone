@@ -3,8 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState, ty
 import type { Coordinates } from '../types/location';
 import { getRegisteredCityCoverages, findRegisteredCityCoverage } from '../services/cityCoverageService';
 import { progressiveGeolocation, ipFallback, readCache, writeCache, getCachedCoords, isGeolocationUsable } from '../services/geolocationService';
-import { initialLocationState, locateCity, processSupportedCity, type LocationState } from '../providers/locationMachine';
-import type { City } from '../services/locationService';
+import { initialLocationState, locateCity, processSupportedCity, type LocationState, type City } from '../providers/locationMachine';
 import { logger } from '../lib/logger';
 
 interface LocationContextValue extends LocationState {

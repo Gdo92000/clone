@@ -6,7 +6,7 @@ import { FxQueryBoundary } from '../components/ui/FxQueryBoundary';
 import { FxRestaurantCard } from '../components/commerce/FxRestaurantCard';
 import { useLocationContext } from '../context/LocationContext';
 import { useRestaurants, useCategories } from '../hooks/useRestaurants';
-import { calculateDistance } from '../services/locationService';
+import { calculateDistance } from '../domain/geospatial/geodesy';
 import { Icon } from '../components/ui/Icon';
 import { ROUTES, restaurantsSearchHref, restaurantsCategoryHref, restaurantDetailHref } from '../lib/routes';
 import type { Restaurant } from '../types';

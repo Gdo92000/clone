@@ -3,7 +3,7 @@ import { clsx } from 'clsx';
 import { Icon } from '../ui/Icon';
 import { useLocationContext } from '../../context/LocationContext';
 import { useRegisteredCityCoverages } from '../../hooks/useCoverageData';
-import { formatDistance } from '../../services/locationService';
+import { formatDistance } from '../../domain/geospatial/geodesy';
 
 interface LocationSelectorProps {
   className?: string;

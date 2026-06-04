@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocationContext } from '../context/LocationContext';
 import { getRestaurants } from '../repositories/restaurantRepository';
 import { findRegisteredCityCoverage } from '../services/cityCoverageService';
-import { calculateDistance } from '../services/locationService';
+import { calculateDistance } from '../domain/geospatial/geodesy';
 
 export interface LocalEstablishment {
   id: string;
