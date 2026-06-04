@@ -86,6 +86,7 @@ export const consumerKeys = {
   notifications: ['consumer', 'my-notifications'] as const,
   tickets: ['consumer', 'my-tickets'] as const,
   reviews: ['consumer', 'reviews'] as const,
+  addresses: ['consumer', 'addresses'] as const,
 } as const;
 
 export const themeKeys = {

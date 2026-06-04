@@ -1,6 +1,7 @@
 import type { MerchantCompany, MerchantBranch, MerchantMenuItem, MerchantOrder, MerchantOrderStatus } from '../types';
 import { merchantApi } from '../api';
-import { companyListDtoToModel, branchListDtoToModel, menuItemDtoToModel, orderListDtoToModel } from '../mappers/merchantMapper';
+import { companyListDtoToModel, branchListDtoToModel, branchDtoToModel, menuItemDtoToModel, orderListDtoToModel } from '../mappers/merchantMapper';
+import type { CreateBranchRequest, UpdateBranchRequest } from '../dto/merchantDto';
 
 export async function getCompanies(): Promise<MerchantCompany[]> {
   const dtos = await merchantApi.getCompanies();
@@ -15,6 +16,20 @@ export async function getBranches(): Promise<MerchantBranch[]> {
 export async function getBranchesByCompany(companyId: string): Promise<MerchantBranch[]> {
   const dtos = await merchantApi.getBranchesByCompany(companyId);
   return branchListDtoToModel(dtos);
+}
+
+export async function createBranch(data: CreateBranchRequest): Promise<MerchantBranch> {
+  const dto = await merchantApi.createBranch(data);
+  return branchDtoToModel(dto);
+}
+
+export async function updateBranch(id: string, data: UpdateBranchRequest): Promise<MerchantBranch> {
+  const dto = await merchantApi.updateBranch(id, data);
+  return branchDtoToModel(dto);
+}
+
+export async function deleteBranch(id: string): Promise<void> {
+  await merchantApi.deleteBranch(id);
 }
 
 export async function getMenuItems(): Promise<MerchantMenuItem[]> {

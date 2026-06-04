@@ -5,22 +5,11 @@ import { Icon } from '../components/ui/Icon';
 import { FxCepInput } from '../components/ui/FxCepInput';
 import { FxInput } from '../../packages/ui/src/primitives/FxInput';
 import { AddressAutocomplete } from '../components/address/AddressAutocomplete';
+import { useAddresses, useCreateAddress, useDeleteAddress, useSetDefaultAddress } from '../hooks/useAddresses';
 import type { CepAddress } from '../hooks';
 import { ROUTES } from '../lib/routes';
+import { FxQueryBoundary } from '../components/ui/FxQueryBoundary';
 
-
-interface Address {
-  id: string;
-  label: string;
-  street: string;
-  number: string;
-  complement: string;
-  neighborhood: string;
-  city: string;
-  state: string;
-  zipCode: string;
-  isDefault: boolean;
-}
 
 const emptyForm = {
   label: 'Casa',
@@ -34,19 +23,20 @@ const emptyForm = {
 };
 
 export function AddressBookPage() {
-  const [addresses, setAddresses] = useState<Address[]>([]);
+  const { data: addresses = [], isLoading, isError } = useAddresses();
+  const createAddress = useCreateAddress();
+  const deleteAddress = useDeleteAddress();
+  const setDefaultAddress = useSetDefaultAddress();
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [showAutocomplete, setShowAutocomplete] = useState(true);
 
   const handleSetDefault = (addressId: string) => {
-    setAddresses((prev) =>
-      prev.map((a) => ({ ...a, isDefault: a.id === addressId }))
-    );
+    setDefaultAddress.mutate(addressId);
   };
 
   const handleDelete = (addressId: string) => {
-    setAddresses((prev) => prev.filter((a) => a.id !== addressId));
+    deleteAddress.mutate(addressId);
   };
 
   const handleChange = (field: keyof typeof emptyForm) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,10 +65,13 @@ export function AddressBookPage() {
     zipcode: string;
     neighborhood: string;
     street: string;
+    number: string;
+    coordinates?: { lat: number; lng: number };
   }) => {
     setForm((prev) => ({
       ...prev,
       street: result.street || (result.formattedAddress.split(',')[0]?.trim() ?? prev.street),
+      number: result.number || prev.number,
       neighborhood: result.neighborhood || prev.neighborhood,
       city: result.city || prev.city,
       state: result.state || prev.state,
@@ -90,8 +83,7 @@ export function AddressBookPage() {
   const handleAdd = () => {
     if (!form.street || !form.number || !form.city) return;
 
-    const newAddress: Address = {
-      id: `addr-${Date.now()}`,
+    createAddress.mutate({
       label: form.label,
       street: form.street,
       number: form.number,
@@ -101,12 +93,13 @@ export function AddressBookPage() {
       state: form.state || 'SP',
       zipCode: form.zipCode,
       isDefault: addresses.length === 0,
-    };
-
-    setAddresses((prev) => [newAddress, ...prev]);
-    setForm(emptyForm);
-    setShowForm(false);
-    setShowAutocomplete(true);
+    }, {
+      onSuccess: () => {
+        setForm(emptyForm);
+        setShowForm(false);
+        setShowAutocomplete(true);
+      },
+    });
   };
 
   const handleCancel = () => {
@@ -116,6 +109,7 @@ export function AddressBookPage() {
   };
 
   return (
+    <FxQueryBoundary isLoading={isLoading} isError={isError}>
     <div className="min-h-screen bg-surface-background">
       <FxPageNavbar title="Endereços" backTo={ROUTES.PROFILE} />
 
@@ -312,6 +306,7 @@ export function AddressBookPage() {
         </div>
       </main>
     </div>
+    </FxQueryBoundary>
   );
 }
 

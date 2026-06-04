@@ -8,10 +8,10 @@ export const mockCompanies: MerchantCompanyDTO[] = [
 ]
 
 export const mockBranches: MerchantBranchDTO[] = [
-  { id: 'branch-1', company_id: 'comp-1', name: 'Burger House - Centro', city: 'São Paulo', state: 'SP', address: 'Rua Augusta, 500', delivery_radius_km: 5 },
-  { id: 'branch-2', company_id: 'comp-1', name: 'Burger House - Vila Olímpia', city: 'São Paulo', state: 'SP', address: 'Av. Faria Lima, 1500', delivery_radius_km: 4 },
-  { id: 'branch-3', company_id: 'comp-2', name: 'Sakura Sushi - Liberdade', city: 'São Paulo', state: 'SP', address: 'Rua Galvão Bueno, 200', delivery_radius_km: 6 },
-  { id: 'branch-4', company_id: 'comp-3', name: 'Dona Maria - Mooca', city: 'São Paulo', state: 'SP', address: 'Rua da Mooca, 1000', delivery_radius_km: 3 },
+  { id: 'branch-1', company_id: 'comp-1', name: 'Burger House - Centro', city: 'São Paulo', state: 'SP', cep: '01304-001', address: 'Rua Augusta', number: '500', neighborhood: 'Consolação', latitude: -23.5565, longitude: -46.6590, delivery_radius_km: 5 },
+  { id: 'branch-2', company_id: 'comp-1', name: 'Burger House - Vila Olímpia', city: 'São Paulo', state: 'SP', cep: '04538-132', address: 'Av. Faria Lima', number: '1500', neighborhood: 'Vila Olímpia', latitude: -23.5862, longitude: -46.6816, delivery_radius_km: 4 },
+  { id: 'branch-3', company_id: 'comp-2', name: 'Sakura Sushi - Liberdade', city: 'São Paulo', state: 'SP', cep: '01506-000', address: 'Rua Galvão Bueno', number: '200', neighborhood: 'Liberdade', latitude: -23.5580, longitude: -46.6340, delivery_radius_km: 6 },
+  { id: 'branch-4', company_id: 'comp-3', name: 'Dona Maria - Mooca', city: 'São Paulo', state: 'SP', cep: '03103-001', address: 'Rua da Mooca', number: '1000', neighborhood: 'Mooca', latitude: -23.5630, longitude: -46.6019, delivery_radius_km: 3 },
 ]
 
 export const mockMerchantMenuItems: MerchantMenuItemDTO[] = [

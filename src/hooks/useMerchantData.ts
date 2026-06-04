@@ -9,8 +9,12 @@ import {
   getOrdersByBranch,
   updateOrderStatus,
   getCoupons,
+  createBranch,
+  updateBranch,
+  deleteBranch,
 } from '../repositories/merchantRepository';
 import type { MerchantOrderStatus } from '../types';
+import type { CreateBranchRequest, UpdateBranchRequest } from '../dto/merchantDto';
 import { merchantKeys } from '../api/queryKeys';
 import { logger } from '../lib/logger';
 
@@ -80,4 +84,43 @@ export function useCoupons() {
 
 export function useCampaigns() {
   return useQuery({ queryKey: merchantKeys.campaigns, queryFn: () => import('../api').then((m) => m.merchantApi.getCampaigns()), staleTime: STALE_MEDIUM });
+}
+
+export function useCreateBranch() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: CreateBranchRequest) => createBranch(data),
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: merchantKeys.branches });
+    },
+    onError: (error) => {
+      logger.error('Merchant', 'Failed to create branch', error);
+    },
+  });
+}
+
+export function useUpdateBranch() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateBranchRequest }) => updateBranch(id, data),
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: merchantKeys.branches });
+    },
+    onError: (error) => {
+      logger.error('Merchant', 'Failed to update branch', error);
+    },
+  });
+}
+
+export function useDeleteBranch() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => deleteBranch(id),
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: merchantKeys.branches });
+    },
+    onError: (error) => {
+      logger.error('Merchant', 'Failed to delete branch', error);
+    },
+  });
 }

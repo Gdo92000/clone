@@ -3,8 +3,15 @@ import {
   mockCompanies, mockBranches, mockMerchantMenuItems,
   mockOrders, mockBranchSettings, mockCoupons, mockCampaigns
 } from '../fixtures/merchant'
+import type { MerchantBranchDTO } from '../../dto/merchantDto'
 import { logMock } from '../logger'
 import { getCurrentScenario } from '../scenarios'
+
+const branchesStore: MerchantBranchDTO[] = mockBranches.map((b) => ({ ...b }))
+
+function nextBranchId(): string {
+  return `branch-${Date.now()}-${Math.floor(Math.random() * 1000)}`
+}
 
 export const merchantHandlers = [
   http.get('*/api/companies', () => {
@@ -20,7 +27,7 @@ export const merchantHandlers = [
 
   http.get('*/api/companies/:companyId/branches', ({ params }) => {
     const companyId = typeof params['companyId'] === 'string' ? params['companyId'] : ''
-    const branches = mockBranches.filter(b => b.company_id === companyId)
+    const branches = branchesStore.filter(b => b.company_id === companyId)
     logMock('GET', `/api/companies/${companyId}/branches`, 200)
     return HttpResponse.json(branches, { status: 200 })
   }),
@@ -29,12 +36,81 @@ export const merchantHandlers = [
     const url = new URL(request.url)
     const companyId = url.searchParams.get('company_id')
     if (companyId) {
-      const branches = mockBranches.filter(b => b.company_id === companyId)
+      const branches = branchesStore.filter(b => b.company_id === companyId)
       logMock('GET', `/api/branches?company_id=${companyId}`, 200)
       return HttpResponse.json(branches, { status: 200 })
     }
     logMock('GET', '/api/branches', 200)
-    return HttpResponse.json(mockBranches, { status: 200 })
+    return HttpResponse.json(branchesStore, { status: 200 })
+  }),
+
+  http.post('*/api/branches', async ({ request }) => {
+    const body = (await request.json()) as Record<string, unknown>
+    const readString = (key: string, fallback = ''): string => (typeof body[key] === 'string' ? body[key] : fallback)
+    const readNullableString = (key: string): string | null => (typeof body[key] === 'string' ? body[key] : null)
+    const readNumber = (key: string, fallback: number): number => (typeof body[key] === 'number' ? body[key] : fallback)
+    const readNumberOrNull = (key: string): number | null => (typeof body[key] === 'number' ? body[key] : null)
+    const created: MerchantBranchDTO = {
+      id: nextBranchId(),
+      company_id: readString('company_id'),
+      name: readString('name'),
+      cep: readNullableString('cep'),
+      address: readString('address'),
+      number: readNullableString('number'),
+      neighborhood: readString('neighborhood'),
+      city: readString('city'),
+      state: readString('state'),
+      latitude: readNumberOrNull('latitude'),
+      longitude: readNumberOrNull('longitude'),
+      delivery_radius_km: readNumber('delivery_radius_km', 8),
+    }
+    branchesStore.push(created)
+    logMock('POST', '/api/branches', 201)
+    return HttpResponse.json(created, { status: 201 })
+  }),
+
+  http.put('*/api/branches/:id', async ({ params, request }) => {
+    const id = typeof params['id'] === 'string' ? params['id'] : ''
+    const body = (await request.json()) as Record<string, unknown>
+    const idx = branchesStore.findIndex((b) => b.id === id)
+    if (idx < 0) {
+      logMock('PUT', `/api/branches/${id}`, 404)
+      return HttpResponse.json({ error: 'Not found' }, { status: 404 })
+    }
+    const current = branchesStore[idx]
+    if (!current) {
+      logMock('PUT', `/api/branches/${id}`, 404)
+      return HttpResponse.json({ error: 'Not found' }, { status: 404 })
+    }
+    const readNullableString = (key: string): string | null => (typeof body[key] === 'string' ? body[key] : null)
+    const updated: MerchantBranchDTO = {
+      ...current,
+      ...(typeof body['name'] === 'string' ? { name: body['name'] } : {}),
+      ...(body['cep'] !== undefined ? { cep: readNullableString('cep') } : {}),
+      ...(typeof body['address'] === 'string' ? { address: body['address'] } : {}),
+      ...(body['number'] !== undefined ? { number: readNullableString('number') } : {}),
+      ...(typeof body['neighborhood'] === 'string' ? { neighborhood: body['neighborhood'] } : {}),
+      ...(typeof body['city'] === 'string' ? { city: body['city'] } : {}),
+      ...(typeof body['state'] === 'string' ? { state: body['state'] } : {}),
+      ...(body['latitude'] !== undefined ? { latitude: typeof body['latitude'] === 'number' ? body['latitude'] : null } : {}),
+      ...(body['longitude'] !== undefined ? { longitude: typeof body['longitude'] === 'number' ? body['longitude'] : null } : {}),
+      ...(typeof body['delivery_radius_km'] === 'number' ? { delivery_radius_km: body['delivery_radius_km'] } : {}),
+    }
+    branchesStore[idx] = updated
+    logMock('PUT', `/api/branches/${id}`, 200)
+    return HttpResponse.json(updated, { status: 200 })
+  }),
+
+  http.delete('*/api/branches/:id', ({ params }) => {
+    const id = typeof params['id'] === 'string' ? params['id'] : ''
+    const idx = branchesStore.findIndex((b) => b.id === id)
+    if (idx < 0) {
+      logMock('DELETE', `/api/branches/${id}`, 404)
+      return HttpResponse.json({ error: 'Not found' }, { status: 404 })
+    }
+    branchesStore.splice(idx, 1)
+    logMock('DELETE', `/api/branches/${id}`, 200)
+    return HttpResponse.json({ success: true }, { status: 200 })
   }),
 
   http.get('*/api/branches/:branchId/menu-items', ({ params }) => {

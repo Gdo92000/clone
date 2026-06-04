@@ -5,6 +5,10 @@ export interface NominatimSearchResult {
   lon: string;
   display_name: string;
   address?: {
+    road?: string;
+    pedestrian?: string;
+    house_number?: string;
+    building?: string;
     city?: string;
     town?: string;
     village?: string;

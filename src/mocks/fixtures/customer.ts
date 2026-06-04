@@ -1,0 +1,36 @@
+import type { AddressDTO } from '../../dto/addressDto';
+
+export const mockAddresses: AddressDTO[] = [
+  {
+    id: 'addr-1',
+    user_id: 'user-1',
+    label: 'Casa',
+    street: 'R. Décio Silvério Souza',
+    number: '150',
+    complement: null,
+    neighborhood: 'Parque Res. Santa Maria',
+    city: 'Franca',
+    state: 'SP',
+    zip_code: '14406-548',
+    latitude: -20.5299948,
+    longitude: -47.4424158,
+    is_default: true,
+    created_at: '2026-05-01T00:00:00.000Z',
+  },
+  {
+    id: 'addr-2',
+    user_id: 'user-1',
+    label: 'Trabalho',
+    street: 'Av. Brasil',
+    number: '1000',
+    complement: 'Sala 12',
+    neighborhood: 'Centro',
+    city: 'Franca',
+    state: 'SP',
+    zip_code: '14400-000',
+    latitude: -20.5386,
+    longitude: -47.4006,
+    is_default: false,
+    created_at: '2026-05-10T00:00:00.000Z',
+  },
+];

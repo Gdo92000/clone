@@ -6,7 +6,21 @@ export function companyDtoToModel(dto: MerchantCompanyDTO): MerchantCompany {
 }
 
 export function branchDtoToModel(dto: MerchantBranchDTO): MerchantBranch {
-  return { id: dto.id, companyId: dto.company_id, name: dto.name, city: dto.city, state: dto.state, address: dto.address, deliveryRadiusKm: dto.delivery_radius_km, cep: '', number: '', neighborhood: '' };
+  return {
+    id: dto.id,
+    companyId: dto.company_id,
+    name: dto.name,
+    cep: dto.cep ?? '',
+    address: dto.address,
+    number: dto.number ?? '',
+    neighborhood: dto.neighborhood,
+    city: dto.city,
+    state: dto.state,
+    deliveryRadiusKm: dto.delivery_radius_km,
+    ...(dto.latitude !== null && dto.longitude !== null
+      ? { coordinates: { lat: dto.latitude, lng: dto.longitude } }
+      : {}),
+  };
 }
 
 export function menuItemDtoToModel(dto: MerchantMenuItemDTO): MerchantMenuItem {

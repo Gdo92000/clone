@@ -16,6 +16,8 @@ interface AddressAutocompleteProps {
     zipcode: string;
     neighborhood: string;
     street: string;
+    number: string;
+    coordinates?: { lat: number; lng: number };
   }) => void;
   placeholder?: string;
 }
@@ -65,6 +67,8 @@ export function AddressAutocomplete({
         zipcode: selected.zipcode,
         neighborhood: selected.neighborhood,
         street: selected.street,
+        number: selected.number,
+        coordinates: { lat: selected.latitude, lng: selected.longitude },
       });
     }
   }, [selected, onChange]);

@@ -2,7 +2,7 @@ import { useMemo, useState, useCallback } from 'react';
 import { Button } from '../../../components/ui/Button';
 import { Icon } from '../../../components/ui/Icon';
 import { MerchantLayout } from '../components/MerchantLayout';
-import { useBranches, useCompanies } from '../../../hooks/useMerchantData';
+import { useBranches, useCompanies, useCreateBranch } from '../../../hooks/useMerchantData';
 import { usePlanLimits } from '../../enterprise';
 import { geocodeEstablishment } from '../../../services/geocodeSearchService';
 import { FxCepInput } from '../../../components/ui/FxCepInput';
@@ -10,7 +10,19 @@ import { AddressAutocomplete } from '../../../components/address/AddressAutocomp
 import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
 import type { CepAddress } from '../../../hooks';
 
-const emptyBranch = {
+interface BranchForm {
+  name: string;
+  cep: string;
+  address: string;
+  number: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  deliveryRadiusKm: string;
+  coordinates?: { lat: number; lng: number };
+}
+
+const emptyBranch: BranchForm = {
   name: '',
   cep: '',
   address: '',
@@ -24,8 +36,9 @@ const emptyBranch = {
 export function MerchantBranchesPage() {
   const { data: branches = [], isLoading: branchesLoading, isError: branchesError } = useBranches();
   const { data: companies = [], isLoading: companiesLoading, isError: companiesError } = useCompanies();
+  const createBranch = useCreateBranch();
   const [companyId, setCompanyId] = useState(companies[0]?.id ?? '');
-  const [form, setForm] = useState(emptyBranch);
+  const [form, setForm] = useState<BranchForm>(emptyBranch);
   const [showAutocomplete, setShowAutocomplete] = useState(true);
   const [busyGeocode, setBusyGeocode] = useState(false);
   const limits = usePlanLimits(companyId);
@@ -54,14 +67,18 @@ export function MerchantBranchesPage() {
     zipcode: string;
     neighborhood: string;
     street: string;
+    number: string;
+    coordinates?: { lat: number; lng: number };
   }) => {
     setForm((prev) => ({
       ...prev,
       address: result.street || (result.formattedAddress.split(',')[0]?.trim() ?? prev.address),
+      number: result.number || prev.number,
       neighborhood: result.neighborhood || prev.neighborhood,
       city: result.city || prev.city,
       state: result.state || prev.state,
       cep: result.zipcode || prev.cep,
+      ...(result.coordinates ? { coordinates: result.coordinates } : {}),
     }));
     setShowAutocomplete(false);
   }, []);
@@ -71,15 +88,32 @@ export function MerchantBranchesPage() {
       return;
     }
 
-     setBusyGeocode(true);
-     await geocodeEstablishment(form.name, `${form.address}, ${form.number}`, form.city, form.state);
-     setBusyGeocode(false);
+    const radiusNum = Number(form.deliveryRadiusKm) || 8;
+    const submitData: Parameters<typeof createBranch.mutate>[0] = {
+      company_id: companyId,
+      name: form.name,
+      cep: form.cep || null,
+      address: form.address,
+      number: form.number || null,
+      neighborhood: form.neighborhood,
+      city: form.city,
+      state: form.state,
+      delivery_radius_km: radiusNum,
+    };
+    if (form.coordinates) {
+      submitData.latitude = form.coordinates.lat;
+      submitData.longitude = form.coordinates.lng;
+    }
 
-     // Since we're using React Query, we need to invalidate the branches query to refetch
-     // However, for optimistic updates in mock mode, we'll update the state directly
-     // In real mode, the invalidation will happen through the mutation (but we don't have a mutation for adding branches yet)
-     // For now, we'll refetch branches after adding
-     setForm(emptyBranch);
+    setBusyGeocode(true);
+    await geocodeEstablishment(form.name, `${form.address}, ${form.number}`, form.city, form.state);
+    setBusyGeocode(false);
+
+    createBranch.mutate(submitData, {
+      onSuccess: () => {
+        setForm(emptyBranch);
+      },
+    });
   };
 
   // Handle loading states

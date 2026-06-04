@@ -9,11 +9,32 @@ export interface MerchantBranchDTO {
   id: string;
   company_id: string;
   name: string;
+  cep: string | null;
+  address: string;
+  number: string | null;
+  neighborhood: string;
   city: string;
   state: string;
-  address: string;
+  latitude: number | null;
+  longitude: number | null;
   delivery_radius_km: number;
 }
+
+export interface CreateBranchRequest {
+  company_id: string;
+  name: string;
+  cep?: string | null;
+  address: string;
+  number?: string | null;
+  neighborhood: string;
+  city: string;
+  state: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  delivery_radius_km?: number;
+}
+
+export type UpdateBranchRequest = Partial<Omit<CreateBranchRequest, 'company_id'>>;
 
 export interface MerchantMenuItemDTO {
   id: string;

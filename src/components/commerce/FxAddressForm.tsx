@@ -58,10 +58,12 @@ export function FxAddressForm({ value, onChange, className }: FxAddressFormProps
       zipcode: string;
       neighborhood: string;
       street: string;
+      number: string;
     }) => {
       onChange({
         ...value,
         street: result.street || (result.formattedAddress.split(',')[0]?.trim() ?? ''),
+        number: result.number || value.number,
         neighborhood: result.neighborhood || value.neighborhood,
         city: result.city || value.city,
         state: result.state || value.state,

@@ -1,12 +1,22 @@
-import type { Coordinates } from '../types/location';
+import type { Coordinates } from '../domain/geospatial/geodesy';
 import { findRegisteredCityCoverage } from '../services/cityCoverageService';
-import { calculateDistance, reverseGeocode } from '../services/locationService';
-import type { City } from '../services/locationService';
+import { calculateDistance } from '../domain/geospatial/geodesy';
+import { getGeocodingService } from '../services/geocoding/GeocodingService';
 import { logger } from '../lib/logger';
 
 export type LocationStatus = 'IDLE' | 'REQUESTING' | 'SUCCESS' | 'FALLBACK_IP' | 'DENIED' | 'ERROR';
 
 export type LocationSource = 'gps' | 'gps-fallback' | 'ip' | 'cache' | 'manual' | null;
+
+export interface City {
+  name: string;
+  state: string;
+  stateCode: string;
+  country: string;
+  displayName: string;
+  neighborhood?: string;
+  postcode?: string;
+}
 
 export interface LocationState {
   coordinates: Coordinates | null;
@@ -30,10 +40,21 @@ export function initialLocationState(): LocationState {
 export async function locateCity(coords: Coordinates): Promise<{ city: City; source: 'gps' | 'gps-fallback' }> {
   const source: 'gps' | 'gps-fallback' = coords.accuracy !== undefined && coords.accuracy <= 1000 ? 'gps' : 'gps-fallback';
 
-  const detectedCity = await reverseGeocode(coords);
-  if (!detectedCity) throw new Error('CIDADE_NAO_ENCONTRADA');
+  const service = getGeocodingService();
+  const result = await service.reverseGeocode(coords);
+  if (!result) throw new Error('CIDADE_NAO_ENCONTRADA');
 
-  return { city: detectedCity, source };
+  const city: City = {
+    name: result.city,
+    state: result.state,
+    stateCode: result.stateCode ?? '',
+    country: result.country ?? 'Brasil',
+    displayName: result.displayName,
+    ...(result.neighborhood ? { neighborhood: result.neighborhood } : {}),
+    ...(result.postcode ? { postcode: result.postcode } : {}),
+  };
+
+  return { city, source };
 }
 
 export async function processSupportedCity(detectedCity: City, coords: Coordinates) {

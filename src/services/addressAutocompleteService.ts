@@ -8,6 +8,7 @@ export interface AutocompleteSuggestion {
   country: string;
   neighborhood: string;
   street: string;
+  number: string;
 }
 
 interface CacheEntry {
@@ -147,6 +148,7 @@ function buildSuggestion(feature: PhotonFeature): AutocompleteSuggestion | null 
 
   const isBrazil = isBrazilianResult(p);
   const street = p.name ?? p.street ?? '';
+  const number = p.housenumber ?? '';
   const neighborhood = getNeighborhood(p);
   const city = p.city ?? '';
   const state = normalizeState(p.state ?? '');
@@ -164,6 +166,7 @@ function buildSuggestion(feature: PhotonFeature): AutocompleteSuggestion | null 
 
   const addressParts: string[] = [];
   if (street) addressParts.push(street);
+  if (number) addressParts.push(number);
   if (neighborhood) addressParts.push(neighborhood);
   if (city) addressParts.push(city);
   if (state) addressParts.push(state);
@@ -180,6 +183,7 @@ function buildSuggestion(feature: PhotonFeature): AutocompleteSuggestion | null 
     country,
     neighborhood,
     street,
+    number,
   };
 }
 
@@ -385,6 +389,8 @@ export async function geocodeAddress(
     const city = addr?.city ?? addr?.town ?? addr?.village ?? '';
     const state = normalizeState(addr?.state ?? '');
     const neighborhood = addr?.suburb ?? addr?.neighbourhood ?? addr?.county ?? '';
+    const street = addr?.road ?? addr?.pedestrian ?? '';
+    const number = addr?.house_number ?? '';
 
     return {
       formattedAddress: r.display_name,
@@ -395,7 +401,8 @@ export async function geocodeAddress(
       zipcode: addr?.postcode ?? '',
       country: addr?.country ?? '',
       neighborhood,
-      street: '',
+      street,
+      number,
     };
   } catch (err: unknown) {
     if (err instanceof DOMException && err.name === 'AbortError') throw err;

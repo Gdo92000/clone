@@ -7,6 +7,7 @@ import { operationHandlers } from './operations'
 import { coverageHandlers } from './coverage'
 import { printingHandlers } from './printing'
 import { themeHandlers, consumerHandlers, loyaltyHandlers } from './other'
+import { customerHandlers } from './customer'
 import { proxyHandlers } from './proxy'
 
 export const handlers = [
@@ -21,5 +22,6 @@ export const handlers = [
   ...themeHandlers,
   ...consumerHandlers,
   ...loyaltyHandlers,
+  ...customerHandlers,
   ...proxyHandlers,
 ]

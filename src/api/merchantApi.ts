@@ -1,5 +1,5 @@
 import { get, post, put, del } from './httpClient';
-import type { MerchantCompanyDTO, MerchantBranchDTO, MerchantMenuItemDTO, MerchantOrderDTO, BranchSettingsDTO }
+import type { MerchantCompanyDTO, MerchantBranchDTO, MerchantMenuItemDTO, MerchantOrderDTO, BranchSettingsDTO, CreateBranchRequest, UpdateBranchRequest }
   from '../dto/merchantDto';
 import type { MerchantOrderStatus } from '../types';
 import type { PrinterConfigDTO, PrintHistoryDTO, MerchantCouponDTO, CampaignDTO, LoyaltySettingsDTO, LoyaltyRewardDTO } from '../dto/superadminDto';
@@ -8,6 +8,9 @@ export const merchantApi = {
   getCompanies: () => get<MerchantCompanyDTO[]>('/companies'),
   getBranches: () => get<MerchantBranchDTO[]>('/branches'),
   getBranchesByCompany: (companyId: string) => get<MerchantBranchDTO[]>(`/companies/${companyId}/branches`),
+  createBranch: (data: CreateBranchRequest) => post<MerchantBranchDTO>('/branches', data),
+  updateBranch: (id: string, data: UpdateBranchRequest) => put<MerchantBranchDTO>(`/branches/${id}`, data),
+  deleteBranch: (id: string) => del<Record<string, never>>(`/branches/${id}`),
   getMenuItems: () => get<MerchantMenuItemDTO[]>('/menu-items'),
   getMenuItemsByBranch: (branchId: string) => get<MerchantMenuItemDTO[]>(`/branches/${branchId}/menu-items`),
   getOrders: () => get<MerchantOrderDTO[]>('/orders'),

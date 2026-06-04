@@ -23,3 +23,5 @@ export {
 } from './cart';
 
 export type { Coordinates } from './location';
+
+export type { Address } from './customer';

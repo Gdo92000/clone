@@ -136,7 +136,6 @@ export function useAddressSearch(targetCity?: string): AddressSearchResult {
       const result = await geocodeAddress(query);
       if (result && mountedRef.current) {
         setSelected(result);
-        setQuery(result.formattedAddress);
       } else if (mountedRef.current) {
         setError('Endereço não encontrado. Tente ser mais específico.');
       }
