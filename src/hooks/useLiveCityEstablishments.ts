@@ -1,7 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useLocationContext } from '../context/LocationContext';
 import { getRestaurants } from '../repositories/restaurantRepository';
-import { findRegisteredCityCoverage } from '../services/cityCoverageService';
+import { findRegisteredCityCoverage } from '../services/cityCoverageFallback';
+import type { RegisteredCityCoverage } from '../services/cityCoverageFallback';
+import { useCityCoverage } from './useActiveCities';
 import { calculateDistance } from '../domain/geospatial/geodesy';
 
 export interface LocalEstablishment {
@@ -43,23 +45,21 @@ export function useLiveCityEstablishments(
   const {
      coordinates,
      city,
-     isWithinSupportedCity,
      distanceToCityCenter,
    } = useLocationContext();
    const userNeighborhood = city?.neighborhood;
 
+  const cityCoverageQuery = useCityCoverage(city?.name, city?.state);
+  const supportedCity = useMemo<RegisteredCityCoverage | null>(
+    () => findRegisteredCityCoverage(city?.name ?? ''),
+    [city],
+  );
+  const hasCityCoverage = cityCoverageQuery.data === true || (supportedCity?.isActive ?? false);
+
   const [establishments, setEstablishments] = useState<LocalEstablishment[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [supportedCity, setSupportedCity] = useState<Awaited<ReturnType<typeof findRegisteredCityCoverage>>>(null);
-
-  useEffect(() => {
-    const abort = new AbortController();
-    void findRegisteredCityCoverage(city?.name ?? '').then((sc) => {
-      if (!abort.signal.aborted) setSupportedCity(sc);
-    });
-    return () => { abort.abort(); };
-  }, [city]);
+  const inFlightRef = useRef(false);
 
   const protection = useMemo<ProtectionStatus>(() => {
     if (!coordinates) {
@@ -80,7 +80,7 @@ export function useLiveCityEstablishments(
       };
     }
 
-    if (!isWithinSupportedCity) {
+    if (!hasCityCoverage) {
       return {
         canSearch: false,
         reason: `A localizacao detectada esta fora do limite de ${supportedCity.name}.`,
@@ -91,8 +91,8 @@ export function useLiveCityEstablishments(
     const centerDistance = distanceToCityCenter ?? calculateDistance(
       coordinates.latitude,
       coordinates.longitude,
-      supportedCity.lat,
-      supportedCity.lng
+      supportedCity.latitude,
+      supportedCity.longitude
     );
     const remainingCityRadius = Math.max(0, supportedCity.radiusKm - centerDistance);
     const activeRadiusKm = Math.max(1, Math.min(radiusKm, remainingCityRadius));
@@ -114,17 +114,19 @@ export function useLiveCityEstablishments(
     city,
     coordinates,
     distanceToCityCenter,
-    isWithinSupportedCity,
+    hasCityCoverage,
     radiusKm,
     supportedCity,
   ]);
 
   const search = useCallback(async () => {
+    if (inFlightRef.current) return;
     if (!coordinates || !supportedCity || !protection.canSearch) {
       setError(protection.reason);
       return;
     }
 
+    inFlightRef.current = true;
     setLoading(true);
     setError(null);
 
@@ -188,6 +190,7 @@ export function useLiveCityEstablishments(
       setError(err instanceof Error ? err.message : 'Erro ao buscar estabelecimentos');
     } finally {
       setLoading(false);
+      inFlightRef.current = false;
     }
   }, [coordinates, limit, protection, supportedCity, userNeighborhood]);
 

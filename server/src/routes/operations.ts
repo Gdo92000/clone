@@ -6,6 +6,8 @@ import { z } from 'zod';
 import { db } from '../db';
 import { businessHours, businessHourPeriods, holidayOverrides, holidayOverridePeriods, specialDates, specialDatePeriods } from '../db/schema';
 import { getBranchOpenStatus, getTodayPeriods } from '../services/operations';
+import { requirePermission } from '../middleware/permission';
+import { requireTenantOwnership } from '../middleware/tenant';
 import {
   weeklyHoursSchema,
   holidayOverrideSchema,
@@ -55,7 +57,7 @@ operations.get('/:branchId/hours', zValidator('param', branchIdParam), async (c)
   return c.json(result);
 });
 
-operations.put('/:branchId/hours', zValidator('param', branchIdParam), zValidator('json', weeklyHoursSchema), async (c) => {
+operations.put('/:branchId/hours', requirePermission({ roles: ['merchant', 'admin', 'superadmin'] }), requireTenantOwnership('branchId'), zValidator('param', branchIdParam), zValidator('json', weeklyHoursSchema), async (c) => {
   const { branchId } = c.req.valid('param');
   const { hours } = c.req.valid('json');
 
@@ -121,7 +123,7 @@ operations.get('/:branchId/holiday-overrides', zValidator('param', branchIdParam
   return c.json(result);
 });
 
-operations.post('/:branchId/holiday-overrides', zValidator('param', branchIdParam), zValidator('json', holidayOverrideSchema), async (c) => {
+operations.post('/:branchId/holiday-overrides', requirePermission({ roles: ['merchant', 'admin', 'superadmin'] }), requireTenantOwnership('branchId'), zValidator('param', branchIdParam), zValidator('json', holidayOverrideSchema), async (c) => {
   const { branchId } = c.req.valid('param');
   const data = c.req.valid('json');
 
@@ -149,7 +151,7 @@ operations.post('/:branchId/holiday-overrides', zValidator('param', branchIdPara
   return c.json({ success: true, id: overrideId }, 201);
 });
 
-operations.delete('/:branchId/holiday-overrides/:id', zValidator('param', overrideIdParam), async (c) => {
+operations.delete('/:branchId/holiday-overrides/:id', requirePermission({ roles: ['merchant', 'admin', 'superadmin'] }), requireTenantOwnership('branchId'), zValidator('param', overrideIdParam), async (c) => {
   const { id } = c.req.valid('param');
   await db.delete(holidayOverridePeriods).where(eq(holidayOverridePeriods.holiday_override_id, id));
   await db.delete(holidayOverrides).where(eq(holidayOverrides.id, id));
@@ -181,7 +183,7 @@ operations.get('/:branchId/special-dates', zValidator('param', branchIdParam), a
   return c.json(result);
 });
 
-operations.post('/:branchId/special-dates', zValidator('param', branchIdParam), zValidator('json', specialDateSchema), async (c) => {
+operations.post('/:branchId/special-dates', requirePermission({ roles: ['merchant', 'admin', 'superadmin'] }), requireTenantOwnership('branchId'), zValidator('param', branchIdParam), zValidator('json', specialDateSchema), async (c) => {
   const { branchId } = c.req.valid('param');
   const data = c.req.valid('json');
 
@@ -210,7 +212,7 @@ operations.post('/:branchId/special-dates', zValidator('param', branchIdParam), 
   return c.json({ success: true, id: specialDateId }, 201);
 });
 
-operations.delete('/:branchId/special-dates/:id', zValidator('param', specialDateIdParam), async (c) => {
+operations.delete('/:branchId/special-dates/:id', requirePermission({ roles: ['merchant', 'admin', 'superadmin'] }), requireTenantOwnership('branchId'), zValidator('param', specialDateIdParam), async (c) => {
   const { id } = c.req.valid('param');
   await db.delete(specialDatePeriods).where(eq(specialDatePeriods.special_date_id, id));
   await db.delete(specialDates).where(eq(specialDates.id, id));

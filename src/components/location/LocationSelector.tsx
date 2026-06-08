@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { clsx } from 'clsx';
 import { Icon } from '../ui/Icon';
+import { Modal } from '../ui/Modal';
 import { useLocationContext } from '../../context/LocationContext';
-import { useRegisteredCityCoverages } from '../../hooks/useCoverageData';
+import { useActiveCities } from '../../hooks/useActiveCities';
+import { getRegisteredCityCoverages } from '../../services/cityCoverageFallback';
 import { formatDistance } from '../../domain/geospatial/geodesy';
 
 interface LocationSelectorProps {
@@ -103,12 +105,14 @@ function SupportedCityState({
 }
 
 function CitySelectionModal({
+  isOpen,
   searchCity,
   onSearchChange,
   filteredCities,
   onCitySelect,
   onClose,
 }: {
+  isOpen: boolean;
   searchCity: string;
   onSearchChange: (v: string) => void;
   filteredCities: { name: string; state: string }[];
@@ -116,40 +120,30 @@ function CitySelectionModal({
   onClose: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-      <div className="bg-surface-elevated rounded-2xl w-full max-w-md max-h-[80vh] overflow-hidden">
-        <div className="p-4 border-b border-border-default">
-          <input
-            type="text"
-            value={searchCity}
-            onChange={(e) => { onSearchChange(e.target.value); }}
-            placeholder="Buscar cidade..."
-            className="w-full h-11 px-4 rounded-lg bg-surface-background border border-border-default text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-border-focus"
-            autoFocus
-          />
-        </div>
-        <div className="overflow-y-auto max-h-64">
+    <Modal isOpen={isOpen} onClose={onClose} title="Selecionar cidade" size="md">
+      <div className="space-y-3">
+        <input
+          type="text"
+          value={searchCity}
+          onChange={(e) => { onSearchChange(e.target.value); }}
+          placeholder="Buscar cidade..."
+          className="w-full h-11 px-4 rounded-lg bg-surface-background border border-border-default text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-border-focus"
+          autoFocus
+        />
+        <div className="overflow-y-auto max-h-64 -mx-4 px-4">
           {filteredCities.map((c) => (
             <button
               key={c.name}
               onClick={() => { onCitySelect(c.name); }}
-              className="w-full p-4 text-left hover:bg-surface-background transition-colors border-b border-border-default"
+              className="w-full p-4 text-left hover:bg-surface-background transition-colors border-b border-border-default last:border-b-0"
             >
               <span className="font-medium text-text-primary">{c.name}</span>
               <span className="text-text-secondary text-sm ml-2">- {c.state}</span>
             </button>
           ))}
         </div>
-        <div className="p-4 border-t border-border-default">
-          <button
-            onClick={onClose}
-            className="w-full py-2 text-text-secondary hover:text-text-primary"
-          >
-            Cancelar
-          </button>
-        </div>
       </div>
-    </div>
+    </Modal>
   );
 }
 
@@ -218,6 +212,7 @@ function IdleState({
 
       {showCityList && (
         <CitySelectionModal
+          isOpen={showCityList}
           searchCity={searchCity}
           onSearchChange={onSearchChange}
           filteredCities={filteredCities}
@@ -292,16 +287,22 @@ export function LocationSelector({ className }: LocationSelectorProps) {
 
   const [showCityList, setShowCityList] = useState(false);
   const [searchCity, setSearchCity] = useState('');
-  const { data: registeredCities = [] } = useRegisteredCityCoverages();
+  const activeCitiesQuery = useActiveCities();
+  const activeCities = activeCitiesQuery.data ?? [];
 
-  const filteredCities = registeredCities.filter(
-    (c) =>
+  const fallbackCities = getRegisteredCityCoverages();
+  const sourceList = activeCities.length > 0
+    ? activeCities.map((c) => ({ name: c.city, state: c.state }))
+    : fallbackCities.map((c) => ({ name: c.name, state: c.state }));
+
+  const filteredCities = sourceList.filter(
+    (c: { name: string; state: string }) =>
       c.name.toLowerCase().includes(searchCity.toLowerCase()) ||
       c.state.toLowerCase().includes(searchCity.toLowerCase())
   );
 
   const handleCitySelect = (cityName: string) => {
-    void setManualCity(cityName);
+    setManualCity(cityName);
     setShowCityList(false);
     setSearchCity('');
   };

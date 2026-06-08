@@ -4,11 +4,10 @@ import { merchantHandlers } from './merchant'
 import { subscriptionHandlers } from './subscriptions'
 import { superadminHandlers } from './superadmin'
 import { operationHandlers } from './operations'
-import { coverageHandlers } from './coverage'
 import { printingHandlers } from './printing'
 import { themeHandlers, consumerHandlers, loyaltyHandlers } from './other'
 import { customerHandlers } from './customer'
-import { proxyHandlers } from './proxy'
+import { cityCoverageHandlers } from './cities'
 
 export const handlers = [
   ...authHandlers,
@@ -17,11 +16,10 @@ export const handlers = [
   ...subscriptionHandlers,
   ...superadminHandlers,
   ...operationHandlers,
-  ...coverageHandlers,
   ...printingHandlers,
   ...themeHandlers,
   ...consumerHandlers,
   ...loyaltyHandlers,
   ...customerHandlers,
-  ...proxyHandlers,
+  ...cityCoverageHandlers,
 ]

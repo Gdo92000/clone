@@ -1,22 +1,40 @@
 import { http, HttpResponse } from 'msw'
 import { mockRestaurants, mockMenuItems, mockCategories } from '../fixtures/restaurants'
 import { logMock } from '../logger'
+import type { RestaurantDTO } from '../../dto/restaurantDto'
 
 export const restaurantHandlers = [
   http.get('*/api/restaurants', () => {
-    logMock('GET', '/api/restaurants', 200, `${mockRestaurants.length} items`)
-    return HttpResponse.json(mockRestaurants, { status: 200 })
+    const activeRestaurants = mockRestaurants.filter((r) => r.is_active === true)
+    logMock('GET', '/api/restaurants', 200, `${activeRestaurants.length} items`)
+    return HttpResponse.json(activeRestaurants, { status: 200 })
   }),
 
   http.get('*/api/restaurants/:id', ({ params }) => {
     const id = typeof params['id'] === 'string' ? params['id'] : ''
-    const restaurant = mockRestaurants.find(r => r.id === id)
+    const restaurant = mockRestaurants.find((r) => r.id === id && r.is_active === true)
     if (!restaurant) {
       logMock('GET', `/api/restaurants/${id}`, 404)
       return HttpResponse.json({ error: 'Not found' }, { status: 404 })
     }
     logMock('GET', `/api/restaurants/${id}`, 200)
     return HttpResponse.json(restaurant, { status: 200 })
+  }),
+
+  http.put('*/api/restaurants/:id/availability', async ({ params, request }) => {
+    const id = typeof params['id'] === 'string' ? params['id'] : ''
+    const body = (await request.json()) as { is_active: boolean }
+    const isActive = body.is_active
+    const index = mockRestaurants.findIndex((r) => r.id === id)
+    if (index === -1) {
+      logMock('PUT', `/api/restaurants/${id}/availability`, 404)
+      return HttpResponse.json({ error: 'Not found' }, { status: 404 })
+    }
+    const current = mockRestaurants[index]
+    const updated = { ...current, is_active: isActive } as RestaurantDTO
+    mockRestaurants[index] = updated
+    logMock('PUT', `/api/restaurants/${id}/availability`, 200)
+    return HttpResponse.json({ id: updated.id, is_active: updated.is_active }, { status: 200 })
   }),
 
   http.get('*/api/restaurants/:id/menu-items', ({ params }) => {

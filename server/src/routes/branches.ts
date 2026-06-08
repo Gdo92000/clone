@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { db } from '../db';
 import { branches, merchantMenuItems, merchantOrders } from '../db/schema';
 import { requirePermission } from '../middleware/permission';
@@ -10,6 +10,18 @@ import { requireTenantOwnership } from '../middleware/tenant';
 const route = new Hono();
 
 const idParam = z.object({ id: z.string().min(1).max(64) });
+
+const itemIdParam = z.object({ id: z.string().min(1).max(64), itemId: z.string().min(1).max(64) });
+
+const menuItemSchema = z.object({
+  name: z.string().min(1).max(200),
+  description: z.string().max(2000).nullable().optional(),
+  category: z.string().min(1).max(80),
+  price: z.number().nonnegative().max(99999.99),
+  is_available: z.boolean().optional(),
+});
+
+const menuItemUpdateSchema = menuItemSchema.partial();
 
 const upsertSchema = z.object({
   company_id: z.string().min(1).max(64),
@@ -37,6 +49,95 @@ route.get('/:id/menu-items', zValidator('param', idParam), async (c) => {
   const items = await db.select().from(merchantMenuItems).where(eq(merchantMenuItems.branch_id, id));
   return c.json(items);
 });
+
+route.post(
+  '/:id/menu-items',
+  requirePermission({ roles: ['merchant', 'admin', 'superadmin'] }),
+  requireTenantOwnership('branchId'),
+  zValidator('param', idParam),
+  zValidator('json', menuItemSchema),
+  async (c) => {
+    const { id } = c.req.valid('param');
+    const data = c.req.valid('json');
+    const branchRows = await db.select().from(branches).where(eq(branches.id, id)).limit(1);
+    if (branchRows.length === 0) return c.json({ error: 'Filial não encontrada' }, 404);
+    const newId = crypto.randomUUID();
+    const values: typeof merchantMenuItems.$inferInsert = {
+      id: newId,
+      branch_id: id,
+      name: data.name,
+      description: data.description ?? null,
+      category: data.category,
+      price: String(data.price),
+      is_available: data.is_available ?? true,
+    };
+    await db.insert(merchantMenuItems).values(values);
+    return c.json({ id: newId, ...values }, 201);
+  },
+);
+
+route.put(
+  '/:id/menu-items/:itemId',
+  requirePermission({ roles: ['merchant', 'admin', 'superadmin'] }),
+  requireTenantOwnership('branchId'),
+  zValidator('param', itemIdParam),
+  zValidator('json', menuItemUpdateSchema),
+  async (c) => {
+    const { id, itemId } = c.req.valid('param');
+    const data = c.req.valid('json');
+    const existingRows = await db.select().from(merchantMenuItems)
+      .where(and(eq(merchantMenuItems.branch_id, id), eq(merchantMenuItems.id, itemId))).limit(1);
+    if (existingRows.length === 0) return c.json({ error: 'Item não encontrado' }, 404);
+
+    const update: Partial<typeof merchantMenuItems.$inferInsert> = { updated_at: new Date() };
+    if (data.name !== undefined) update.name = data.name;
+    if (data.description !== undefined) update.description = data.description;
+    if (data.category !== undefined) update.category = data.category;
+    if (data.price !== undefined) update.price = String(data.price);
+    if (data.is_available !== undefined) update.is_available = data.is_available;
+
+    await db.update(merchantMenuItems).set(update)
+      .where(and(eq(merchantMenuItems.branch_id, id), eq(merchantMenuItems.id, itemId)));
+    return c.json({ success: true });
+  },
+);
+
+route.patch(
+  '/:id/menu-items/:itemId/availability',
+  requirePermission({ roles: ['merchant', 'admin', 'superadmin'] }),
+  requireTenantOwnership('branchId'),
+  zValidator('param', itemIdParam),
+  zValidator('json', z.object({ is_available: z.boolean() })),
+  async (c) => {
+    const { id, itemId } = c.req.valid('param');
+    const { is_available } = c.req.valid('json');
+    const existingRows = await db.select().from(merchantMenuItems)
+      .where(and(eq(merchantMenuItems.branch_id, id), eq(merchantMenuItems.id, itemId))).limit(1);
+    if (existingRows.length === 0) return c.json({ error: 'Item não encontrado' }, 404);
+
+    await db.update(merchantMenuItems)
+      .set({ is_available, updated_at: new Date() })
+      .where(and(eq(merchantMenuItems.branch_id, id), eq(merchantMenuItems.id, itemId)));
+    return c.json({ success: true, is_available });
+  },
+);
+
+route.delete(
+  '/:id/menu-items/:itemId',
+  requirePermission({ roles: ['merchant', 'admin', 'superadmin'] }),
+  requireTenantOwnership('branchId'),
+  zValidator('param', itemIdParam),
+  async (c) => {
+    const { id, itemId } = c.req.valid('param');
+    const existingRows = await db.select().from(merchantMenuItems)
+      .where(and(eq(merchantMenuItems.branch_id, id), eq(merchantMenuItems.id, itemId))).limit(1);
+    if (existingRows.length === 0) return c.json({ error: 'Item não encontrado' }, 404);
+
+    await db.delete(merchantMenuItems)
+      .where(and(eq(merchantMenuItems.branch_id, id), eq(merchantMenuItems.id, itemId)));
+    return c.json({ success: true });
+  },
+);
 
 route.get('/:id/orders', zValidator('param', idParam), async (c) => {
   const { id } = c.req.valid('param');

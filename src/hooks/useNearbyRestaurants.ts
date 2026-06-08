@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useLocationContext } from '../context/LocationContext';
 import { useRestaurants } from './useRestaurants';
+import { useCityCoverage } from './useActiveCities';
 import { calculateDistance } from '../domain/geospatial/geodesy';
 import type { Restaurant } from '../types';
 
@@ -15,9 +16,11 @@ interface UseNearbyRestaurantsOptions {
 }
 
 export function useNearbyRestaurants(options: UseNearbyRestaurantsOptions = {}) {
-  const { coordinates, isWithinSupportedCity, loading: locationLoading } = useLocationContext();
+  const { coordinates, city, loading: locationLoading } = useLocationContext();
   const { maxDistanceKm = 10, limit, includeAllIfNoLocation = true } = options;
   const { data: allRestaurants = [], isLoading: dataLoading } = useRestaurants();
+  const cityCoverageQuery = useCityCoverage(city?.name, city?.state);
+  const isWithinSupportedCity = cityCoverageQuery.data === true;
 
   const nearbyRestaurants = useMemo(() => {
     if (!coordinates || !isWithinSupportedCity) {

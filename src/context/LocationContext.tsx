@@ -1,22 +1,25 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import type { Coordinates } from '../types/location';
-import { getRegisteredCityCoverages, findRegisteredCityCoverage } from '../services/cityCoverageService';
-import { progressiveGeolocation, ipFallback, readCache, writeCache, getCachedCoords, isGeolocationUsable } from '../services/geolocationService';
-import { initialLocationState, locateCity, processSupportedCity, type LocationState, type City } from '../providers/locationMachine';
+
+import { progressiveGeolocation, ipFallback, readCache, writeCache, getCachedCoords, isGeolocationUsable, isCacheStaleForCoords } from '../services/geolocationService';
+import { findRegisteredCityCoverage, getRegisteredCityCoverages } from '../services/cityCoverageFallback';
+import { initialLocationState, locateCity, processSupportedCity, calculateCoordConfidence, type CoordSource, type LocationState, type City } from '../providers/locationMachine';
 import { logger } from '../lib/logger';
+import { normalizeStateBR } from '../utils/states';
 
 interface LocationContextValue extends LocationState {
   requestLocation: () => Promise<void>;
   refreshLocation: () => void;
-  setManualCity: (cityName: string) => Promise<void>;
+  setManualCity: (cityName: string) => void;
   clearLocation: () => void;
 }
 
 const LocationContext = createContext<LocationContextValue | null>(null);
 
 function cityFromCache(cache: { city: { name: string; state: string; displayName: string; neighborhood?: string } }): City {
-   const result: City = { name: cache.city.name, state: cache.city.state, stateCode: '', country: 'Brasil', displayName: cache.city.displayName };
+   const normalizedState = normalizeStateBR(cache.city.state);
+   const result: City = { name: cache.city.name, state: normalizedState, stateCode: normalizedState, country: 'Brasil', displayName: cache.city.displayName };
    if (cache.city.neighborhood) result.neighborhood = cache.city.neighborhood;
    return result;
  }
@@ -28,15 +31,25 @@ export function LocationProvider({ children }: { children: ReactNode }) {
 
   const setState = (patch: Partial<LocationState>) => { set((prev) => ({ ...prev, ...patch })); };
 
-const hydrateFromCache = useCallback(async () => {
+const hydrateFromCache = useCallback(() => {
   if (hydrated.current) return;
   hydrated.current = true;
   const cache = readCache();
   if (!cache) return;
   try {
     const detectedCity = cityFromCache(cache);
-    const supported = await processSupportedCity(detectedCity, cache.coordinates);
-    setState({ city: detectedCity, coordinates: cache.coordinates, source: cache.source, ...supported, status: 'SUCCESS', loading: false });
+    const cachedConfidence = calculateCoordConfidence(cache.coordinates.accuracy);
+    const supported = processSupportedCity(detectedCity, cache.coordinates, cachedConfidence);
+    setState({
+      city: detectedCity,
+      coordinates: cache.coordinates,
+      source: cache.source,
+      coord_source: 'cache',
+      coord_confidence: cachedConfidence,
+      ...supported,
+      status: 'SUCCESS',
+      loading: false,
+    });
     } catch (error) {
       logger.warn('Location', 'Erro ao hidratar localização do cache', { error: error instanceof Error ? error.message : String(error) });
     }
@@ -47,9 +60,27 @@ const tryIpFallback = useCallback(async () => {
   try {
     const ipData = await ipFallback();
     if (ipData) {
-      const detectedCity: City = { name: ipData.city, state: ipData.state, stateCode: '', country: 'Brasil', displayName: `${ipData.city} - ${ipData.state}` };
-      const supported = await findRegisteredCityCoverage(detectedCity.name).catch(() => null);
-      setState({ city: detectedCity, coordinates: null, source: 'ip', isWithinSupportedCity: !!supported, distanceToCityCenter: null, status: 'FALLBACK_IP', loading: false, error: null });
+      const normalizedState = normalizeStateBR(ipData.state);
+      const displayState = normalizedState || ipData.state;
+      const detectedCity: City = {
+        name: ipData.city,
+        state: normalizedState,
+        stateCode: normalizedState,
+        country: 'Brasil',
+        displayName: `${ipData.city} - ${displayState}`,
+      };
+      const supported = processSupportedCity(detectedCity, null, 0.20);
+      setState({
+        city: detectedCity,
+        coordinates: null,
+        source: 'ip',
+        coord_source: 'ip_fallback',
+        coord_confidence: 0.20,
+        ...supported,
+        status: 'FALLBACK_IP',
+        loading: false,
+        error: null,
+      });
     } else {
       setState({ status: 'ERROR', error: 'Não foi possível detectar sua cidade.', loading: false });
     }
@@ -62,7 +93,9 @@ const tryIpFallback = useCallback(async () => {
     setState({ loading: true, error: null, status: 'REQUESTING' });
     try {
       const { city: detectedCity, source: citySource } = await locateCity(coords);
-        const supported = await processSupportedCity(detectedCity, coords);
+      const coordSource: CoordSource = citySource;
+      const coordConfidence = calculateCoordConfidence(coords.accuracy);
+      const supported = processSupportedCity(detectedCity, coords, coordConfidence);
       writeCache({
           city: {
             name: detectedCity.name,
@@ -74,7 +107,16 @@ const tryIpFallback = useCallback(async () => {
           source: citySource,
           timestamp: Date.now(),
         });
-      setState({ city: detectedCity, coordinates: coords, source: citySource, ...supported, status: 'SUCCESS', loading: false });
+      setState({
+        city: detectedCity,
+        coordinates: coords,
+        source: citySource,
+        coord_source: coordSource,
+        coord_confidence: coordConfidence,
+        ...supported,
+        status: 'SUCCESS',
+        loading: false,
+      });
     } catch (err) {
       logger.warn('Location', 'Failed to process coordinates', { error: err instanceof Error ? err.message : String(err) });
       setState({ status: 'ERROR', error: 'Cidade não encontrada nas coordenadas obtidas.', loading: false }); }
@@ -83,7 +125,7 @@ const tryIpFallback = useCallback(async () => {
   const requestLocation = useCallback(async () => {
     if (activeRef.current) return;
     activeRef.current = true;
-    void hydrateFromCache();
+    hydrateFromCache();
     setState({ loading: true, error: null, status: 'REQUESTING' });
 
     if (!isGeolocationUsable() || (typeof window !== 'undefined' && !window.isSecureContext)) {
@@ -93,6 +135,10 @@ const tryIpFallback = useCallback(async () => {
     try {
       const cached = getCachedCoords();
       if (cached) {
+        const fresh = await progressiveGeolocation();
+        if (isCacheStaleForCoords(fresh)) {
+          await processCoords(fresh); activeRef.current = false; return;
+        }
         await processCoords(cached); activeRef.current = false; return;
       }
     } catch { /* expired */ }
@@ -101,7 +147,6 @@ const tryIpFallback = useCallback(async () => {
       await processCoords(coords);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '';
-      // Tratamento específico para timeout vs permissão negada
       if (errorMessage.includes('DENIED:1') || errorMessage.includes('DENIED:2')) {
         setState({ status: 'DENIED', error: 'Permissão de localização negada ou indisponível.' });
       } else if (errorMessage.includes('DENIED:3') || errorMessage.includes('TIMEOUT')) {
@@ -121,26 +166,28 @@ const tryIpFallback = useCallback(async () => {
     void requestLocation();
   }, [requestLocation]);
 
-  const setManualCity = useCallback(async (cityName: string) => {
-    const supported = await findRegisteredCityCoverage(cityName);
+  const setManualCity = useCallback((cityName: string) => {
+    const supported = findRegisteredCityCoverage(cityName);
     if (supported) {
       setState({
-         city: {
-           name: supported.name,
-           state: supported.state,
-           stateCode: '',
-           country: 'Brasil',
-           displayName: `${supported.name} - ${supported.state}`,
-         },
-         coordinates: null,
-         source: 'manual',
-         isWithinSupportedCity: true,
-         distanceToCityCenter: null,
-         error: null,
-         status: 'SUCCESS',
-       });
+          city: {
+            name: supported.name,
+            state: supported.state,
+            stateCode: '',
+            country: 'Brasil',
+            displayName: `${supported.name} - ${supported.state}`,
+          },
+          coordinates: null,
+          source: 'manual',
+          coord_source: 'manual',
+          coord_confidence: 1.0,
+          isWithinSupportedCity: true,
+          distanceToCityCenter: null,
+          error: null,
+          status: 'SUCCESS',
+        });
     } else {
-      const all = await getRegisteredCityCoverages();
+      const all = getRegisteredCityCoverages();
       setState({ error: `Não temos estabelecimento em "${cityName}". Cidades: ${all.map((c) => c.name).join(', ')}` });
     }
   }, []);

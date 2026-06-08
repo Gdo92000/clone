@@ -1,44 +1,32 @@
-import { useCoverageCities } from '../../../hooks/useCoverageCities';
-import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
+import { useActiveCities, useActiveNeighborhoods } from '../../../hooks/useActiveCities';
 import { PageHeader } from '../../../components/ui/PageHeader';
+import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
 
 export function AdminCoveragePage() {
-  const { data: cities = [], isLoading, error } = useCoverageCities();
+  const citiesQuery = useActiveCities();
 
   return (
     <>
-      <PageHeader title="Cidades atendidas" />
+      <PageHeader title="Cobertura" />
       <section className="rounded-xl border border-border-default bg-surface-elevated p-4">
         <FxQueryBoundary
-          isLoading={isLoading}
-          isError={!!error}
-          error={error ?? null}
+          isLoading={citiesQuery.isLoading}
+          isError={!!citiesQuery.error}
+          error={citiesQuery.error}
           loadingFallback={
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="animate-pulse rounded-lg border border-border-default bg-surface-background p-3 h-20" />
+                <div key={i} className="animate-pulse rounded-lg border border-border-default bg-surface-background p-4 h-16" />
               ))}
             </div>
           }
         >
-          {cities.length === 0 ? (
-            <p className="text-text-secondary text-center py-8">Nenhuma cidade cadastrada ainda.</p>
+          {citiesQuery.data?.length === 0 ? (
+            <p className="text-text-secondary text-center py-8">Nenhuma cidade ativa.</p>
           ) : (
             <div className="space-y-3">
-              {cities.map((city) => (
-                <article key={city.id} className="rounded-lg border border-border-default bg-surface-background p-3">
-                  <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                    <div>
-                      <p className="font-semibold text-text-primary">{city.name}, {city.state}</p>
-                      <p className="text-sm text-text-secondary">
-                        {city.restaurant_count} {city.restaurant_count === 1 ? 'restaurante' : 'restaurantes'} — raio de {city.radius_km}km
-                      </p>
-                    </div>
-                    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${city.is_active ? 'bg-feedback-success/10 text-feedback-success' : 'bg-feedback-error/10 text-feedback-error'}`}>
-                      {city.is_active ? 'Ativo' : 'Inativo'}
-                    </span>
-                  </div>
-                </article>
+              {citiesQuery.data?.map((city) => (
+                <CityCoverageRow key={`${city.city}-${city.state}`} city={city.city} state={city.state} />
               ))}
             </div>
           )}
@@ -47,3 +35,36 @@ export function AdminCoveragePage() {
     </>
   );
 }
+
+function CityCoverageRow({ city, state }: { city: string; state: string }) {
+  const { data: neighborhoods = [], isLoading } = useActiveNeighborhoods(city, state);
+  return (
+    <article className="rounded-lg border border-border-default bg-surface-background p-3">
+      <header className="flex items-center justify-between mb-2">
+        <h3 className="font-semibold text-text-primary">{city} - {state}</h3>
+        <span className="text-xs text-text-tertiary">{neighborhoods.length} bairros</span>
+      </header>
+      {isLoading ? (
+        <div className="animate-pulse h-4 bg-surface-elevated rounded w-1/2" />
+      ) : neighborhoods.length > 0 ? (
+        <div className="flex flex-wrap gap-1.5">
+          {neighborhoods.map((n) => (
+            <span
+              key={n.neighborhood}
+              className="text-xs px-2 py-1 rounded-full bg-surface-elevated text-text-secondary min-h-[32px] inline-flex items-center"
+            >
+              {n.neighborhood}
+              {n.restaurant_count > 0 && (
+                <span className="ml-1.5 text-text-tertiary">({n.restaurant_count})</span>
+              )}
+            </span>
+          ))}
+        </div>
+      ) : (
+        <p className="text-xs text-text-tertiary">Nenhum bairro cadastrado</p>
+      )}
+    </article>
+  );
+}
+
+export default AdminCoveragePage;
