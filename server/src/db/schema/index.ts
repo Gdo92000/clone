@@ -27,12 +27,12 @@ import {
   commissionPlans, feature_flags,
 } from './saas';
 import {
-  notifications, userNotifications, coverageCities, auditEvents,
+  notifications, userNotifications, auditEvents,
   supportTickets, permissions,
   printerConfigs, printJobs,
 } from './ops';
 import {
-  authSessions, passwordResets, auditLogs,
+  idempotencyKeys, authSessions, passwordResets, auditLogs,
   businessHours, businessHourPeriods,
   holidayRules, holidayOverrides, specialDates,
 } from './operations';
@@ -72,10 +72,10 @@ export interface Tables {
   feature_flags:      typeof feature_flags;
   notifications:      typeof notifications;
   userNotifications:  typeof userNotifications;
-  coverageCities:     typeof coverageCities;
   auditEvents:        typeof auditEvents;
   supportTickets:     typeof supportTickets;
   permissions:        typeof permissions;
+  idempotencyKeys:    typeof idempotencyKeys;
   authSessions:       typeof authSessions;
   passwordResets:     typeof passwordResets;
   auditLogs:          typeof auditLogs;
@@ -121,10 +121,10 @@ export const tables: Tables = {
   feature_flags,
   notifications,
   userNotifications,
-  coverageCities,
   auditEvents,
   supportTickets,
   permissions,
+  idempotencyKeys,
   authSessions,
   passwordResets,
   auditLogs,

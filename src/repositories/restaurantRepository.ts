@@ -4,7 +4,7 @@ import { restaurantListDtoToModel, restaurantDtoToModel, menuItemListDtoToModel,
 
 export async function getRestaurants(page = 1, pageSize = 20): Promise<Restaurant[]> {
   const dtos = await restaurantApi.getAll();
-  const all = restaurantListDtoToModel(dtos);
+  const all = restaurantListDtoToModel(dtos).filter((r) => r.isActive);
   return all.slice(0, page * pageSize);
 }
 

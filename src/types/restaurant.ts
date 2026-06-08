@@ -10,13 +10,20 @@ export interface Restaurant {
   imageUrl: string;
   bannerUrl: string;
   isFeatured?: boolean;
+  isActive: boolean;
   distance: string;
   promotionalOffer?: string;
   city?: string;
+  state?: string;
   neighborhood?: string;
   address?: string;
   phone?: string;
   paymentMethods?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  deliveryRadiusKm?: number | null;
+  coverageZoneType: 'city' | 'neighborhood' | 'radius' | 'polygon';
+  coveragePolygon?: unknown;
   coordinates?: {
     lat: number;
     lng: number;
@@ -47,4 +54,17 @@ export interface Category {
   name: string;
   icon: string;
   slug: string;
+}
+
+export interface ActiveCity {
+  city: string;
+  state: string;
+  restaurantCount: number;
+}
+
+export interface ActiveNeighborhood {
+  neighborhood: string;
+  city: string;
+  state: string;
+  restaurantCount: number;
 }

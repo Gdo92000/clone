@@ -9,19 +9,20 @@ import { fixupConfigRules } from '@eslint/compat';
 
 export default tseslint.config(
   {
-    ignores: [
-      'dist/',
-      'node_modules/',
-      'drizzle/',
-      '*.config.*',
-      'scripts/',
-      '.opencode/',
-      '.roo/',
-      '.windsurf/',
-      'coverage/',
-      '*.d.ts',
-      '.eslintcache',
-    ],
+  ignores: [
+  'dist/',
+  'node_modules/',
+  'drizzle/',
+  '*.config.*',
+  'scripts/',
+  '.opencode/',
+  '.roo/',
+  '.windsurf/',
+  'coverage/',
+  '*.d.ts',
+  '.eslintcache',
+  '.kilo/',
+],
   },
 
   // FRONTEND
@@ -40,16 +41,7 @@ export default tseslint.config(
 
     languageOptions: {
       parserOptions: {
-        projectService: {
-          allowDefaultProject: [
-            'src/test/*.ts',
-            'src/services/*.test.ts',
-            'src/hooks/*.test.tsx',
-            'src/mocks/handlers/__tests__/*.test.ts',
-            'src/repositories/*.test.ts',
-            'src/components/commerce/*.test.tsx',
-          ],
-        },
+        project: ['./tsconfig.app.json', './tsconfig.test.json'],
         tsconfigRootDir: import.meta.dirname,
       },
     },
@@ -66,11 +58,12 @@ export default tseslint.config(
         version: 'detect',
       },
       'import/resolver': {
-        typescript: {
-          project: [
-            './tsconfig.app.json',
-          ],
-        },
+          typescript: {
+            project: [
+              './tsconfig.app.json',
+              './tsconfig.test.json',
+            ],
+          },
       },
     },
 

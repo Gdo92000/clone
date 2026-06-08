@@ -12,9 +12,20 @@ export interface RestaurantDTO {
   image_url: string;
   banner_url: string;
   is_featured?: boolean;
+  is_active?: boolean;
   distance: string;
   promotional_offer?: string;
   city?: string;
+  state?: string;
+  neighborhood?: string;
+  address?: string;
+  phone?: string;
+  payment_methods?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  delivery_radius_km?: number | null;
+  coverage_zone_type?: 'city' | 'neighborhood' | 'radius' | 'polygon';
+  coverage_polygon?: unknown;
   coordinates?: { lat: number; lng: number };
 }
 
@@ -42,4 +53,22 @@ export interface CategoryDTO {
   name: string;
   icon: string;
   slug: string;
+}
+
+export interface ActiveCityDTO {
+  city: string;
+  state: string;
+  restaurant_count: number;
+}
+
+export interface ActiveNeighborhoodDTO {
+  neighborhood: string;
+  city: string;
+  state: string;
+  restaurant_count: number;
+}
+
+export interface RestaurantAvailabilityDTO {
+  id: string;
+  is_active: boolean;
 }

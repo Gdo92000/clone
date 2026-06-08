@@ -1,7 +1,10 @@
 import type { AddressDTO, CreateAddressRequest, UpdateAddressRequest } from '../dto/addressDto';
 import type { Address } from '../types';
+import { coerceNumeric } from '../utils/format';
 
 export function addressDtoToModel(dto: AddressDTO): Address {
+  const latitude = coerceNumeric(dto.latitude);
+  const longitude = coerceNumeric(dto.longitude);
   return {
     id: dto.id,
     label: dto.label,
@@ -13,8 +16,8 @@ export function addressDtoToModel(dto: AddressDTO): Address {
     state: dto.state,
     zipCode: dto.zip_code ?? '',
     isDefault: dto.is_default,
-    ...(dto.latitude !== null && dto.longitude !== null
-      ? { coordinates: { lat: dto.latitude, lng: dto.longitude } }
+    ...(latitude !== null && longitude !== null
+      ? { coordinates: { lat: latitude, lng: longitude } }
       : {}),
   };
 }

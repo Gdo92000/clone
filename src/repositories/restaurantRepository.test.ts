@@ -32,7 +32,7 @@ describe('restaurantRepository', () => {
   });
 
   it('getRestaurants calls restaurantApi.getAll() and maps the result', async () => {
-    const mockDto = [{ id: '1', name: 'Test Restaurant' }];
+    const mockDto = [{ id: '1', name: 'Test Restaurant', isActive: true }];
     vi.mocked(restaurantApi.getAll).mockResolvedValue(mockDto as unknown as RestaurantDTO[]);
 
     const result = await getRestaurants();
@@ -46,6 +46,7 @@ describe('restaurantRepository', () => {
     const manyDtos = Array.from({ length: 30 }, (_, i) => ({
       id: String(i + 1),
       name: `Restaurant ${i + 1}`,
+      isActive: true,
     }));
     vi.mocked(restaurantApi.getAll).mockResolvedValue(manyDtos as unknown as RestaurantDTO[]);
 
