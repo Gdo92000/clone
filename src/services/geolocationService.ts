@@ -3,7 +3,8 @@ import { storageService } from '../storage/storageService';
 import { ipApi } from '../api/ipApi';
 
 const CITY_CACHE_KEY = 'city-cache';
-const CITY_TTL = 24 * 60 * 60 * 1000;
+const CITY_TTL_PROD = 24 * 60 * 60 * 1000;
+const CITY_TTL = import.meta.env.DEV ? 0 : CITY_TTL_PROD;
 const COORDS_TTL = 60 * 60 * 1000;
 
 export interface CachedLocation {
@@ -45,6 +46,30 @@ export function getCachedCoords(): Coordinates | null {
   if (!data) return null;
   const age = Date.now() - data.timestamp;
   return age < COORDS_TTL ? data.coordinates : null;
+}
+
+const STALE_DISTANCE_METERS = 5000;
+function haversineMeters(a: Coordinates, b: Coordinates): number {
+  const R = 6371000;
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const dLat = toRad(b.latitude - a.latitude);
+  const dLng = toRad(b.longitude - a.longitude);
+  const lat1 = toRad(a.latitude);
+  const lat2 = toRad(b.latitude);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+export function isCacheStaleForCoords(fresh: Coordinates): boolean {
+  const cached = readCache();
+  if (!cached) return true;
+  const distance = haversineMeters(cached.coordinates, fresh);
+  if (distance > STALE_DISTANCE_METERS) {
+    log(`CACHE: STALE — coords diferem ${distance.toFixed(0)}m (>${STALE_DISTANCE_METERS}m). Invalidando.`);
+    storageService.remove(CITY_CACHE_KEY);
+    return true;
+  }
+  return false;
 }
 
 const DEBUG_KEY = 'geo-debug';
@@ -156,25 +181,54 @@ export function progressiveGeolocation(): Promise<Coordinates> {
   });
 }
 
+interface RawIpPayload {
+  city?: unknown;
+  region?: unknown;
+  region_code?: unknown;
+  status?: unknown;
+  error?: unknown;
+}
+
+function extractIpGeo(payload: RawIpPayload): { city: string; state: string } | null {
+  if (typeof payload.status === 'string' && payload.status !== 'success') return null;
+  if (payload.error === true) return null;
+  if (typeof payload.error === 'string' && payload.error.length > 0) return null;
+  if (typeof payload.city !== 'string' || payload.city.trim() === '') return null;
+  const rawState = payload.region ?? payload.region_code;
+  if (typeof rawState !== 'string' || rawState.trim() === '') return null;
+  return { city: payload.city.trim(), state: rawState.trim() };
+}
+
+function safeField(value: unknown): string {
+  if (value === null || value === undefined) return '?';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  return '?';
+}
+
 export async function ipFallback(): Promise<{ city: string; state: string } | null> {
-   // Try ipapi.co first
    try {
      log('IP: tentando ipapi.co');
-     const data = await ipApi.getLocationByIp();
-     const result = { city: data.city, state: data.region };
-     log(`IP: SUCESSO via ipapi.co -> ${result.city}/${result.state}`);
-     return result;
+     const data: RawIpPayload = await ipApi.getLocationByIp();
+     const result = extractIpGeo(data);
+     if (result) {
+       log(`IP: SUCESSO via ipapi.co -> ${result.city}/${result.state}`);
+       return result;
+     }
+     log(`IP: ipapi.co payload inválido — status=${safeField(data.status)}, error=${safeField(data.error)}`);
    } catch (e) {
      log(`IP: ipapi.co erro — ${e instanceof Error ? e.message : String(e)}`);
    }
 
-   // Fallback to ip-api.com
    try {
      log('IP: tentando ip-api.com');
-     const data = await ipApi.getLocationByIpAlternative();
-     const result = { city: data.city, state: data.region_code || data.region };
-     log(`IP: SUCESSO via ip-api.com -> ${result.city}/${result.state}`);
-     return result;
+     const data: RawIpPayload = await ipApi.getLocationByIpAlternative();
+     const result = extractIpGeo(data);
+     if (result) {
+       log(`IP: SUCESSO via ip-api.com -> ${result.city}/${result.state}`);
+       return result;
+     }
+     log(`IP: ip-api.com payload inválido — status=${safeField(data.status)}, error=${safeField(data.error)}`);
    } catch (e) {
      log(`IP: ip-api.com erro — ${e instanceof Error ? e.message : String(e)}`);
    }
