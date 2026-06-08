@@ -1,6 +1,6 @@
 import { pgEnum, pgTable, text, numeric, integer, timestamp, index } from 'drizzle-orm/pg-core';
 import { branches } from './branches';
-import { deliveryType, paymentMethod } from '../customer/orders';
+import { orders, deliveryType, paymentMethod } from '../customer/orders';
 
 export const merchantOrderStatus = pgEnum('merchant_order_status', [
   'new',
@@ -13,7 +13,7 @@ export const merchantOrderStatus = pgEnum('merchant_order_status', [
 ]);
 
 export const merchantOrders = pgTable('merchant_orders', {
-  id: text('id').primaryKey(),
+  id: text('id').primaryKey().references(() => orders.id, { onDelete: 'cascade' }),
   branch_id: text('branch_id').references(() => branches.id).notNull(),
   customer_name: text('customer_name').notNull(),
   customer_address: text('customer_address').notNull(),

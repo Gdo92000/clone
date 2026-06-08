@@ -1,8 +1,9 @@
 import { pgTable, text, boolean, timestamp, integer, index } from 'drizzle-orm/pg-core';
 import { branches } from '../merchant/branches';
+import { orders } from '../customer/orders';
  
 export const printerConfigs = pgTable('printer_configs', {
-  branch_id: text('branch_id').primaryKey().references(() => branches.id),
+  branch_id: text('branch_id').primaryKey().references(() => branches.id, { onDelete: 'cascade' }),
   printer_type: text('printer_type', { enum: ['network', 'usb', 'bluetooth'] }).notNull().default('network'),
   ip_address: text('ip_address'),
   port: integer('port').default(9100),
@@ -13,8 +14,8 @@ export const printerConfigs = pgTable('printer_configs', {
  
 export const printJobs = pgTable('print_jobs', {
   id: text('id').primaryKey(),
-  order_id: text('order_id').notNull(),
-  branch_id: text('branch_id').references(() => branches.id).notNull(),
+  order_id: text('order_id').references(() => orders.id, { onDelete: 'set null' }),
+  branch_id: text('branch_id').references(() => branches.id, { onDelete: 'cascade' }).notNull(),
   status: text('status', { enum: ['pending', 'sent', 'completed', 'failed', 'retrying'] }).notNull().default('pending'),
   retry_count: integer('retry_count').notNull().default(0),
   error_message: text('error_message'),
