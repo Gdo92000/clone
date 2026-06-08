@@ -1,4 +1,3 @@
-import type { TransactionPort } from './transaction';
 
 /**
  * Generic filter applied at query time.
@@ -12,12 +11,12 @@ export interface Filter<T = unknown> {
 }
 
 /** Shape accepted by RepositoryPort.create */
-export interface CreateDTO<T = unknown> {
+export interface CreateDTO<_T = unknown> {
   [key: string]: unknown;
 }
 
 /** Shape accepted by RepositoryPort.update */
-export interface UpdateDTO<T = unknown> {
+export interface UpdateDTO<_T = unknown> {
   [key: string]: unknown;
 }
 

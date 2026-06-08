@@ -165,9 +165,12 @@ let _recording = false;
  * Caso contrário lê `__flux_capabilities__` de globalThis (setado por `initRuntime`).
  * Assim, `initRuntime` pode chamar sem argumentos e a decisão fica centralizada nas capabilities.
  */
-export async function startReplayRecorder(_capabilities?: Partial<RuntimeCapabilities>): Promise<void> {
+export function startReplayRecorder(_capabilities?: Partial<RuntimeCapabilities>): void {
+  const fluxCaps = typeof globalThis !== 'undefined'
+    ? (globalThis as Record<string, unknown>)['__flux_capabilities__'] as Record<string, unknown> | undefined
+    : undefined;
   const hasReplay = _capabilities?.hasReplay
-    ?? (typeof globalThis !== 'undefined' && (globalThis as Record<string, unknown>)['__flux_capabilities__']?.hasReplay)
+    ?? (fluxCaps?.hasReplay as boolean | undefined)
     ?? false;
   if (!hasReplay) return;
   _recording = true;
@@ -175,7 +178,7 @@ export async function startReplayRecorder(_capabilities?: Partial<RuntimeCapabil
 }
 
 /** stopReplayRecorder — desativa a captura. */
-export async function stopReplayRecorder(): Promise<void> {
+export function stopReplayRecorder(): void {
   _recording = false;
   recorderStore.stopRecording();
 }

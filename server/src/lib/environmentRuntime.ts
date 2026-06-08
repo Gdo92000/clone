@@ -1,11 +1,11 @@
-import type { DbProvider, RuntimeCapabilities } from './provider';
-import { resolveDbProvider, CAPABILITIES } from './provider';
-import { setProvider, getProvider, getCapabilities, clearAllMemoryStores, resetMemoryStore } from './provider-selector';
-import { createMemoryRegistry } from './registry-memory';
+import type { DbProvider, RuntimeCapabilities } from '../db/provider';
+import { resolveDbProvider, CAPABILITIES } from '../db/provider';
+import { setProvider, getProvider, getCapabilities } from '../db/provider-selector';
+import { clearAllMemoryStores, resetMemoryStore } from '../db/registry-memory';
+import type { createMemoryRegistry } from '../db/registry-memory';
 import { startReplayRecorder, stopReplayRecorder } from '../replay/recorder';
 import { initChaosRouter } from '../chaos/router';
 import { startTelemetry, shutdownTelemetry } from '../telemetry/router';
-import { healthz, liveness, readiness } from '../routes/health.runtime';
 import type { EnvConfig } from '../config';
 
 /**
@@ -20,8 +20,10 @@ import type { EnvConfig } from '../config';
 export interface RuntimeResult {
   provider: DbProvider;
   capabilities: RuntimeCapabilities;
-  registry: ReturnType<typeof createMemoryRegistry> | ReturnType<import('drizzle-orm').ReturnType<typeof import('drizzle-orm/postgres-js').drizzle>>;
+  registry: ReturnType<typeof createMemoryRegistry> | ReturnType<typeof drizzle>;
 }
+
+import type { drizzle } from 'drizzle-orm/postgres-js';
 
 let _initialized = false;
 
@@ -44,16 +46,19 @@ let _initialized = false;
 export async function initRuntime(env: EnvConfig): Promise<RuntimeResult> {
   if (_initialized) {
     // Já inicializado — retorna estado atual
+    const provider: DbProvider = getProvider();
+    const capabilities: RuntimeCapabilities = getCapabilities();
+    const registry = (globalThis as { __flux_registry__: RuntimeResult['registry'] }).__flux_registry__;
     return {
-      provider: getProvider(),
-      capabilities: getCapabilities(),
-      registry: (globalThis as Record<string, unknown>)['__flux_registry__'] as RuntimeResult['registry'],
+      provider,
+      capabilities,
+      registry,
     };
   }
 
   // ─── 1. Resolve provider ────────────────────────────────────────────────────
-  const provider = resolveDbProvider(env);
-  const capabilities = CAPABILITIES[provider];
+  const provider: DbProvider = resolveDbProvider(env);
+  const capabilities: RuntimeCapabilities = CAPABILITIES[provider];
   setProvider(provider, capabilities);
 
   // ─── 2. Inicializa banco/registry ──────────────────────────────────────────
@@ -69,7 +74,7 @@ export async function initRuntime(env: EnvConfig): Promise<RuntimeResult> {
   // hasChaos          → initChaosRouter()
   // hasTelemetry      → startTelemetry()         (SpanStore fallback store inicializado)
   if (capabilities.hasReplay) {
-    await startReplayRecorder();
+    startReplayRecorder();
   }
 
   if (capabilities.hasChaos) {
@@ -97,8 +102,12 @@ export async function shutdownRuntime(): Promise<void> {
   _initialized = false;
   clearAllMemoryStores();
   resetMemoryStore('restaurants');
-  stopReplayRecorder().catch(() => { /* ignore */ });
-  shutdownTelemetry().catch(() => { /* ignore */ });
+  stopReplayRecorder();
+  try {
+    await shutdownTelemetry();
+  } catch {
+    // ignore
+  }
   delete (globalThis as Record<string, unknown>)['__flux_registry__'];
   delete (globalThis as Record<string, unknown>)['__flux_capabilities__'];
 }

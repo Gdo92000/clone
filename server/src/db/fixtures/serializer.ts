@@ -32,8 +32,8 @@ function deepStripFunctions(value: unknown, visited?: WeakSet<object>): unknown 
   if (typeof value === 'bigint') return value.toString();
   if (typeof value === 'object') {
     const set = visited ?? new WeakSet();
-    if (set.has(value as object)) return undefined;
-    set.add(value as object);
+    if (set.has(value)) return undefined;
+    set.add(value);
     const result: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
       const safeV = safeValue(v);
@@ -71,8 +71,6 @@ export function assertSerializable(value: unknown): void {
   try {
     JSON.stringify(stripped);
   } catch (e) {
-    throw new Error(
-      `Entidade não é serializável: ${e instanceof Error ? e.message : 'erro desconhecido'}`,
-    );
+    throw new Error('Entidade não é serializável', { cause: e });
   }
 }

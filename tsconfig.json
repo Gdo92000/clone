@@ -1,4 +1,12 @@
 {
+  "compilerOptions": {
+    "strict": true,
+    "jsx": "react-jsx",
+    "moduleResolution": "Bundler",
+    "module": "ESNext",
+    "target": "ES2023",
+    "skipLibCheck": true
+  },
   "files": [],
   "references": [
     { "path": "./tsconfig.app.json" },

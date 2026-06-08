@@ -4,8 +4,6 @@ import * as schemaModule from './schema';
 import { resolveDbProvider, CAPABILITIES } from './provider';
 import { setProvider, getProvider, getCapabilities } from './provider-selector';
 import { createMemoryRegistry, clearAllMemoryStores, resetMemoryStore } from './registry-memory';
-import type { RepositoryPort, HealthPort } from '../ports/repository';
-import type { TransactionPort } from '../ports/transaction';
 import type { EnvConfig } from '../config';
 import type { DbProvider, RuntimeCapabilities } from './provider';
 
@@ -29,13 +27,12 @@ export const db = new Proxy({} as ReturnType<typeof drizzle>, {
   get(_target, prop: string) {
     const provider = (() => { try { return getProvider(); } catch { return null; } })();
     if (provider === 'memory') {
-      return undefined as unknown as ReturnType<typeof drizzle>;
+      return undefined;
     }
     const instance = getOrCreateDatabase();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (instance as any)[prop];
+    return (instance as Record<string, unknown>)[prop];
   },
-}) as ReturnType<typeof drizzle>;
+});
 
 /** Expose provider utilities. */
 export { getProvider, getCapabilities, setProvider, clearAllMemoryStores, resetMemoryStore };

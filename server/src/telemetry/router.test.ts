@@ -6,7 +6,6 @@ import {
   initTelemetry,
   shutdownTelemetry,
   openSpan,
-  closeSpan,
   withSpan,
   recordSpanMetric,
   isTelemetryEnabled,
@@ -21,14 +20,14 @@ import {
  */
 const resetTelemetry = () => shutdownTelemetry();
 
-beforeEach(() => {
+  beforeEach(() => {
   // limpa store antes de cada teste
-  resetTelemetry();
-});
-
-afterAll(() => {
-  resetTelemetry();
-});
+  void resetTelemetry();
+  });
+  
+  afterAll(() => {
+  void resetTelemetry();
+  });
 
 // ─── init/shutdown ─────────────────────────────────────────────────────────────
 
@@ -52,12 +51,12 @@ describe('Telemetry lifecycle', () => {
 describe('recordSpanMetric', () => {
   it('loga métrica sem lançar', () => {
     expect(() =>
-      recordSpanMetric('test.metric', 42, { label: 'ok' }),
+      { recordSpanMetric('test.metric', 42, { label: 'ok' }); },
     ).not.toThrow();
   });
 
   it('aceita tags opcionais undefined', () => {
-    expect(() => recordSpanMetric('test.metric2', 100)).not.toThrow();
+    expect(() => { recordSpanMetric('test.metric2', 100); }).not.toThrow();
   });
 });
 
@@ -92,7 +91,7 @@ describe('openSpan / closeSpan', () => {
     initTelemetry();
     const span = openSpan('idempotent');
     span.close();
-    expect(() => span.close()).not.toThrow();
+    expect(() => { span.close(); }).not.toThrow();
   });
 
   it('getActiveSpanNames retorna spans abertos', () => {
@@ -119,8 +118,8 @@ describe('openSpan / closeSpan', () => {
 
   it('shutdownTelemetry fecha todos os spans abertos', () => {
     initTelemetry();
-    const s1 = openSpan('s1');
-    const s2 = openSpan('s2');
+const _s1 = openSpan('s1');
+  const _s2 = openSpan('s2');
     // Ambos abertos antes do shutdown
     expect(getActiveSpanNames()).toHaveLength(2);
     // shutdown fecha tudo e limpa
@@ -135,22 +134,22 @@ describe('openSpan / closeSpan', () => {
 describe('withSpan', () => {
   it('executa fn e retorna o valor', async () => {
     initTelemetry();
-    const result = await withSpan('compute', async () => 42);
+    const result = await withSpan('compute', () => 42);
     expect(result).toBe(42);
   });
 
   it('propaga erro da fn', async () => {
     initTelemetry();
     const thrown = new Error('simulated-failure');
-    await expect(
-      withSpan('failing', async () => { throw thrown; }),
-    ).rejects.toThrow('simulated-failure');
+  await expect(
+  withSpan('failing', () => { throw thrown; }),
+  ).rejects.toThrow('simulated-failure');
   });
 
   it('fecha o span mesmo quando fn lança', async () => {
     initTelemetry();
-    await expect(
-      withSpan('fail-close', async () => { throw new Error('x'); }),
+  await expect(
+  withSpan('fail-close', () => { throw new Error('x'); }),
     ).rejects.toThrow('x');
     // Após erro, shutdown limpa sem restos
     await expect(shutdownTelemetry()).resolves.toBeUndefined();
@@ -161,12 +160,12 @@ describe('withSpan', () => {
     initTelemetry();
     const captured: { name: string; tags: Record<string, string> } =
       {} as { name: string; tags: Record<string, string> };
-    await withSpan('tagged', async (span) => {
-      span.addTag('env', 'test');
-      captured.name = span.name;
-      captured.tags = { env: 'test' };
-      return 'ok';
-    });
+  await withSpan('tagged', (span) => {
+    span.addTag('env', 'test');
+    captured.name = span.name;
+    captured.tags = { env: 'test' };
+    return 'ok';
+  });
     expect(captured.name).toBe('tagged');
     expect(captured.tags).toEqual({ env: 'test' });
   });
@@ -174,7 +173,7 @@ describe('withSpan', () => {
   it('span é fechado (removido dos ativos) após fn', async () => {
     initTelemetry();
     const before = getActiveSpanNames();
-    await withSpan('ephemeral', async () => 'done');
+    await withSpan('ephemeral', () => 'done');
     const after = getActiveSpanNames();
     expect(after).toEqual(before);
   });

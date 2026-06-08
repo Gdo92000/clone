@@ -1,20 +1,24 @@
 import type { Context } from 'hono';
 
+interface JwtPayload {
+  company_id?: string;
+  role?: string;
+  [key: string]: unknown;
+}
+
 /**
  * Extract tenant ID from JWT payload
  * In this system, tenant is represented by company_id for merchants
  * and can be derived from user's company association
  */
 export function getTenantId(c: Context): string | null {
-  const payload = c.get('jwtPayload');
+  const payload = c.get('jwtPayload') as JwtPayload | undefined;
   if (!payload || typeof payload !== 'object') return null;
-  
-  // For now, we use company_id as tenant identifier
-  // This assumes JWT payload contains company_id when relevant
-  if ('company_id' in payload && payload.company_id) {
-    return String(payload.company_id);
+
+  if (typeof payload.company_id === 'string' && payload.company_id.length > 0) {
+    return payload.company_id;
   }
-  
+
   return null;
 }
 
@@ -24,23 +28,23 @@ export function getTenantId(c: Context): string | null {
  */
 export function validateTenantAccess(
   c: Context,
-  resourceCompanyId: string | null | undefined
+  resourceCompanyId: string | null | undefined,
 ): boolean {
   const tenantId = getTenantId(c);
-  
+
   // Superadmin can access everything
-  const payload = c.get('jwtPayload');
-  if (payload && typeof payload === 'object' && 'role' in payload) {
+  const payload = c.get('jwtPayload') as JwtPayload | undefined;
+  if (payload && typeof payload === 'object' && typeof payload.role === 'string') {
     if (payload.role === 'superadmin') return true;
     if (payload.role === 'admin') return true; // Admins can access their company's resources
   }
-  
+
   // If no tenant context, deny access (secure by default)
   if (!tenantId) return false;
-  
+
   // If resource has no company association, allow (public resources)
   if (!resourceCompanyId) return true;
-  
+
   // Check if tenant owns the resource
   return tenantId === resourceCompanyId;
 }
@@ -49,22 +53,22 @@ export function validateTenantAccess(
  * Middleware to enforce tenant isolation on routes
  */
 export function tenantIsolationMiddleware() {
-  return async (c, next) => {
+  return async (c: Context, next: () => Promise<void>) => {
     // Skip tenant validation for public routes
     const path = c.req.path;
-    if (path.startsWith('/api/auth/') || 
+    if (path.startsWith('/api/auth/') ||
         path.startsWith('/api/health/') ||
         path.startsWith('/api/metrics')) {
       await next();
       return;
     }
-    
+
     const tenantId = getTenantId(c);
     if (!tenantId) {
       c.status(401);
       return c.json({ error: 'Tenant context required' });
     }
-    
+
     // Store tenantId in context for use in handlers
     c.set('tenantId', tenantId);
     await next();

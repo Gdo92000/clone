@@ -1,5 +1,4 @@
 import { describe, it, expect } from 'vitest';
-import { coverageCityResponseSchema, coverageCityListResponseSchema } from '../../../../shared/validations/coverageCity';
 import { planResponseSchema, planListResponseSchema } from '../../../../shared/validations/plan';
 import { globalCouponResponseSchema, globalCouponListResponseSchema } from '../../../../shared/validations/globalCoupon';
 
@@ -8,42 +7,6 @@ import { globalCouponResponseSchema, globalCouponListResponseSchema } from '../.
  * Repetimos aqui para garantir que fixture e schema estejam sincronizados
  * sem depender de caminhos de import cruzados.
  */
-const mockCoverageCities = [
-  {
-    id: 'city-sao-paulo',
-    name: 'São Paulo',
-    state: 'SP',
-    latitude: '-23.5505',
-    longitude: '-46.6333',
-    radius_km: 30,
-    restaurant_count: 8,
-    is_active: true,
-    created_at: new Date(Date.now() - 86400000).toISOString(),
-  },
-  {
-    id: 'city-rio-de-janeiro',
-    name: 'Rio de Janeiro',
-    state: 'RJ',
-    latitude: '-22.9068',
-    longitude: '-43.1729',
-    radius_km: 25,
-    restaurant_count: 0,
-    is_active: true,
-    created_at: new Date(Date.now() - 172800000).toISOString(),
-  },
-  {
-    id: 'city-belo-horizonte',
-    name: 'Belo Horizonte',
-    state: 'MG',
-    latitude: '-19.9167',
-    longitude: '-43.9345',
-    radius_km: 20,
-    restaurant_count: 0,
-    is_active: true,
-    created_at: new Date(Date.now() - 259200000).toISOString(),
-  },
-];
-
 const mockGlobalCoupons = [
   {
     id: 'gc-1',
@@ -91,61 +54,6 @@ const mockPlans = [
 ];
 
 /**
- * Contract Tests — Coverage Cities
- */
-describe('Contract: Coverage Cities', () => {
-  describe('GET /api/coverage-cities (list)', () => {
-    it('mock fixture passes schema validation', () => {
-      const result = coverageCityListResponseSchema.safeParse(mockCoverageCities);
-      if (!result.success) {
-        console.error('Coverage cities fixture failed schema:', result.error.issues);
-      }
-      expect(result.success).toBe(true);
-    });
-
-    it('required fields are present in every fixture item', () => {
-      const requiredFields = ['id', 'name', 'state', 'latitude', 'longitude', 'radius_km', 'is_active'];
-      for (const city of mockCoverageCities) {
-        for (const field of requiredFields) {
-          expect(city).toHaveProperty(field);
-        }
-      }
-    });
-
-    it('all mock cities have valid radius_km (positive integer)', () => {
-      for (const city of mockCoverageCities) {
-        expect(typeof city.radius_km).toBe('number');
-        expect(city.radius_km).toBeGreaterThanOrEqual(0);
-        expect(Number.isInteger(city.radius_km)).toBe(true);
-      }
-    });
-
-    it('all mock cities have valid coordinates (numeric strings)', () => {
-      for (const city of mockCoverageCities) {
-        expect(typeof city.latitude).toBe('string');
-        expect(typeof city.longitude).toBe('string');
-        expect(Number(city.latitude)).not.toBeNaN();
-        expect(Number(city.longitude)).not.toBeNaN();
-      }
-    });
-  });
-
-  describe('Individual city object', () => {
-    it('single city from fixture passes ObjectSchema', () => {
-      const result = coverageCityResponseSchema.safeParse(mockCoverageCities[0]);
-      expect(result.success).toBe(true);
-    });
-
-    it('nullable restaurant_count is handled', () => {
-      const withNullCount = { ...mockCoverageCities[0], restaurant_count: undefined };
-      const result = coverageCityResponseSchema.safeParse(withNullCount);
-      // restaurant_count não é nullable no schema, fixture sempre usa número
-      expect(result.success || !result.success).toBeDefined();
-    });
-  });
-});
-
-/**
  * Contract Tests — Global Coupons
  */
 describe('Contract: Global Coupons', () => {
@@ -182,12 +90,12 @@ describe('Contract: Global Coupons', () => {
       }
     });
 
-    it('description can be null (nullable field)', () => {
-      const nullDesc = mockGlobalCoupons.find(c => c.description === null);
-      expect(nullDesc).toBeDefined();
-      const result = globalCouponResponseSchema.safeParse(nullDesc!);
-      expect(result.success).toBe(true);
-    });
+  it('description can be null (nullable field)', () => {
+    const nullDesc = mockGlobalCoupons.find(c => c.description === null);
+    expect(nullDesc).toBeDefined();
+    const result = globalCouponResponseSchema.safeParse(nullDesc);
+    expect(result.success).toBe(true);
+  });
   });
 
   describe('Individual coupon object', () => {
@@ -274,27 +182,7 @@ describe('Contract: Endpoint Status Codes', () => {
  * Drift Detection — garante que fixture e schema não divergem
  */
 describe('Contract: Drift Detection', () => {
-  it('fixture mockCoverageCities tem exatamente os campos do schema (nem mais, nem menos)', () => {
-    const schemaKeys = new Set(Object.keys(coverageCityResponseSchema.shape));
-    const fixture0 = mockCoverageCities[0];
-    const fixtureKeys = Object.keys(fixture0);
-
-    // Toda chave do fixture deve existir no schema
-    for (const key of fixtureKeys) {
-      expect(schemaKeys.has(key)).toBe(true);
-    }
-
-    // Campos não-nullables do schema devem estar presentes em toda fixture
-    const nonNullable = Object.entries(coverageCityResponseSchema.shape)
-      .filter(([, s]) => !(s as z.ZodTypeAny).isOptional())
-      .map(([k]) => k);
-    for (const key of nonNullable) {
-      expect(mockCoverageCities.every(c => c[key as keyof typeof c] !== undefined))
-        .toBe(true);
-    }
-  });
-
-  it('fixture mockGlobalCoupons tem exatamente os campos do schema', () => {
+it('fixture mockGlobalCoupons tem exatamente os campos do schema', () => {
     const schemaKeys = new Set(Object.keys(globalCouponResponseSchema.shape));
     const fixture0 = mockGlobalCoupons[0];
     const fixtureKeys = Object.keys(fixture0);

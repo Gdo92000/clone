@@ -1,0 +1,1 @@
+export type { IAuthProvider } from '../contracts/IAuthProvider';

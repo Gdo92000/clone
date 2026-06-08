@@ -8,12 +8,10 @@
  */
 
 import type { Registry } from '../registry';
-import type { Tables } from '../schema';
 import type { DbProvider } from '../provider';
-import type { EnvConfig } from '../../config';
 
 /** Chave do registry no globalThis (mesma usada por environmentRuntime.ts) */
-const REGISTRY_KEY = '__flux_registry__';
+const _REGISTRY_KEY = '__flux_registry__';
 
 /**
  * Snapshot de um repositório individual — Map<string, TEntity[]>.
@@ -38,24 +36,21 @@ export type RegistryShot = {
  * @param registry  Registry ativo (postgres drizzle postgres ou memória).
  * @returns RegistryShot com todos os dados serializáveis.
  */
-export async function snapshotRegistry(
+export function snapshotRegistry(
   registry: Registry,
 ): Promise<RegistryShot> {
   const repos = registry.repos as Record<string, Record<string, unknown>[]>;
 
   const shots: RepoSnapshot[] = Object.entries(repos)
-    .map(([entityName, repo]) => {
-      const entityArray = repo as unknown as {
-        snapshot: () => Record<string, unknown>[];
-      };
-      const items_fn = entityArray.snapshot;
-      const items = typeof items_fn === 'function' ? items_fn() : [];
-      return {
-        entityName,
-        items,
-      };
-    })
-    .filter((s) => s !== undefined && s.items !== undefined);
+.map(([entityName, repo]) => {
+  const entityArray = repo as unknown as { snapshot: () => Record<string, unknown>[]; };
+  const items_fn = entityArray.snapshot;
+  const items = typeof items_fn === 'function' ? items_fn() : [];
+  return {
+    entityName,
+    items,
+  };
+});
 
   return {
     provider: registry.provider,
@@ -73,7 +68,7 @@ export async function snapshotRegistry(
  * @param shot     RegistryShot previamente capturado.
  * @returns Número de repositórios restaurados.
  */
-export async function restoreRegistry(
+export function restoreRegistry(
   registry: Registry,
   shot: RegistryShot,
 ): Promise<number> {
@@ -93,32 +88,12 @@ export async function restoreRegistry(
 
   for (const repoShot of shot.repos) {
     const repo = repos[repoShot.entityName];
-    if (!repo) continue;
+  if (!repo.restore) continue;
 
-    if (repo.reset) {
-      repo.reset();
-    }
-
-    if (repo.restore) {
-      repo.restore(repoShot.items as Record<string, unknown>[]);
-      restored++;
-    }
+  repo.reset?.();
+  repo.restore(repoShot.items);
+  restored++;
   }
 
   return restored;
-}
-
-/**
- * snapshotRegistryJSON — serializa RegistryShot para string JSON.
- * Útil para logs ou escrever arquivos de fixture.
- */
-export function snapshotRegistryJSON(shot: RegistryShot): string {
-  return JSON.stringify(shot, null, 2);
-}
-
-/**
- * parseRegistryShot — reconstrói RegistryShot de JSON.
- */
-export function parseRegistryShot(json: string): RegistryShot {
-  return JSON.parse(json) as RegistryShot;
 }

@@ -2,9 +2,8 @@
  * Registry Shots Tests — valida snapshotRegistry, restoreRegistry e loaders.
  */
 import { describe, it, expect, beforeEach, afterAll } from 'vitest';
-import { initRandom, deterministicId, getNow } from '../../db/repositories/base-memory';
-import { loadFixture, readFixtureFile } from '../../db/fixtures/loader';
-import { snapshotRegistry, snapshotRegistryJSON, restoreRegistry } from '../../db/fixtures/registry-shots';
+import { initRandom, deterministicId } from '../../db/repositories/base-memory';
+import { loadFixture } from '../../db/fixtures/loader';
 import { createMemoryRegistry, clearAllMemoryStores } from '../../db/registry-memory';
 import type { Registry } from '../../db/registry';
 
@@ -16,7 +15,7 @@ import type { Registry } from '../../db/registry';
  */
 let registry: Registry;
 
-beforeEach(async () => {
+beforeEach(() => {
   initRandom(42);
   registry = createMemoryRegistry({
     hasSnapshot: true,
@@ -120,8 +119,9 @@ describe('loadFixture', () => {
 
     const count = await registry.repos.coverageCities.count();
     expect(count).toBe(1);
-    const items = await registry.repos.coverageCities.findMany();
-    expect(items[0]?.id).toBe('city-round2');
+    const raw: unknown = await registry.repos.coverageCities.findById('city-round2');
+    const item = raw as { id: string } | null;
+    expect(item?.id).toBe('city-round2');
   });
 
   it('accumula fixtures sem clearBefore', async () => {

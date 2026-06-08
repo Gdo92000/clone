@@ -1,0 +1,10 @@
+import type { MerchantOrder  } from 'src/domain/entities/Order';
+
+export const mockOrders: MerchantOrder[] = [
+  { id: 'order-1', branchId: 'branch-1', customerName: 'Pedro Alves', customerAddress: 'Rua Fernandes, 123', createdAt: new Date().toISOString(), status: 'new', paymentMethod: 'credit_card', deliveryType: 'delivery', total: 58.80, items: [{ name: 'X-Burger Clássico', quantity: 2, price: 28.90 }] },
+  { id: 'order-2', branchId: 'branch-1', customerName: 'Lucia Santos', customerAddress: 'Av. Paulista, 1000', createdAt: new Date(Date.now() - 900000).toISOString(), status: 'preparing', paymentMethod: 'pix', deliveryType: 'delivery', total: 34.90, items: [{ name: 'X-Bacon Supreme', quantity: 1, price: 34.90 }] },
+  { id: 'order-3', branchId: 'branch-1', customerName: 'Rafael Lima', customerAddress: 'Rua Bela Cintra, 500', createdAt: new Date(Date.now() - 1800000).toISOString(), status: 'ready', paymentMethod: 'debit_card', deliveryType: 'pickup', total: 28.90, items: [{ name: 'X-Burger Clássico', quantity: 1, price: 28.90 }] },
+  { id: 'order-4', branchId: 'branch-1', customerName: 'Marina Costa', customerAddress: 'Rua Haddock Lobo, 800', createdAt: new Date(Date.now() - 3600000).toISOString(), status: 'delivered', paymentMethod: 'credit_card', deliveryType: 'delivery', total: 71.80, items: [{ name: 'X-Burger Clássico', quantity: 1, price: 28.90 }, { name: 'Batata Frita', quantity: 1, price: 12.90 }, { name: 'X-Bacon Supreme', quantity: 1, price: 34.90 }] },
+  { id: 'order-5', branchId: 'branch-1', customerName: 'Tiago Oliveira', customerAddress: 'Alameda Santos, 300', createdAt: new Date(Date.now() - 7200000).toISOString(), status: 'rejected', paymentMethod: 'pix', deliveryType: 'delivery', total: 28.90, items: [{ name: 'X-Burger Clássico', quantity: 1, price: 28.90 }] },
+  { id: 'order-6', branchId: 'branch-3', customerName: 'Yuki Tanaka', customerAddress: 'Rua São Joaquim, 150', createdAt: new Date(Date.now() - 600000).toISOString(), status: 'new', paymentMethod: 'credit_card', deliveryType: 'delivery', total: 54.90, items: [{ name: 'Sushi Combo 20 peças', quantity: 1, price: 54.90 }] },
+];

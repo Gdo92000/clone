@@ -1,5 +1,4 @@
 import type { RepositoryPort, Filter, CreateDTO, UpdateDTO } from '../../ports/repository';
-import type { EnvConfig } from '../../config';
 
 /**
  * Deterministic ID generator — mesmo seed = mesmos IDs.
@@ -7,7 +6,7 @@ import type { EnvConfig } from '../../config';
 let _counter = 0;
 let _seed = 0;
 
-function setSeed(seed: number): void {
+function _setSeed(seed: number): void {
   _seed = seed;
   _counter = 0;
 }
@@ -83,7 +82,7 @@ export function applyFilter<T extends Record<string, unknown>>(
   if (filter?.orderBy) {
     const ob = filter.orderBy as Record<string, unknown>;
     const [key] = Object.entries(ob);
-    if (key) {
+    {
       const [col, dir] = key as [string, 'asc' | 'desc'];
       result.sort((a, b) => {
         const av = a[col];
@@ -166,16 +165,16 @@ export class BaseMemoryRepository<
 {
   constructor(
     private readonly store: EntityStore,
-    private readonly tenantKey: keyof TEntity = 'tenantId' as keyof TEntity,
-    private readonly createdAtKey: keyof TEntity = 'created_at' as keyof TEntity,
-    private readonly updatedAtKey: keyof TEntity = 'updated_at' as keyof TEntity,
+    private readonly tenantKey: keyof TEntity = 'tenantId',
+    private readonly createdAtKey: keyof TEntity = 'created_at',
+    private readonly updatedAtKey: keyof TEntity = 'updated_at',
   ) {}
 
   private now(): Date { return getNow(); }
 
   private withTenant(item: TEntity, tenantId?: string): TEntity {
     if (!tenantId) return item;
-    return { ...item, [this.tenantKey]: tenantId } as TEntity;
+    return { ...item, [this.tenantKey]: tenantId };
   }
 
   /**
@@ -229,7 +228,7 @@ export class BaseMemoryRepository<
     if (!existing) return Promise.resolve(null);
     if (tenantId && existing[this.tenantKey] !== tenantId) return Promise.resolve(null);
     const now = this.now().toISOString();
-    const updated = { ...existing, ...data, [this.updatedAtKey]: now } as TEntity;
+    const updated = { ...existing, ...data, [this.updatedAtKey]: now };
     this.store.upsert(updated);
     return Promise.resolve(updated);
   }
@@ -260,11 +259,11 @@ export class BaseMemoryRepository<
 
   /** Restaura a partir de snapshot. Não modifica IDs existentes. */
   restore(items: TEntity[]): void {
-    for (const item of items) {
-      if (item && typeof item === 'object' && 'id' in item) {
-        this.store.upsert(item as EntityRecord);
-      }
+  for (const item of items) {
+    if ('id' in item) {
+      this.store.upsert(item);
     }
+  }
   }
 
   /** Reseta a loja completamente. */

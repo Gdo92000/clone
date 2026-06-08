@@ -1,9 +1,6 @@
-import type { Registry, Repositories, RuntimeCapabilities, DbProvider } from './registry';
-import { BaseMemoryRepository } from './repositories/base-memory';
+import type { Registry, Repositories, RuntimeCapabilities } from './registry';
+import { EntityStore, BaseMemoryRepository } from './repositories/base-memory';
 import type { Filter } from '../ports/repository';
-
-/** EntityStore é uma classe — precisa de import de valor, não import type. */
-import { EntityStore } from './repositories/base-memory';
 
 /**
  * memoryRepoFactory — fábrica genérica de repositórios memória.
@@ -42,17 +39,16 @@ export function createMemoryRegistry(
   capabilities: RuntimeCapabilities,
 ): Registry {
   const health = {
-    check: async () => ({ ok: true }),
+    check: () => ({ ok: true }),
   };
 
-  const transactions = {
-    start: async () =>
-      ({
-        getTransaction: async () => undefined,
-        commit: async () => {},
-        rollback: async () => {},
-      }) as unknown as import('../ports/transaction').TransactionPort,
-  };
+const transactions = {
+  start: () => ({
+    getTransaction: () => Promise.resolve(undefined),
+    commit: () => Promise.resolve(),
+    rollback: () => Promise.resolve(),
+  }),
+};
 
   const repos: Repositories = {
     restaurants:      memoryRepo(getStore('restaurants')),
@@ -95,13 +91,13 @@ export function createMemoryRegistry(
     holidayOverrides: memoryRepo(getStore('holidayOverrides')),
     specialDates:     memoryRepo(getStore('specialDates')),
     audits:           memoryRepo(getStore('auditEvents')),
-  } as Repositories;
+  };
 
   return {
-    provider: 'memory' as DbProvider,
+    provider: 'memory',
     capabilities,
     health,
-    repos: repos as Repositories,
+    repos: repos,
     transactions,
   };
 }

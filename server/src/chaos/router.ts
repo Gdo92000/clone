@@ -56,11 +56,10 @@ let _chaosInitialized = false;
 /** Atualiza/insere um cenário específico. */
 export function updateChaosScenarios(opts: UpdateChaosOptions): void {
   // Se recebeu opções sem chave (ex: só { latencyMs: 300 }) aplica ao cenário padrão
-  const key = opts.hasOwnProperty('latencyMs') || opts.hasOwnProperty('latencyMs')
-    ? 'latency'
-    : opts.hasOwnProperty('errorRate') ? 'error_rate'
-    : opts.hasOwnProperty('simulateTimeout') ? 'timeout'
-    : 'latency';
+  const hasErrorRate = Object.prototype.hasOwnProperty.call(opts, 'errorRate');
+  const key = Object.prototype.hasOwnProperty.call(opts, 'latencyMs') || hasErrorRate
+    ? (hasErrorRate ? 'error_rate' : 'latency')
+    : (Object.prototype.hasOwnProperty.call(opts, 'simulateTimeout') ? 'timeout' : 'latency');
 
   const existing = _scenarios[key];
   _scenarios = {

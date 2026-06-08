@@ -6,14 +6,6 @@ function getMockFlag(): boolean {
   return process.env['VITE_MOCK'] === 'true'
 }
 
-function getMockRestaurantsFlag(): boolean {
-  return process.env['VITE_MOCK_RESTAURANTS'] === 'true'
-}
-
-function getMockOrdersFlag(): boolean {
-  return process.env['VITE_MOCK_ORDERS'] === 'true'
-}
-
 function getDbProvider(): string {
   return process.env['VITE_DB_PROVIDER'] ?? 'memory'
 }
@@ -30,8 +22,6 @@ export default defineConfig({
   },
   define: {
     __USE_MOCK__: getMockFlag(),
-    __MOCK_RESTAURANTS__: getMockRestaurantsFlag(),
-    __MOCK_ORDERS__: getMockOrdersFlag(),
     __DB_PROVIDER__: JSON.stringify(getDbProvider()),
   },
   test: {
@@ -76,8 +66,6 @@ export default defineConfig({
         plugins: [react()],
         define: {
           __USE_MOCK__: getMockFlag(),
-          __MOCK_RESTAURANTS__: getMockRestaurantsFlag(),
-          __MOCK_ORDERS__: getMockOrdersFlag(),
           __DB_PROVIDER__: JSON.stringify(getDbProvider()),
         },
         resolve: {

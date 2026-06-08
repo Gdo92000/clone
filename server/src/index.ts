@@ -6,9 +6,9 @@ import { logger } from 'hono/logger';
 import { serve } from '@hono/node-server';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
-import { eq, and, isNull, lt } from 'drizzle-orm';
+import { eq, and, lte } from 'drizzle-orm';
 import { db, createDatabase } from './db';
-import { restaurants, menuItems, reviews } from './db/schema';
+import { restaurants, menuItems, reviews, idempotencyKeys } from './db/schema';
 import operationsRoutes from './routes/operations';
 import holidaysRoutes from './routes/holidays';
 import authRoutes from './routes/auth';
@@ -42,20 +42,21 @@ import { requestContext } from './middleware/context';
 import { securityHeaders } from './middleware/securityHeaders';
 import { domainMiddleware } from './middleware/domain';
 import { rateLimit } from './middleware/rateLimit';
-import { env, ALLOWED_ORIGINS, PORT, NODE_ENV, MAX_BODY_SIZE, DATABASE_PROVIDER } from './config';
+import { env, ALLOWED_ORIGINS, PORT, NODE_ENV, MAX_BODY_SIZE } from './config';
 import { errorHandler } from './lib/errors';
 import { logger as appLogger } from './lib/logger';
 import { checkHealth, READY_STATE } from './lib/health';
 import { metricsHandler, getMetrics } from './middleware/metrics';
 import { startSessionCleanup } from './services/cleanupAuthSessions';
-import * as coverageCityService from './services/coverageCityService';
 import { restaurantSchema } from '../../shared/validations/restaurant';
+import { seedFrancaDev } from './db/seeds/franca-dev.seed';
 import categoriesRoutes from './routes/categories';
 import menuItemsRoutes from './routes/menu-items';
 import companiesRoutes from './routes/companies';
 import branchesRoutes from './routes/branches';
 import ordersRoutes from './routes/orders';
-import coverageCitiesRoutes from './routes/coverage-cities';
+import cityCoverageRoutes from './routes/city-coverage';
+import restaurantAvailabilityRoutes from './routes/restaurant-availability';
 import consumerReviewsRoutes from './routes/consumer-reviews';
 import consumerSupportRoutes from './routes/consumer-support';
 import consumerOrdersRoutes from './routes/consumer-orders';
@@ -120,7 +121,8 @@ app.route('/api/auth', authRoutes);
 app.use('/api/restaurants*', rateLimit(60, 60_000));
 app.use('/api/categories*', rateLimit(60, 60_000));
 app.use('/api/menu-items*', rateLimit(60, 60_000));
-app.use('/api/coverage-cities*', rateLimit(60, 60_000));
+app.use('/api/cities*', rateLimit(60, 60_000));
+app.use('/api/neighborhoods*', rateLimit(60, 60_000));
 app.use('/api/plans*', rateLimit(60, 60_000));
 app.use('/api/capabilities*', rateLimit(60, 60_000));
 app.use('/api/theme*', rateLimit(60, 60_000));
@@ -148,7 +150,7 @@ app.get('/api/restaurants/:id/menu-items', zValidator('param', idParam), async (
 
 app.route('/api/categories', categoriesRoutes);
 app.route('/api/menu-items', menuItemsRoutes);
-app.route('/api/coverage-cities', coverageCitiesRoutes);
+app.route('/api', cityCoverageRoutes);
 app.route('/api/reviews', consumerReviewsRoutes);
 app.route('/api/plans', plansRoutes);
 app.route('/api/capabilities', capabilitiesRoutes);
@@ -193,6 +195,7 @@ api.post('/restaurants', zValidator('json', restaurantSchema), requirePermission
 api.route('/companies', companiesRoutes);
 api.route('/branches', branchesRoutes);
 api.route('/orders', ordersRoutes);
+api.route('/restaurants', restaurantAvailabilityRoutes);
 api.route('/operations', operationsRoutes);
 api.route('/holidays', holidaysRoutes);
 api.route('/global-coupons', globalCouponsRoutes);
@@ -245,15 +248,36 @@ api.post('/reviews', zValidator('json', reviewCreateSchema), async (c) => {
 
 app.route('/api', api);
 
+async function bootstrapDev() {
+  if (NODE_ENV !== 'development') return;
+  try {
+    const result = await seedFrancaDev(false);
+    appLogger.info('Dev seed Franca', result);
+  } catch (err) {
+    appLogger.warn('Dev seed Franca failed (non-fatal)', { error: err instanceof Error ? err.message : String(err) });
+  }
+}
+
+void bootstrapDev();
+
 const server = serve({ fetch: app.fetch, port: PORT }, () => {
   READY_STATE.ready = true;
   appLogger.info(`Server started`, { port: PORT, nodeEnv: NODE_ENV });
 });
 
 startSessionCleanup();
-coverageCityService.seedFromRestaurants().catch((err: unknown) => {
-  appLogger.error('Coverage city seed failed', err instanceof Error ? err : new Error(String(err)));
-});
+
+db.update(idempotencyKeys)
+  .set({ status: 'failed' })
+  .where(and(
+    eq(idempotencyKeys.status, 'processing'),
+    lte(idempotencyKeys.created_at, new Date(Date.now() - 30_000)),
+  )).then((result) => {
+    const count = (result as { rowCount?: number } | undefined)?.rowCount ?? 0;
+    if (count > 0) {
+      appLogger.info(`Cleaned up ${count} abandoned idempotency keys`, { count });
+    }
+  }).catch(() => {});
 
 function shutdown(signal: string) {
   appLogger.info(`${signal} received — shutting down gracefully`, { signal });

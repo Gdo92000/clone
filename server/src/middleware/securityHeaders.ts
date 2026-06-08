@@ -21,6 +21,6 @@ export const securityHeaders: MiddlewareHandler = async (c, next) => {
   c.header('X-Permitted-Cross-Domain-Policies', 'none');
   c.header('Content-Security-Policy', CSP);
   c.header('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-  c.header('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');
+  c.header('Permissions-Policy', 'camera=(), microphone=(), payment=()');
   await next();
 };

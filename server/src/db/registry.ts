@@ -1,18 +1,16 @@
-import { eq } from 'drizzle-orm';
-import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
-import type { RepositoryPort, HealthPort, Filter } from '../ports/repository';
+import type { drizzle } from 'drizzle-orm/postgres-js';
+import type { RepositoryPort, HealthPort } from '../ports/repository';
 import type { TransactionPort } from '../ports/transaction';
 import type { DbProvider, RuntimeCapabilities } from './provider';
 import { PostgresRepository } from './repositories/base-postgres';
-import * as schemaModule from './schema';
+import type * as schemaModule from './schema';
 
 // Re-export schema elements for registry type inference
 export { tables as schemaTables, Tables } from './schema';
 
 /** Alias local para reduzir verbosidade manual. */
-type TPostgresRow<T extends ReturnType<typeof drizzle>['_']['allTables'][string]>
-  = T['_']['columns'][string]['_']['rowType'];
+type _TPostgresRow<T extends ReturnType<typeof drizzle>['_']['allTables'][string]>
+= T['_']['columns'][string]['_']['rowType'];
 
 /**
  * Registry — contêiner centralizado de dependências do backend.

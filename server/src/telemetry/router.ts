@@ -167,14 +167,15 @@ export function startTelemetry(): TelemetryInitResult {
 }
 
 /** shutdownTelemetry — fecha todos os spans abertos e reseta o fallback. */
-export async function shutdownTelemetry(): Promise<void> {
+export function shutdownTelemetry(): Promise<void> {
   const store = getActiveStore();
   for (const span of store.values()) {
-    if (!(span as SpanImpl & { _closed?: boolean })._closed) {
+    if (!span.isClosed()) {
       span.close();
     }
   }
   store.clear();
+  return Promise.resolve();
 }
 
 /**
@@ -220,7 +221,7 @@ export function closeSpan(spanId: string): void {
  */
 export async function withSpan<T>(
   name: string,
-  fn: (span: ISpan) => Promise<T>,
+  fn: (span: ISpan) => T | Promise<T>,
 ): Promise<T> {
   const span = openSpan(name);
   try {
@@ -263,8 +264,9 @@ export function getActiveSpanNames(): string[] {
  */
 export function isTelemetryEnabled(): boolean {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const caps = (globalThis as any)['__flux_capabilities__'];
+    const caps = (globalThis as Record<string, unknown>)['__flux_capabilities__'] as
+      | { hasTelemetry?: boolean }
+      | undefined;
     return caps?.hasTelemetry ?? false;
   } catch {
     return false;

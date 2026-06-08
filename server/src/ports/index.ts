@@ -1,1 +1,2 @@
-export { HealthPort, RepositoryPort, TransactionPort } from './repository';
+export { HealthPort, RepositoryPort } from './repository';
+export { TransactionPort } from './transaction';

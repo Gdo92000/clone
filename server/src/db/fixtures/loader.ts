@@ -1,8 +1,7 @@
 /**
- * Fixture Loader — carrega arquivos JSON de dados de teste nos stores de memória.
+ * Fixture Loader — carrega objetos de dados de teste nos stores de memória.
  *
  * Uso típico:
- *   await loadFixture(registry, loadSync('./fixtures/coverage-cities.json'));
  *   await loadFixture(registry, { 'coverageCities': [...], 'plans': [...] });
  *
  * Projetos de convenção:
@@ -11,11 +10,7 @@
  *  - Defaults para testes:       `defaults.json`
  */
 
-import fs from 'node:fs/promises';
-import path from 'node:path';
-
 import type { Registry } from '../registry';
-import { RegistryShot, parseRegistryShot, snapshotRegistryJSON } from './registry-shots';
 
 // ─── tipos ───────────────────────────────────────────────────────────────────
 
@@ -30,28 +25,6 @@ export interface LoaderOptions {
   strict?: boolean;
 }
 
-// ─── leitura de arquivo ────────────────────────────────────────────────────────
-
-/**
- * readFixtureFile — lê um arquivo JSON do disco e retorna FixtureData.
- */
-export async function readFixtureFile(filePath: string): Promise<FixtureData> {
-  const content = await fs.readFile(filePath, 'utf-8');
-  return JSON.parse(content) as FixtureData;
-}
-
-/**
- * writeSnapshotFile — grava snapshot do registry em arquivo JSON.
- */
-export async function writeSnapshotFile(
-  filePath: string,
-  shot: RegistryShot,
-): Promise<void> {
-  const dir = path.dirname(filePath);
-  await fs.mkdir(dir, { recursive: true });
-  await fs.writeFile(filePath, snapshotRegistryJSON(shot), 'utf-8');
-}
-
 // ─── carregamento de dados ─────────────────────────────────────────────────────
 
 /**
@@ -64,51 +37,42 @@ export async function writeSnapshotFile(
  * @param opts      Opções de carregamento.
  * @returns Número de entidades carregadas.
  */
-export async function loadFixture(
+export function loadFixture(
   registry: Registry,
   data: FixtureData,
   opts: LoaderOptions = {},
 ): Promise<number> {
-  if (registry.provider !== 'memory') return 0;
+  return Promise.resolve().then(() => {
+    if (registry.provider !== 'memory') return 0;
 
-  const repos = registry.repos as Record<
-    string,
-    { restore?: (items: Record<string, unknown>[]) => void; reset?: () => void }
-  >;
+    const repos = registry.repos as Partial<Record<
+      string,
+      { restore?: (items: Record<string, unknown>[]) => void; reset?: () => void }
+    >>;
 
-  if (opts.clearBefore) {
-    for (const repo of Object.values(repos)) {
-      repo.reset?.();
-    }
-  }
-
-  let total = 0;
-
-  for (const [entityName, items] of Object.entries(data)) {
-    if (opts.strict && !(entityName in repos)) {
-      throw new Error(
-        `Fixture key '${entityName}' não existe no registry.`,
-      );
+    if (opts.clearBefore) {
+      for (const repo of Object.values(repos)) {
+        repo.reset?.();
+      }
     }
 
-    const repo = repos[entityName];
-    if (!repo || !repo.restore) continue;
+    let total = 0;
 
-    repo.restore(items);
-    total += items.length;
-  }
+    for (const [entityName, items] of Object.entries(data)) {
+      if (opts.strict && !(entityName in repos)) {
+        throw new Error(
+          `Fixture key '${entityName}' não existe no registry.`,
+        );
+      }
 
-  return total;
-}
+      const repo = repos[entityName];
+      if (!repo) continue;
+      if (!repo.restore) continue;
 
-/**
- * loadDefaultFixture — combina leitura de arquivo + carregamento em uma chamada.
- */
-export async function loadDefaultFixture(
-  registry: Registry,
-  filePath: string,
-  opts: LoaderOptions = {},
-): Promise<number> {
-  const data = await readFixtureFile(filePath);
-  return loadFixture(registry, data, opts);
+      repo.restore(items);
+      total += items.length;
+    }
+
+    return total;
+  });
 }

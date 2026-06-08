@@ -106,7 +106,8 @@
     "coverage",
     "node_modules",
     "src/test",
-    "**/*.test.ts",
-    "**/*.test.tsx"
-  ]
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "src/__tests__"
+  ],
 }

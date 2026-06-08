@@ -1,0 +1,68 @@
+export interface Coordinates {
+  latitude: number;
+  longitude: number;
+  accuracy?: number;
+  lat: number;
+  lng: number;
+}
+
+export interface Additive {
+  id: string;
+  name: string;
+  price: number;
+}
+
+export interface MenuItem {
+  id: string;
+  restaurantId: string;
+  name: string;
+  description: string;
+  price: number;
+  originalPrice?: number;
+  imageUrl: string;
+  category: string;
+  isAvailable: boolean;
+  additives?: Additive[];
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  icon: string;
+  slug: string;
+}
+
+/**
+ * Estratégia de cobertura geográfica do restaurant.
+ * @see ADR-003 Cobertura Geofencing-Ready
+ */
+export type CoverageZoneType = 'city' | 'neighborhood' | 'radius' | 'polygon';
+
+export interface Restaurant {
+  id: string;
+  name: string;
+  description: string;
+  cuisine: string;
+  rating: number;
+  reviewCount: number;
+  deliveryTime: string;
+  deliveryFee: number;
+  imageUrl: string;
+  bannerUrl: string;
+  isFeatured?: boolean;
+  isActive: boolean;
+  distance: string;
+  promotionalOffer?: string;
+  city?: string;
+  state?: string;
+  neighborhood?: string;
+  address?: string;
+  phone?: string;
+  paymentMethods?: string[];
+  coordinates?: Coordinates;
+  latitude?: number | null;
+  longitude?: number | null;
+  deliveryRadiusKm?: number | null;
+  coverageZoneType: CoverageZoneType;
+  coveragePolygon?: unknown;
+}

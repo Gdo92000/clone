@@ -1,108 +1,85 @@
-import type { RepositoryPort, Filter, CreateDTO, UpdateDTO } from '../../ports/repository';
+import type { RepositoryPort } from '../../ports/repository';
 import { eq } from 'drizzle-orm';
-import type { SQLWrapper } from 'drizzle-orm/sql/sql.js';
+import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 
-/**
- * DrizzleColumnMarker — marcador de tipo para `eq()`.
- *
- * drizzle-orm exige que o primeiro argumento de eq/ne/and/or seja um
- * `SQLWrapper` (que é implementado por `Column`).  Quando a tabela é
- * genérica (TTable extends Table) o compilador não sabe que `table.id` é
- * Column.  Esta interface serve apenas para que TypeScript aceite o cast.
- */
-interface DrizzleColumnMarker extends SQLWrapper { _: { tableName: string } }
+interface DrizzleColumnMarker {
+  _: { tableName: string };
+}
 
-/** Pass-through query builder chain — evita tipar SelectQuery em cada overload. */
 type RawQuery<T> = {
   (table: { _: { columns: Record<string, DrizzleColumnMarker> } }): Promise<T[]>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   whereIn: (col: string, ids: string[]) => Promise<T[]>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   then: (onfulfilled?: (value: T[]) => unknown) => unknown;
 };
 
-/**
- * PostgresRepository<TTable> — wrapper fino sobre drizzle-orm Postgres.
- *
- * Internamente usa a API direta do drizzle (select/insert/update/delete)
- * sem lógica de negócio, cache ou retry.
- *
- * Tipos de retorno são inferidos pelo drizzle a partir da tabela concreta
- * fornecida no construtor.  O desafio maior é o `eq()` — como a tabela
- * chega como parâmetro genérico, precisamos de um cast explícito para que
- * TypeScript aceite o Column como primeiro argumento.
- */
 export class PostgresRepository<
-  TTable extends { _: { columns: Record<string, DrizzleColumnMarker> } } = { _: { columns: Record<string, DrizzleColumnMarker> } },
+TTable extends { _: { columns: Record<string, DrizzleColumnMarker> } } = { _: { columns: Record<string, DrizzleColumnMarker> } },
 > implements RepositoryPort
 {
+  private readonly _db: PostgresJsDatabase;
+  private readonly _table: TTable;
+
   constructor(
-    /** Instância drizzle database. */
-    private readonly _db: Parameters<typeof eq>[0]['db'],
-    /** Tabela drizzle associada. */
-    private readonly _table: TTable,
-  ) {}
+    db: PostgresJsDatabase,
+    table: TTable,
+  ) {
+    this._db = db;
+    this._table = table;
+  }
 
-  // --- helpers internos ------------------------------------------------------
-
-  /** Monta a query base: db.select().from(table) */
   private selectAll(): RawQuery<TTable['_']['columns'][string]> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return this._db.select().from(this._table as any) as unknown as RawQuery<TTable['_']['columns'][string]>;
+    return this._db.select().from(this._table);
   }
 
   private get idColumn(): DrizzleColumnMarker {
-    return this._table._.columns.id as DrizzleColumnMarker;
+    return this._table._.columns.id;
   }
-
-  // --- RepositoryPort --------------------------------------------------------
 
   findMany(): Promise<TTable['_']['columns'][string][]> {
     return this.selectAll();
   }
 
   findById(id: string): Promise<TTable['_']['columns'][string] | null> {
-    const rows = await this._db
+    const rows = this._db
       .select()
-      .from(this._table as unknown as TTable['_']['columns'][string]['_']['table'])
-      .where(eq(this.idColumn, id as typeof id & string))
+      .from(this._table)
+      .where(eq(this.idColumn, id))
       .limit(1);
-    // @ts-expect-error drizzle returns typed row; guard via runtime length
-    return (rows as TTable['_']['columns'][string][])[0] ?? null;
+    return rows.then(r => r[0] ?? null);
   }
 
   findByIds(ids: string[]): Promise<TTable['_']['columns'][string][]> {
     if (ids.length === 0) return Promise.resolve([]);
     return this._db
       .select()
-      .from(this._table as unknown as TTable['_']['columns'][string]['_']['table'])
-      .where(eq(this.idColumn, ids) as unknown as Parameters<typeof eq>[1])
+      .from(this._table)
+      .where(eq(this.idColumn, ids))
       .limit(ids.length);
   }
 
   create(data: Record<string, unknown>): Promise<TTable['_']['columns'][string]> {
     const id = crypto.randomUUID();
     return this._db
-      .insert(this._table as unknown as TTable['_']['columns'][string]['_']['table'])
+      .insert(this._table)
       .values({ ...data, id })
       .returning()
-      .then((rows: TTable['_']['columns'][string][]) => rows[0]);
+      .then(rows => rows[0]);
   }
 
   update(id: string, data: Record<string, unknown>): Promise<TTable['_']['columns'][string] | null> {
     return this._db
-      .update(this._table as unknown as TTable['_']['columns'][string]['_']['table'])
+      .update(this._table)
       .set(data)
-      .where(eq(this.idColumn, id as typeof id & string))
+      .where(eq(this.idColumn, id))
       .returning()
-      .then((rows: TTable['_']['columns'][string][]) => rows[0] ?? null);
+      .then(rows => rows[0] ?? null);
   }
 
   remove(id: string): Promise<boolean> {
     return this._db
-      .delete(this._table as unknown as TTable['_']['columns'][string]['_']['table'])
-      .where(eq(this.idColumn, id as typeof id & string))
-      .then(() => true as boolean);
+      .delete(this._table)
+      .where(eq(this.idColumn, id))
+      .then(() => true);
   }
 
   count(): Promise<number> {
@@ -113,10 +90,8 @@ export class PostgresRepository<
     return this.findById(id).then(Boolean);
   }
 
-  // --- Transaction -----------------------------------------------------------
-
   withTransaction<T>(
-    fn: (tx: Parameters<typeof this._db.transaction>[0]) => Promise<T>,
+    fn: (tx: Parameters<PostgresJsDatabase['transaction']>[0]) => Promise<T>,
   ): Promise<T> {
     return this._db.transaction(fn);
   }
