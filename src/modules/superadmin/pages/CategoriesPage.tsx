@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { Icon } from '../../../components/ui/Icon';
 import { Button } from '../../../components/ui/Button';
+import { Modal } from '../../../components/ui/Modal';
 import { usePersistentState } from '../../../hooks/usePersistentState';
 import { clsx } from 'clsx';
 import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
@@ -74,31 +75,36 @@ export function CategoriesPage() {
       </div>
 
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={resetForm}>
-          <div className="bg-surface-elevated rounded-2xl border border-border-default shadow-xl w-full max-w-md mx-4 p-6 space-y-4" onClick={(e) => { e.stopPropagation(); }}>
-            <h3 className="font-semibold text-lg text-text-primary">{editingId ? 'Editar categoria' : 'Nova categoria'}</h3>
-            <div>
-              <label className="text-xs text-text-secondary font-medium">Nome</label>
-              <input type="text" value={formName} onChange={(e) => { setFormName(e.target.value); }} placeholder="Ex: Massas"
-                className="w-full h-10 px-3 rounded-lg bg-surface-background border border-border-default text-text-primary text-sm mt-1 focus:outline-none focus:border-border-focus" />
-            </div>
-            <div>
-              <label className="text-xs text-text-secondary font-medium">ícone</label>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {emojiOptions.map((emoji) => (
-                  <button key={emoji} onClick={() => { setFormIcon(emoji); }}
-                    className={clsx('w-10 h-10 rounded-xl flex items-center justify-center text-xl transition-colors',
-                      formIcon === emoji ? 'bg-brand-primary/20 ring-2 ring-brand-primary' : 'bg-surface-background hover:bg-surface-elevated border border-border-default'
-                    )}>{emoji}</button>
-                ))}
-              </div>
-            </div>
-            <div className="flex gap-2 pt-2">
+        <Modal
+          isOpen={showForm}
+          onClose={resetForm}
+          title={editingId ? 'Editar categoria' : 'Nova categoria'}
+          size="md"
+          footer={
+            <div className="flex gap-2">
               <Button variant="solid" intent="primary" className="flex-1" onClick={save} disabled={!formName.trim()}>Salvar</Button>
               <Button variant="outline" intent="secondary" className="flex-1" onClick={resetForm}>Cancelar</Button>
             </div>
+          }
+        >
+          <div>
+            <label htmlFor="sa-cat-name" className="text-xs text-text-secondary font-medium">Nome</label>
+            <input id="sa-cat-name" type="text" value={formName} onChange={(e) => { setFormName(e.target.value); }} placeholder="Ex: Massas"
+              className="w-full h-11 min-h-[44px] px-3 rounded-lg bg-surface-background border border-border-default text-text-primary text-sm mt-1 focus:outline-none focus:border-border-focus focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2" />
           </div>
-        </div>
+          <div>
+            <span className="text-xs text-text-secondary font-medium">Ícone</span>
+            <div role="radiogroup" aria-label="Ícone da categoria" className="flex flex-wrap gap-2 mt-2">
+              {emojiOptions.map((emoji) => (
+                <button key={emoji} type="button" role="radio" aria-checked={formIcon === emoji} aria-label={`Ícone ${emoji}`} onClick={() => { setFormIcon(emoji); }}
+                  className={clsx('min-h-[44px] min-w-[44px] rounded-xl flex items-center justify-center text-xl transition-colors',
+                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 active:scale-95',
+                    formIcon === emoji ? 'bg-brand-primary/20 ring-2 ring-brand-primary' : 'bg-surface-background hover:bg-surface-elevated border border-border-default'
+                  )}>{emoji}</button>
+              ))}
+            </div>
+          </div>
+        </Modal>
       )}
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">

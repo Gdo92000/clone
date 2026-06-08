@@ -1,0 +1,82 @@
+{
+  "profile": "express",
+  "version": "1.0.0",
+  "description": "Define o perfil de carregamento do POS e agentes. Arquitectura de memória sob demanda (demand-loaded).",
+  "profiles": {
+    "express": {
+      "bootstrap": [
+        "AGENTS.md",
+        "docs/obsidian/project-operating-system/STATE_ACTIVA.md",
+        "docs/obsidian/project-operating-system/BOOT_ROUTER.md",
+        "docs/obsidian/project-operating-system/TASK_CLASSIFIER.md"
+      ],
+      "agents": ["orchestrator", "project-planner", "explorer-agent", "debugger"],
+      "agent_count": 4,
+      "label": "Express - projetos novos/template limpo",
+      "max_init_tokens": 2200
+    },
+    "full": {
+      "bootstrap": [
+        "AGENTS.md",
+        "docs/obsidian/project-operating-system/STATE_ACTIVA.md",
+        "docs/obsidian/project-operating-system/BOOT_ROUTER.md",
+        "docs/obsidian/project-operating-system/TASK_CLASSIFIER.md",
+        "docs/obsidian/project-operating-system/_index.md"
+      ],
+      "agents": ["orchestrator", "project-planner", "explorer-agent", "debugger", "frontend-specialist", "backend-specialist", "database-architect", "test-engineer", "documentation-writer", "devops-engineer"],
+      "agent_count": 10,
+      "label": "Full - projetos maduros",
+      "max_init_tokens": 3800
+    },
+    "audit": {
+      "bootstrap": [
+        "AGENTS.md",
+        "docs/obsidian/project-operating-system/STATE_ACTIVA.md",
+        "docs/obsidian/project-operating-system/BOOT_ROUTER.md",
+        "docs/obsidian/project-operating-system/TASK_CLASSIFIER.md",
+        "docs/obsidian/project-operating-system/_index.md",
+        "docs/obsidian/project-operating-system/02-ARCHITECTURE/_index.md",
+        "docs/obsidian/project-operating-system/08-SECURITY/_index.md"
+      ],
+      "agents": ["orchestrator", "project-planner", "explorer-agent", "debugger", "frontend-specialist", "backend-specialist", "database-architect", "test-engineer", "documentation-writer", "devops-engineer", "security-auditor", "penetration-tester"],
+      "agent_count": 12,
+      "label": "Audit - debugging/auditoria",
+      "max_init_tokens": 6500
+    },
+    "complete": {
+      "bootstrap": [
+        "AGENTS.md",
+        "docs/obsidian/project-operating-system/STATE_ACTIVA.md",
+        "docs/obsidian/project-operating-system/BOOT_ROUTER.md",
+        "docs/obsidian/project-operating-system/TASK_CLASSIFIER.md",
+        "docs/obsidian/project-operating-system/_index.md",
+        "docs/obsidian/project-operating-system/02-ARCHITECTURE/_index.md",
+        "docs/obsidian/project-operating-system/04-AGENTS/_index.md",
+        "docs/obsidian/project-operating-system/08-SECURITY/_index.md"
+      ],
+      "agents": ["orchestrator", "project-planner", "explorer-agent", "debugger", "frontend-specialist", "backend-specialist", "database-architect", "test-engineer", "documentation-writer", "devops-engineer", "security-auditor", "penetration-tester", "game-developer", "mobile-developer", "performance-optimizer", "seo-specialist", "product-manager", "product-owner"],
+      "agent_count": 18,
+      "label": "Complete - máxima capacidade",
+      "max_init_tokens": 10000
+    }
+  },
+  "loading_rules": {
+    "cold_storage_skip": ["99-TEMPLATES/"],
+    "deny_status": ["deprecated", "archived"],
+    "max_retrieval_depth": 2,
+    "suppress_after_3rd_retrieval": true,
+    "auto_compact_archives_older_than_days": 30,
+    "agent_routing": {
+      "registry": ".opencode/ag-kit-main/.agent/agents/_index.md",
+      "orchestrator_consults_registry": true,
+      "explicit_invocation_bypass": true,
+      "product_discovery_gate": {
+        "agents": ["product-manager", "product-owner"],
+        "gate": "only_on_discovery_or_requirements_task"
+      }
+    },
+    "demand_loading": true,
+    "lazy_skill_loading": true,
+    "capability_manifests_dir": ".opencode/capabilities"
+  }
+}

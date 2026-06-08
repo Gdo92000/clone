@@ -1,0 +1,23 @@
+#!/bin/sh
+# Cross-platform wrapper for pre-commit hook
+# Detects PowerShell (pwsh on Unix, powershell on Windows) and executes pre-commit.ps1
+# Fix: original used `#!/usr/bin/env pwsh` which is unavailable on Windows + breaks on
+# Unix without PowerShell 7. This wrapper invokes the .ps1 via whatever PowerShell exists.
+
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+PS_SCRIPT="$SCRIPT_DIR/pre-commit.ps1"
+
+if [ ! -f "$PS_SCRIPT" ]; then
+    echo "[pre-commit] $PS_SCRIPT not found" >&2
+    exit 1
+fi
+
+if command -v pwsh >/dev/null 2>&1; then
+    exec pwsh -NoProfile -ExecutionPolicy Bypass -File "$PS_SCRIPT" "$@"
+elif command -v powershell >/dev/null 2>&1; then
+    exec powershell -NoProfile -ExecutionPolicy Bypass -File "$PS_SCRIPT" "$@"
+else
+    echo "[pre-commit] PowerShell not found (need pwsh or powershell in PATH)" >&2
+    echo "[pre-commit] Install PowerShell 7 (https://aka.ms/powershell) or use --no-verify to bypass" >&2
+    exit 1
+fi

@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
-import { MerchantLayout } from '../components/MerchantLayout';
+import { PageHeader } from '../../../components/ui/PageHeader';
 import { Icon } from '../../../components/ui/Icon';
 import { Button } from '../../../components/ui/Button';
+import { Modal } from '../../../components/ui/Modal';
 import { useBranches } from '../../../hooks/useMerchantData';
 import { useCouponsByBranch, useSaveCoupon, useToggleCoupon, useDeleteCoupon } from '../../../hooks/useMerchantCoupons';
 import { clsx } from 'clsx';
@@ -88,80 +89,82 @@ const openEdit = (c: MerchantCoupon) => {
   const usagePercent = (c: MerchantCoupon) => c.max_uses > 0 ? Math.round((c.current_uses / c.max_uses) * 100) : 0;
 
   return (
-    <MerchantLayout title="Cupons da loja" actions={
-      <div className="flex gap-3">
-        <select
-          value={branchId}
-          onChange={(e) => { setBranchId(e.target.value); }}
-          className="h-10 rounded-lg border border-border-default bg-surface-background px-3 text-sm"
-        >
-          {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-        </select>
-        <Button variant="solid" intent="primary" size="sm" onClick={openNew}>Criar cupom</Button>
-      </div>
-    }>
+    <>
+      <PageHeader title="Cupons da loja" actions={
+        <div className="flex gap-3">
+          <select
+            value={branchId}
+            onChange={(e) => { setBranchId(e.target.value); }}
+            className="h-10 rounded-lg border border-border-default bg-surface-background px-3 text-sm"
+          >
+            {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+          </select>
+          <Button variant="solid" intent="primary" size="sm" onClick={openNew}>Criar cupom</Button>
+        </div>
+      } />
       <div className="space-y-4">
         <p className="text-sm text-text-secondary">Crie cupons e promoções para sua loja. Eles aparecerão para os clientes no marketplace.</p>
 
-        {showForm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={resetForm}>
-            <div className="bg-surface-elevated rounded-2xl border border-border-default shadow-xl w-full max-w-lg mx-4 p-6 space-y-4" onClick={(e) => { e.stopPropagation(); }}>
-              <h3 className="font-semibold text-lg text-text-primary">{editingId ? 'Editar cupom' : 'Criar cupom'}</h3>
-<div className="grid grid-cols-2 gap-3">
-  <div className="col-span-2">
-    <label className="text-xs text-text-secondary font-medium block">
-      Código
-      <input type="text" value={form.code} onChange={(e) => { setForm({ ...form, code: e.target.value.toUpperCase() }); }} className="w-full h-10 px-3 rounded-lg bg-surface-background border border-border-default text-text-primary text-sm mt-1 focus:outline-none focus:border-border-focus" placeholder="Ex: LOJA10" />
-    </label>
-  </div>
-  <div className="col-span-2">
-    <label className="text-xs text-text-secondary font-medium block">
-      Descrição
-      <input type="text" value={form.description} onChange={(e) => { setForm({ ...form, description: e.target.value }); }} className="w-full h-10 px-3 rounded-lg bg-surface-background border border-border-default text-text-primary text-sm mt-1 focus:outline-none focus:border-border-focus" />
-    </label>
-  </div>
-  <div>
-    <label className="text-xs text-text-secondary font-medium block">
-      Tipo
-      <select value={form.discount_type} onChange={(e) => { setForm({ ...form, discount_type: e.target.value as 'percentage' | 'fixed' }); }} className="w-full h-10 px-3 rounded-lg bg-surface-background border border-border-default text-text-primary text-sm mt-1 focus:outline-none focus:border-border-focus">
-        <option value="percentage">Porcentagem</option>
-        <option value="fixed">Valor fixo</option>
-      </select>
-    </label>
-  </div>
-  <div>
-    <label className="text-xs text-text-secondary font-medium block">
-      Valor
-      <input type="number" value={form.discount_value} onChange={(e) => { setForm({ ...form, discount_value: e.target.value }); }} className="w-full h-10 px-3 rounded-lg bg-surface-background border border-border-default text-text-primary text-sm mt-1 focus:outline-none focus:border-border-focus" min={0} />
-    </label>
-  </div>
-  <div>
-    <label className="text-xs text-text-secondary font-medium block">
-      Pedido mín. (R$)
-      <input type="number" value={form.min_order} onChange={(e) => { setForm({ ...form, min_order: e.target.value }); }} className="w-full h-10 px-3 rounded-lg bg-surface-background border border-border-default text-text-primary text-sm mt-1 focus:outline-none focus:border-border-focus" min={0} />
-    </label>
-  </div>
-  <div>
-    <label className="text-xs text-text-secondary font-medium block">
-      Usos máximos
-      <input type="number" value={form.max_uses} onChange={(e) => { setForm({ ...form, max_uses: Number(e.target.value) }); }} className="w-full h-10 px-3 rounded-lg bg-surface-background border border-border-default text-text-primary text-sm mt-1 focus:outline-none focus:border-border-focus" min={1} />
-    </label>
-  </div>
-  <div className="col-span-2">
-    <label className="text-xs text-text-secondary font-medium block">
-      Válido até
-      <input type="date" value={form.valid_until} onChange={(e) => { setForm({ ...form, valid_until: e.target.value }); }} className="w-full h-10 px-3 rounded-lg bg-surface-background border border-border-default text-text-primary text-sm mt-1 focus:outline-none focus:border-border-focus" />
-    </label>
-  </div>
-</div>
-
-              <div className="flex gap-2 pt-2">
-                <Button variant="solid" intent="primary" className="flex-1" onClick={save} disabled={!form.code.trim() || !form.description.trim()} loading={mutation.isPending}>Salvar</Button>
-                <Button variant="outline" intent="secondary" className="flex-1" onClick={resetForm}>Cancelar</Button>
-              </div>
+        <Modal
+          isOpen={showForm}
+          onClose={resetForm}
+          title={editingId ? 'Editar cupom' : 'Criar cupom'}
+          size="lg"
+          footer={
+            <div className="flex gap-2">
+              <Button variant="solid" intent="primary" className="flex-1" onClick={save} disabled={!form.code.trim() || !form.description.trim()} loading={mutation.isPending}>Salvar</Button>
+              <Button variant="outline" intent="secondary" className="flex-1" onClick={resetForm}>Cancelar</Button>
+            </div>
+          }
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="col-span-2">
+              <label className="text-xs text-text-secondary font-medium block">
+                Código
+                <input type="text" value={form.code} onChange={(e) => { setForm({ ...form, code: e.target.value.toUpperCase() }); }} className="w-full h-11 min-h-[44px] px-3 rounded-lg bg-surface-background border border-border-default text-text-primary text-sm mt-1 focus:outline-none focus:border-border-focus focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2" placeholder="Ex: LOJA10" autoCapitalize="characters" />
+              </label>
+            </div>
+            <div className="col-span-2">
+              <label className="text-xs text-text-secondary font-medium block">
+                Descrição
+                <input type="text" value={form.description} onChange={(e) => { setForm({ ...form, description: e.target.value }); }} className="w-full h-11 min-h-[44px] px-3 rounded-lg bg-surface-background border border-border-default text-text-primary text-sm mt-1 focus:outline-none focus:border-border-focus focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2" />
+              </label>
+            </div>
+            <div>
+              <label className="text-xs text-text-secondary font-medium block">
+                Tipo
+                <select value={form.discount_type} onChange={(e) => { setForm({ ...form, discount_type: e.target.value as 'percentage' | 'fixed' }); }} className="w-full h-11 min-h-[44px] px-3 rounded-lg bg-surface-background border border-border-default text-text-primary text-sm mt-1 focus:outline-none focus:border-border-focus focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2">
+                  <option value="percentage">Porcentagem</option>
+                  <option value="fixed">Valor fixo</option>
+                </select>
+              </label>
+            </div>
+            <div>
+              <label className="text-xs text-text-secondary font-medium block">
+                Valor
+                <input type="number" inputMode="decimal" value={form.discount_value} onChange={(e) => { setForm({ ...form, discount_value: e.target.value }); }} className="w-full h-11 min-h-[44px] px-3 rounded-lg bg-surface-background border border-border-default text-text-primary text-sm mt-1 focus:outline-none focus:border-border-focus focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2" min={0} step="0.01" />
+              </label>
+            </div>
+            <div>
+              <label className="text-xs text-text-secondary font-medium block">
+                Pedido mín. (R$)
+                <input type="number" inputMode="decimal" value={form.min_order} onChange={(e) => { setForm({ ...form, min_order: e.target.value }); }} className="w-full h-11 min-h-[44px] px-3 rounded-lg bg-surface-background border border-border-default text-text-primary text-sm mt-1 focus:outline-none focus:border-border-focus focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2" min={0} step="0.01" />
+              </label>
+            </div>
+            <div>
+              <label className="text-xs text-text-secondary font-medium block">
+                Usos máximos
+                <input type="number" inputMode="numeric" value={form.max_uses} onChange={(e) => { setForm({ ...form, max_uses: Number(e.target.value) }); }} className="w-full h-11 min-h-[44px] px-3 rounded-lg bg-surface-background border border-border-default text-text-primary text-sm mt-1 focus:outline-none focus:border-border-focus focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2" min={1} />
+              </label>
+            </div>
+            <div className="col-span-2">
+              <label className="text-xs text-text-secondary font-medium block">
+                Válido até
+                <input type="date" value={form.valid_until} onChange={(e) => { setForm({ ...form, valid_until: e.target.value }); }} className="w-full h-11 min-h-[44px] px-3 rounded-lg bg-surface-background border border-border-default text-text-primary text-sm mt-1 focus:outline-none focus:border-border-focus focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2" />
+              </label>
             </div>
           </div>
-        )}
+        </Modal>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {coupons.map((coupon: MerchantCoupon) => (
@@ -201,7 +204,7 @@ const openEdit = (c: MerchantCoupon) => {
           </div>
         )}
       </div>
-    </MerchantLayout>
+    </>
   );
 }
 

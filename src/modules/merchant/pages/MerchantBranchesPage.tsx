@@ -1,7 +1,7 @@
 import { useMemo, useState, useCallback } from 'react';
 import { Button } from '../../../components/ui/Button';
 import { Icon } from '../../../components/ui/Icon';
-import { MerchantLayout } from '../components/MerchantLayout';
+import { PageHeader } from '../../../components/ui/PageHeader';
 import { useBranches, useCompanies, useCreateBranch } from '../../../hooks/useMerchantData';
 import { usePlanLimits } from '../../enterprise';
 import { geocodeEstablishment } from '../../../services/geocodeSearchService';
@@ -119,35 +119,36 @@ export function MerchantBranchesPage() {
   // Handle loading states
   if (branchesLoading || companiesLoading) {
     return (
-      <MerchantLayout title="Empresas e filiais">
+      <>
+        <PageHeader title="Empresas e filiais" />
         <section className="flex min-h-[200px] items-center justify-center">
           <div className="text-center">
             <p className="text-text-secondary">Carregando dados...</p>
           </div>
         </section>
-      </MerchantLayout>
+      </>
     );
   }
 
   return (
     <FxQueryBoundary isLoading={false} isError={branchesError || companiesError}>
-    <MerchantLayout
-      title="Empresas e filiais"
-      actions={
-       <select
-         value={companyId}
-         onChange={(event) => { setCompanyId(event.target.value); }}
-         className="h-10 rounded-lg border border-border-default bg-surface-background px-3 text-sm"
-         disabled={companiesLoading}
-       >
-         {companies.map((company) => (
-           <option key={company.id} value={company.id}>
-             {company.name}
-           </option>
-         ))}
-       </select>
-      }
-    >
+      <PageHeader
+        title="Empresas e filiais"
+        actions={
+         <select
+           value={companyId}
+           onChange={(event) => { setCompanyId(event.target.value); }}
+           className="h-10 rounded-lg border border-border-default bg-surface-background px-3 text-sm"
+           disabled={companiesLoading}
+         >
+           {companies.map((company) => (
+             <option key={company.id} value={company.id}>
+               {company.name}
+             </option>
+           ))}
+         </select>
+        }
+      />
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-[0.8fr_1.2fr]">
         <div className="rounded-xl border border-border-default bg-surface-elevated p-4">
           <h2 className="font-semibold text-text-primary">Empresa ativa</h2>
@@ -327,7 +328,6 @@ export function MerchantBranchesPage() {
           </div>
         </div>
       </section>
-    </MerchantLayout>
     </FxQueryBoundary>
   );
 }

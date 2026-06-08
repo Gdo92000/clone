@@ -5,7 +5,7 @@ import { FxRestaurantCard } from '../components/commerce/FxRestaurantCard';
 import { FxPageNavbar } from '../components/navigation/FxPageNavbar';
 import { FxQueryBoundary } from '../components/ui/FxQueryBoundary';
 import { useRestaurantSearch } from '../hooks/useRestaurantFilter';
-import { restaurantDetailHref } from '../lib/routes';
+import { ROUTES, restaurantDetailHref } from '../lib/routes';
 
 
 export function SearchPage() {
@@ -24,7 +24,7 @@ export function SearchPage() {
 
   return (
     <div className="min-h-screen bg-surface-background">
-      <FxPageNavbar title="Buscar" />
+      <FxPageNavbar title="Buscar" backTo={ROUTES.HOME} />
 
       <main>
         <FxQueryBoundary isLoading={loading} isError={false} error={null}>

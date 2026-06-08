@@ -1,9 +1,11 @@
 import { useMemo, useState } from 'react';
 import { Button } from '../../../components/ui/Button';
-import { MerchantLayout } from '../components/MerchantLayout';
+import { PageHeader } from '../../../components/ui/PageHeader';
 import { formatCurrency } from '../format';
 import { useMenuItems, useBranches } from '../../../hooks/useMerchantData';
+import { useCreateMenuItem, useToggleMenuItemAvailability } from '../../../hooks/useMerchantCatalog';
 import { usePlanLimits } from '../../enterprise';
+import { useAuthSession } from '../../auth';
 import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
 
 const emptyItem = {
@@ -16,9 +18,10 @@ const emptyItem = {
 export function MerchantCatalogPage() {
   const { data: items = [], isLoading: menuItemsLoading, isError: menuItemsError } = useMenuItems();
   const { data: branches = [], isLoading: branchesLoading, isError: branchesError } = useBranches();
+  const { currentUser } = useAuthSession();
   const [branchId, setBranchId] = useState(branches[0]?.id ?? '');
   const [form, setForm] = useState(emptyItem);
-  const limits = usePlanLimits('company-1');
+  const limits = usePlanLimits(currentUser?.companyId ?? '');
 
   const localItems = useMemo(() => items, [items]);
 
@@ -29,6 +32,9 @@ export function MerchantCatalogPage() {
 
   const selectedBranch = branches.find((branch) => branch.id === branchId);
 
+  const { mutate: createItem, isPending: isCreating } = useCreateMenuItem();
+  const { mutate: toggleAvailability } = useToggleMenuItemAvailability();
+
   const addItem = () => {
     const price = Number(form.price.replace(',', '.'));
 
@@ -36,43 +42,51 @@ export function MerchantCatalogPage() {
       return;
     }
 
-    setForm(emptyItem);
+    createItem(
+      { branchId, name: form.name.trim(), category: form.category.trim(), price, ...(form.description.trim() ? { description: form.description.trim() } : {}) },
+      { onSuccess: () => { setForm(emptyItem); } },
+    );
   };
 
-  const toggleAvailability = (_itemId: string) => {};
+  const onToggleAvailability = (itemId: string) => {
+    const item = items.find((i) => i.id === itemId);
+    if (!item) return;
+    toggleAvailability({ branchId, itemId, is_available: !item.isAvailable });
+  };
 
   // Handle loading states
   if (branchesLoading) {
     return (
-      <MerchantLayout title="Cardápio">
+      <>
+        <PageHeader title="Cardápio" />
         <section className="flex min-h-[200px] items-center justify-center">
           <div className="text-center">
             <p className="text-text-secondary">Carregando dados...</p>
           </div>
         </section>
-      </MerchantLayout>
+      </>
     );
   }
 
   return (
     <FxQueryBoundary isLoading={menuItemsLoading} isError={menuItemsError || branchesError}>
-    <MerchantLayout
-      title="Cardapio"
-      actions={
-        <select
-          value={branchId}
-          onChange={(event) => { setBranchId(event.target.value); }}
-          className="h-10 rounded-lg border border-border-default bg-surface-background px-3 text-sm"
-          disabled={branchesLoading}
-        >
-          {branches.map((branch) => (
-            <option key={branch.id} value={branch.id}>
-              {branch.name}
-            </option>
-          ))}
-        </select>
-      }
-    >
+      <PageHeader
+        title="Cardapio"
+        actions={
+          <select
+            value={branchId}
+            onChange={(event) => { setBranchId(event.target.value); }}
+            className="h-10 rounded-lg border border-border-default bg-surface-background px-3 text-sm"
+            disabled={branchesLoading}
+          >
+            {branches.map((branch) => (
+              <option key={branch.id} value={branch.id}>
+                {branch.name}
+              </option>
+            ))}
+          </select>
+        }
+      />
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-[0.8fr_1.2fr]">
         <div className="rounded-xl border border-border-default bg-surface-elevated p-4">
           <h2 className="font-semibold text-text-primary">Novo item</h2>
@@ -124,8 +138,8 @@ export function MerchantCatalogPage() {
               />
             </label>
 
-            <Button fullWidth onClick={addItem} disabled={!limits.canAddProduct}>
-              Adicionar ao cardapio
+            <Button fullWidth onClick={addItem} disabled={!limits.canAddProduct} loading={isCreating}>
+              {isCreating ? 'Adicionando...' : 'Adicionar ao cardapio'}
             </Button>
           </div>
         </div>
@@ -160,7 +174,7 @@ export function MerchantCatalogPage() {
                     size="sm"
                     variant={item.isAvailable ? 'outline' : 'solid'}
                     intent={item.isAvailable ? 'danger' : 'success'}
-                    onClick={() => { toggleAvailability(item.id); }}>
+                    onClick={() => { onToggleAvailability(item.id); }}>
                     {item.isAvailable ? 'Pausar' : 'Ativar'}
                   </Button>
                 </div>
@@ -169,7 +183,6 @@ export function MerchantCatalogPage() {
           </div>
         </div>
       </section>
-    </MerchantLayout>
     </FxQueryBoundary>
   );
 }

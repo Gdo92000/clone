@@ -1,0 +1,101 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://flux-delivery.local/schemas/capability.manifest.schema.json",
+  "title": "Capability Manifest (v2 — Memory v2 Phase 2)",
+  "description": "Manifesto de capability com 3 níveis explícitos de retrieval (hot/warm/cold) e output_budget declarativo. Substitui allowed_docs_patterns/forbidden_docs_patterns (v1).",
+  "type": "object",
+  "required": [
+    "capability",
+    "version",
+    "max_bootstrap_tokens",
+    "max_working_tokens",
+    "max_retrieval_depth",
+    "hot_docs",
+    "warm_docs",
+    "cold_docs",
+    "allowed_skills",
+    "output_budget"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "capability": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "Slug da capability (kebab-case)"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "max_bootstrap_tokens": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10000
+    },
+    "max_working_tokens": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100000
+    },
+    "max_retrieval_depth": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 5
+    },
+    "hot_docs": {
+      "type": "array",
+      "description": "Carregados IMEDIATAMENTE com a capability (raro; geralmente vazio porque STATE_ACTIVA já cobre o estado)",
+      "items": { "type": "string" },
+      "maxItems": 5
+    },
+    "warm_docs": {
+      "type": "array",
+      "description": "Carregados sob demanda quando referenciados pela tarefa",
+      "items": { "type": "string" }
+    },
+    "cold_docs": {
+      "type": "array",
+      "description": "NUNCA carregados por esta capability (mesmo se referenciados)",
+      "items": { "type": "string" }
+    },
+    "allowed_skills": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "output_budget": {
+      "type": "object",
+      "required": ["max_preamble_chars", "no_repeat_user_input", "prefer_tables", "max_items_before_summary"],
+      "additionalProperties": false,
+      "properties": {
+        "max_preamble_chars": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000,
+          "description": "Limite de caracteres de preâmbulo antes do conteúdo"
+        },
+        "no_repeat_user_input": {
+          "type": "boolean",
+          "description": "Proibir repetir/ecoar o input do usuário na resposta"
+        },
+        "prefer_tables": {
+          "type": "boolean",
+          "description": "Preferir tabelas a prosa quando houver dados estruturados"
+        },
+        "max_items_before_summary": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Após N items em lista, agregar e resumir"
+        },
+        "truncate_grep_at": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Truncar resultados de grep/busca em N ocorrências"
+        }
+      }
+    }
+  }
+}

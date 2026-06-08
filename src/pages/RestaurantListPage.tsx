@@ -7,7 +7,7 @@ import { FxRestaurantCard } from '../components/commerce/FxRestaurantCard';
 import { useRestaurants, useCategories } from '../hooks/useRestaurants';
 import { useNearbyRestaurants } from '../hooks/useNearbyRestaurants';
 import { useLocationContext } from '../context/LocationContext';
-import { normalizeCityName } from '../services/cityCoverageService';
+import { normalizeCityName } from '../services/cityCoverageFallback';
 import { ROUTES, restaurantsSearchHref, restaurantDetailHref } from '../lib/routes';
 import type { Restaurant } from '../types';
 
@@ -152,14 +152,15 @@ if (selectedCategory) {
           </div>
         )}
 
-        <section className="flex items-center gap-2 pb-1 -mx-4 px-4 overflow-x-auto scrollbar-hide">
+        <section className="flex items-center gap-2 pb-1 -mx-4 px-4 overflow-x-auto snap-x snap-mandatory scroll-pl-4 scrollbar-hide">
       {(['free', 'super', 'fast'] as QuickFilter[]).map((filter) => {
         const isActive = activeFilters.has(filter);
         return (
           <button
             key={filter}
             onClick={() => { toggleFilter(filter); }}
-            className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
+            className={`shrink-0 flex items-center gap-1.5 px-4 min-h-[44px] rounded-full text-sm font-medium whitespace-nowrap transition-all
+              focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 active:scale-[0.98] ${
               isActive
                 ? 'bg-brand-primary text-text-inverse shadow-sm'
                 : 'bg-surface-elevated border border-border-default text-text-secondary hover:border-brand-primary hover:text-text-primary'
@@ -175,10 +176,11 @@ if (selectedCategory) {
       })}
         </section>
 
-        <section className="flex gap-2 overflow-x-auto -mx-4 px-4 scrollbar-hide pb-1">
+        <section className="flex gap-2 overflow-x-auto -mx-4 px-4 snap-x snap-mandatory scroll-pl-4 scrollbar-hide pb-1">
           <button
             onClick={() => { setSelectedCategory(null); }}
-            className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+            className={`shrink-0 px-4 min-h-[44px] rounded-full text-sm font-medium whitespace-nowrap transition-colors flex items-center
+              focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 active:scale-[0.98] ${
               !selectedCategory
                 ? 'bg-brand-primary text-text-inverse'
                 : 'bg-surface-elevated border border-border-default text-text-secondary hover:border-brand-primary'
@@ -190,7 +192,8 @@ if (selectedCategory) {
             <button
               key={category.id}
               onClick={() => { setSelectedCategory(category.slug); }}
-              className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors flex items-center gap-1.5 ${
+              className={`shrink-0 px-4 min-h-[44px] rounded-full text-sm font-medium whitespace-nowrap transition-colors flex items-center gap-1.5
+                focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 active:scale-[0.98] ${
                 selectedCategory === category.slug
                   ? 'bg-brand-primary text-text-inverse'
                   : 'bg-surface-elevated border border-border-default text-text-secondary hover:border-brand-primary'
@@ -213,7 +216,8 @@ if (selectedCategory) {
               <button
                 key={option}
                 onClick={() => { setSortBy(option); }}
-                className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+                className={`flex items-center gap-1 px-3 min-h-[44px] rounded-full text-xs font-medium whitespace-nowrap transition-colors
+                  focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 active:scale-[0.98] ${
                   sortBy === option
                     ? 'bg-surface-background border border-border-default text-text-primary'
                     : 'text-text-tertiary hover:text-text-secondary'

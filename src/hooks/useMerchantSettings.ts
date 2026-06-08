@@ -30,11 +30,13 @@ export function useSaveBranchSettings(branchId: string) {
   return useMutation({
     mutationFn: async (data: {
       settings: Partial<BranchSettingsDTO>;
-      loyaltySettings: Record<string, unknown>;
+      loyaltySettings?: Record<string, unknown>;
     }) => {
       if (!branchId) return;
       await merchantApi.updateSettings(branchId, data.settings);
-      await merchantApi.updateLoyaltySettings(branchId, data.loyaltySettings);
+      if (data.loyaltySettings) {
+        await merchantApi.updateLoyaltySettings(branchId, data.loyaltySettings);
+      }
     },
     onSuccess: () => {
       successToast('Configuracoes salvas com sucesso');

@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { Button } from '../../../components/ui/Button';
 import { usePlanLimits } from '../../enterprise';
-import { MerchantLayout } from '../components/MerchantLayout';
+import { useAuthSession } from '../../auth';
+import { PageHeader } from '../../../components/ui/PageHeader';
 import { useCampaigns, useCreateCampaign } from '../../../hooks/useMerchantCampaigns';
 import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
 
 export function MerchantCampaignsPage() {
   const { data: campaigns = [], isLoading, error } = useCampaigns();
+  const { currentUser } = useAuthSession();
   const [name, setName] = useState('');
-  const limits = usePlanLimits('company-1');
+  const limits = usePlanLimits(currentUser?.companyId ?? '');
 
   const campaignMutation = useCreateCampaign();
 
@@ -18,7 +20,8 @@ export function MerchantCampaignsPage() {
   };
 
   return (
-    <MerchantLayout title="Campanhas e promocoes">
+    <>
+      <PageHeader title="Campanhas e promocoes" />
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-[0.75fr_1.25fr]">
         <div className="rounded-xl border border-border-default bg-surface-elevated p-4">
           <h2 className="font-semibold text-text-primary">Nova campanha</h2>
@@ -46,6 +49,6 @@ export function MerchantCampaignsPage() {
         </div>
         </FxQueryBoundary>
       </section>
-    </MerchantLayout>
+    </>
   );
 }

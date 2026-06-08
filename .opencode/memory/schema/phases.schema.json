@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://flux-delivery.local/schemas/phases.schema.json",
+  "title": "phases.jsonl entry",
+  "description": "Canônico append-only de fases/marcos do projeto. Cada linha é um JSON válido.",
+  "type": "object",
+  "required": ["id", "date", "title", "status", "category"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+-[a-z0-9-]+$",
+      "description": "Identificador slug, único, imutável"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de início/criação (YYYY-MM-DD)"
+    },
+    "closed_at": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de fechamento (preenchido quando status muda para done)"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "status": {
+      "enum": ["open", "in_progress", "blocked", "done", "archived"],
+      "description": "open = ativo no STATE_ACTIVA; done/archived = só no CURRENT_STATE"
+    },
+    "category": {
+      "enum": ["phase", "milestone", "sprint", "audit", "decision", "blocker", "refactor"]
+    },
+    "summary": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Resumo executivo (vai para STATE_ACTIVA se open)"
+    },
+    "owner": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "refs": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Caminhos relativos para docs/arquivos relacionados"
+    },
+    "blockers": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "IDs de fases bloqueadoras (quando status=blocked)"
+    }
+  }
+}

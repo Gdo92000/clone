@@ -108,7 +108,7 @@ export function RestaurantDetailPage() {
 
   return (
     <FxQueryBoundary isLoading={menuItemsLoading} isError={!!menuItemsError} error={menuItemsError}>
-    <div className="min-h-screen bg-surface-background pb-24">
+    <div className="min-h-screen bg-surface-background pb-40 md:pb-24">
       <div className="relative">
         <FxImage src={restaurant.bannerUrl} alt={restaurant.name} className="w-full h-48 sm:h-56 object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
@@ -212,7 +212,7 @@ export function RestaurantDetailPage() {
         </div>
 
         <div className="mt-6">
-          <div className="flex gap-2 overflow-x-auto -mx-4 px-4 pb-4 scrollbar-hide">
+          <div className="flex gap-2 overflow-x-auto -mx-4 px-4 pb-4 snap-x snap-mandatory scroll-pl-4 scrollbar-hide">
             <button
               onClick={() => { setSelectedCategory(null); }}
               className={clsx(
@@ -309,7 +309,7 @@ export function RestaurantDetailPage() {
         )}
       </main>
 
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-surface-elevated border-t border-border-default px-4 py-3">
+      <div className="fixed bottom-20 left-0 right-0 z-40 bg-surface-elevated border-t border-border-default px-4 py-3 md:bottom-0">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div>
             <p className="text-xs text-text-secondary">Sacola</p>

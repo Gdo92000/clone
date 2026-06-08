@@ -33,8 +33,8 @@ const variantClasses = {
 };
 
 const sizeClasses = {
-  sm: 'h-9 px-4 text-sm',
-  md: 'h-10 px-4 text-base',
+  sm: 'h-9 px-4 text-sm min-h-[44px]',
+  md: 'h-10 px-4 text-base min-h-[44px]',
   lg: 'h-12 px-6 text-lg',
   xl: 'h-14 px-8 text-xl',
 };
@@ -54,6 +54,7 @@ export function Button({
     <button
       className={clsx(
         'inline-flex items-center justify-center gap-2 font-medium rounded-lg transition-colors duration-150',
+        'active:scale-[0.98] active:transition-transform active:duration-75',
         'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2',
         'disabled:pointer-events-none disabled:opacity-50',
         variantClasses[variant][intent],

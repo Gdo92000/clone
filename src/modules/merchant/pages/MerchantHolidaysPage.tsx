@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MerchantLayout } from '../components/MerchantLayout';
+import { PageHeader } from '../../../components/ui/PageHeader';
 import { Button } from '../../../components/ui/Button';
 import {
   useHolidayOverrides,
@@ -94,20 +94,21 @@ export function MerchantHolidaysPage() {
   };
 
   return (
-    <MerchantLayout
-      title="Feriados e exceções"
-      actions={
-         <select
-           value={selectedBranch}
-           onChange={(e) => { setSelectedBranch(e.target.value); }}
-           className="h-10 rounded-lg border border-border-default bg-surface-background px-3 text-sm"
-         >
-           {branches.map((b) => (
-             <option key={b.id} value={b.id}>{b.name}</option>
-           ))}
-         </select>
-      }
-    >
+    <>
+      <PageHeader
+        title="Feriados e exceções"
+        actions={
+           <select
+             value={selectedBranch}
+             onChange={(e) => { setSelectedBranch(e.target.value); }}
+             className="h-10 rounded-lg border border-border-default bg-surface-background px-3 text-sm"
+           >
+             {branches.map((b) => (
+               <option key={b.id} value={b.id}>{b.name}</option>
+             ))}
+           </select>
+        }
+      />
       <div className="mb-4 flex gap-2">
         <button
           onClick={() => { setTab('holidays'); }}
@@ -349,6 +350,6 @@ export function MerchantHolidaysPage() {
           ) : null}
         </div>
       )}
-    </MerchantLayout>
+    </>
   );
 }

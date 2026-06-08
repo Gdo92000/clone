@@ -7,7 +7,7 @@ tags:
 - type/index
 - type/knowledge
 created_at: 2026-05-23
-updated_at: 2026-05-23
+updated_at: 2026-06-08
 ---
 
 # Conhecimento Permanente
@@ -50,6 +50,8 @@ Arquitetura, padrões, integrações e fluxos críticos do projeto.
 | [[Testes — Backend Routes e Funções]] | Route integration tests, pure function tests |
 | [[Testes — MSW Handlers e Cenários]] | MSW setup, handler tests, scenarios |
 | [[Testes — Configuração e Padrões]] | Vitest config, mock patterns, coverage, file org |
+| [[Dev vs Production - Comportamentos Diferenciados]] | NUMERIC coercion, UF normalization, localStorage per-origin, MSW scope, auto-seed |
+| [[Mirror Service — Arquitetura e Auditoria]] | Schema dual orders/merchant_orders, mapeamento de campos, problemas conhecidos, queries de monitoramento |
 
 ## API — Notas Especializadas
 

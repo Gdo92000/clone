@@ -1,0 +1,47 @@
+{
+  "skill_name": "system-contract-validator",
+  "evals": [
+    {
+      "id": 1,
+      "name": "bootstrap-validation",
+      "prompt": "Valida se todos os arquivos core do system contract estão presentes e íntegros antes de iniciar qualquer execução",
+      "expected_output": "Relatório de validação do pipeline obrigatório de leitura com status de cada arquivo e detecção de violações",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "invariant-check",
+      "prompt": "Verifica se os invariantes do sistema (OMEGA, PSI, LAMBDA, etc.) estão sendo respeitados na arquitetura atual",
+      "expected_output": "Análise completa de aderência aos invariantes com identificação de violações e severidades",
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "rt-violation-detection",
+      "prompt": "Detecta e classifica violações RT-* no sistema, identificando se requerem STOP-WORK ou SOFT-BLOCK",
+      "expected_output": "Relatório detalhado de violações com códigos RT, descrições e ações recomendadas",
+      "files": []
+    },
+    {
+      "id": 4,
+      "name": "snapshot-management",
+      "prompt": "Gerencia o ciclo de vida de snapshots incluindo validação de hash, lease epoch e recovery",
+      "expected_output": "Status do snapshot, validação de integridade e recomendações de recovery",
+      "files": []
+    },
+    {
+      "id": 5,
+      "name": "multi-phase-orchestration",
+      "prompt": "Orquestra tarefa multi-fase passando obrigatoriamente pelo orchestrator com delegação correta de agentes",
+      "expected_output": "Plano de orquestração válido com fases definidas, agentes delegados e mecanismo de consolidação CAS",
+      "files": []
+    },
+    {
+      "id": 6,
+      "name": "compliance-report",
+      "prompt": "Gera relatório completo de compliance com status L1-L6, violações detectadas e recomendações",
+      "expected_output": "Relatório estruturado JSON com timestamp, status, violações e ações corretivas",
+      "files": []
+    }
+  ]
+}

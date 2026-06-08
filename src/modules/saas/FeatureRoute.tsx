@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { useFeatureAccess } from './useFeatureAccess';
 import type { FeatureKey } from './types';
+import { EmptyState } from '../../components/ui/EmptyState';
 
 interface FeatureRouteProps {
   companyId: string;
@@ -18,14 +19,18 @@ export function FeatureRoute({ companyId, branchId, featureKey, children }: Feat
 
   return (
     <div className="min-h-screen bg-surface-background p-4">
-      <div className="mx-auto max-w-2xl rounded-xl border border-border-default bg-surface-elevated p-6 text-center">
-        <h1 className="font-display text-2xl font-bold text-text-primary">
-          Recurso indisponivel
-        </h1>
-        <p className="mt-2 text-sm text-text-secondary">{access.reason}</p>
-        <p className="mt-4 text-sm text-text-secondary">
-          O Superadmin pode liberar por plano, addon ou feature flag.
-        </p>
+      <div className="mx-auto max-w-2xl rounded-xl border border-border-default bg-surface-elevated">
+        <EmptyState
+          icon="Lock"
+          title="Recurso indisponivel"
+          description={access.reason}
+          size="lg"
+          action={{
+            label: 'Falar com o suporte',
+            onClick: () => { window.location.href = '/support'; },
+            variant: 'solid',
+          }}
+        />
       </div>
     </div>
   );

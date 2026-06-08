@@ -5,6 +5,7 @@ import { Icon } from '../components/ui/Icon';
 import { useLocationContext } from '../context/LocationContext';
 import { useLiveCityEstablishments } from '../hooks';
 import { formatDistance } from '../domain/geospatial/geodesy';
+import { ROUTES } from '../lib/routes';
 
 const radiusOptions = [2, 5, 8, 12] as const;
 
@@ -28,10 +29,10 @@ export function CityRestaurantsPage() {
   });
 
   useEffect(() => {
-     if (protection.canSearch && !loading) {
+     if (protection.canSearch) {
         void search();
       }
-    }, [radiusKm, protection.canSearch, loading, search]);
+    }, [radiusKm, protection.canSearch, search]);
 
   const handleRadiusChange = (value: (typeof radiusOptions)[number]) => {
     setRadiusKm(value);
@@ -40,7 +41,7 @@ export function CityRestaurantsPage() {
 
   return (
     <div className="min-h-screen bg-surface-background pb-20 md:pb-0">
-      <FxPageNavbar title="Perto de você" />
+      <FxPageNavbar title="Perto de você" backTo={ROUTES.HOME} />
 
       <main className="fx-container py-4 space-y-5">
         <LocationSelector />

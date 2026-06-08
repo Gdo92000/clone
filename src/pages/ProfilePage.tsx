@@ -55,6 +55,12 @@ export function ProfilePage() {
       action: () => { void navigate(ROUTES.PROMOTIONS); },
     },
     {
+      id: 'loyalty',
+      label: 'Programa de fidelidade',
+      icon: <Icon name="Gift" size={20} />,
+      action: () => { void navigate(ROUTES.LOYALTY); },
+    },
+    {
       id: 'support',
       label: 'Suporte',
       icon: <Icon name="Headset" size={20} />,
@@ -69,7 +75,7 @@ export function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-surface-background">
-      <FxPageNavbar title="Perfil" />
+      <FxPageNavbar title="Perfil" backTo={ROUTES.HOME} />
 
       <main className="max-w-2xl mx-auto px-4 py-6 space-y-6">
         <section className="flex items-center gap-4 p-4 rounded-2xl bg-surface-elevated border border-border-default">
@@ -82,7 +88,8 @@ export function ProfilePage() {
           </div>
           <button
             onClick={() => { void navigate(ROUTES.LOGIN); }}
-            className="text-sm font-medium text-brand-primary hover:text-brand-primary-hover"
+            className="text-sm font-medium text-brand-primary hover:text-brand-primary-hover px-2 py-1 -mx-2 rounded
+              focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 active:scale-[0.98]"
           >
             Editar
           </button>
@@ -93,8 +100,8 @@ export function ProfilePage() {
             const isNotification = item.id === 'notifications';
             const Container = isNotification ? 'div' : 'button';
             const containerProps = isNotification
-              ? { className: 'flex items-center gap-3 w-full px-4 py-4 text-left' }
-              : { onClick: item.action, className: clsx('flex items-center gap-3 w-full px-4 py-4 text-left transition-colors', item.action ? 'hover:bg-surface-background cursor-pointer' : 'cursor-default') };
+              ? { className: 'flex items-center gap-3 w-full px-4 py-4 text-left min-h-[44px]' }
+              : { onClick: item.action, className: clsx('flex items-center gap-3 w-full px-4 py-4 text-left transition-colors min-h-[44px]', item.action ? 'hover:bg-surface-background cursor-pointer focus:outline-none focus-visible:bg-surface-background focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-inset active:bg-surface-background' : 'cursor-default') };
 
             return (
               <Container key={item.id} {...containerProps}>
@@ -111,18 +118,28 @@ export function ProfilePage() {
                       setNotificationsEnabled(!notificationsEnabled);
                     }}
                     className={clsx(
-                      'w-12 h-7 rounded-full transition-colors relative',
-                      notificationsEnabled ? 'bg-brand-primary' : 'bg-border-default'
+                      'relative inline-flex items-center min-h-[44px] min-w-[44px] px-3 py-2 rounded-lg',
+                      'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2',
+                      'active:bg-surface-background transition-colors'
                     )}
                     aria-label={notificationsEnabled ? 'Desativar notificações' : 'Ativar notificações'}
+                    aria-pressed={notificationsEnabled}
+                    role="switch"
                     type="button"
                   >
                     <span
                       className={clsx(
-                        'absolute top-1 w-5 h-5 rounded-full bg-white shadow-sm transition-transform',
-                        notificationsEnabled ? 'translate-x-6' : 'translate-x-1'
+                        'w-12 h-7 rounded-full transition-colors relative shrink-0',
+                        notificationsEnabled ? 'bg-brand-primary' : 'bg-border-default'
                       )}
-                    />
+                    >
+                      <span
+                        className={clsx(
+                          'absolute top-1 w-5 h-5 rounded-full bg-white shadow-sm transition-transform',
+                          notificationsEnabled ? 'translate-x-6' : 'translate-x-1'
+                        )}
+                      />
+                    </span>
                   </button>
                 )}
                 {item.badge && (
@@ -138,7 +155,8 @@ export function ProfilePage() {
 
         <button
           onClick={handleLogout}
-          className="w-full py-3 rounded-xl border border-border-default text-text-secondary text-sm font-medium hover:bg-surface-elevated hover:text-feedback-error transition-colors"
+          className="w-full py-3 min-h-[44px] rounded-xl border border-border-default text-text-secondary text-sm font-medium hover:bg-surface-elevated hover:text-feedback-error transition-colors
+            focus:outline-none focus-visible:ring-2 focus-visible:ring-feedback-error focus-visible:ring-offset-2 active:scale-[0.99]"
         >
           Sair da conta
         </button>

@@ -37,7 +37,9 @@ export function FxBottomNavigation({
               key={item.id}
               onClick={item.onClick}
               className={clsx(
-                'relative flex flex-col items-center gap-0.5 p-2 rounded-lg min-w-[64px] transition-colors',
+                'relative flex flex-col items-center gap-0.5 p-2 rounded-lg min-w-[64px] min-h-[44px] justify-center transition-colors',
+                'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-1',
+                'active:scale-95 active:transition-transform active:duration-75',
                 isActive
                   ? 'text-brand-primary'
                   : 'text-text-secondary hover:text-text-primary'

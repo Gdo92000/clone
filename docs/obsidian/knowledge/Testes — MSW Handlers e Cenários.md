@@ -2,42 +2,42 @@
 type: knowledge
 status: active
 created_at: 2026-05-23
-updated_at: 2026-05-23
+updated_at: 2026-06-06
 tags:
 - type/knowledge
 - domain/testing
 - domain/mocking
 ---
 
-# Testes — MSW Handlers e Cenários
+# Testes - MSW Handlers e Cenários
 
 ## MSW Setup (Frontend Only)
 
-- **Setup**: `src/test/setup.ts` starts MSW before all tests with `onUnhandledRequest: 'bypass'`
-- **Server**: `src/mocks/server.ts` — `setupServer(...handlers)` from `msw/node`
-- **Handlers**: `src/mocks/handlers/index.ts` combines auth, restaurants, merchant, subscriptions, superadmin, operations, coverage, printing, proxy, and other handlers
-- **Fixtures**: `src/mocks/fixtures/` — factory functions with typed mock data
-- **Scenarios**: `src/mocks/scenarios/` — toggle mock behavior via `setScenario('empty_store')`
-- **Browser worker**: `public/mockServiceWorker.js` (MSW v2.14.6)
+- **Setup**: src/test/setup.ts inicia MSW antes de todos os tests com onUnhandledRequest: 'error'
+- **Server**: src/mocks/server.ts - setupServer(...handlers) from msw/node
+- **Handlers**: src/mocks/handlers/index.ts combina auth, restaurants, merchant, subscriptions, superadmin, operations, coverage, printing, customer e cities
+- **Fixtures**: src/mocks/fixtures/ - arrays tipados com dados mock
+- **Scenarios**: src/mocks/scenarios/ - altera comportamento de mock via setScenario('empty_store')
+- **Browser worker**: public/mockServiceWorker.js (MSW v2)
 
-```typescript
+`	ypescript
 // src/test/setup.ts
 import '@testing-library/jest-dom/vitest'
 import { server } from '../mocks/server'
 
-beforeAll(() => server.listen({ onUnhandledRequest: 'bypass' }))
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
 afterEach(() => server.resetHandlers())
 afterAll(() => server.close())
-```
+`
 
 ## MSW Handler Tests
 
-Test mock handlers directly via `fetch` against `http://localhost`. Use `setScenario` to verify scenario-specific behavior.
+Testa handlers diretamente via etch contra http://localhost. Usa setScenario para verificar comportamento por cenário.
 
-```typescript
+`	ypescript
 // src/mocks/handlers/__tests__/handlers.test.ts
 import { server } from '../../server'
-import { setScenario } from '../../scenarios'
+import { setScenario } from '../../scenarios/index'
 
 beforeEach(() => setScenario('default'))
 afterEach(() => server.resetHandlers())
@@ -69,30 +69,37 @@ describe('Scenario behavior', () => {
     expect(body).toEqual([])
   })
 })
-```
+`
 
-## Scenarios
+## Cenários
 
-Toggle mock behavior for edge cases and error states:
+Toggle de comportamento para edge cases e estados de erro:
 
-| Scenario | Effect |
+| Cenário | Efeito |
 |----------|--------|
-| `default` | Normal mock responses |
-| `empty_store` | Empty arrays for list endpoints |
-| `kitchen_congested` | All orders show `status: 'pending'` |
-| `payment_declined` | Loyalty redeem returns 402 |
-| `courier_offline` | Operations status returns `isOpen: false` |
-| `tenant_expired` | Subscriptions show `billing_status: 'cancelled'` |
-| `merchant_blocked` | Companies show `plan: 'blocked'`, orders return 403 |
+| default | Respostas mock normais |
+| empty_store | Arrays vazios para endpoints de lista |
+| kitchen_congested | Todos orders com status: 'preparing' |
+| payment_declined | Loyalty redeem retorna 402 |
+| courier_offline | Operations status retorna isOpen: false |
+| 	enant_expired | Subscriptions com illing_status: 'cancelled' |
+| merchant_blocked | Companies com plan: 'blocked', orders retornam 403 |
 
-```typescript
-import { setScenario } from '../../mocks/scenarios'
+`	ypescript
+import { setScenario } from '../../mocks/scenarios/index'
 
 it('handles blocked merchant', () => {
   setScenario('merchant_blocked')
   // ... test behavior
 })
-```
+`
+
+## Fase 30 - Cleanup
+
+- Removido: VITE_MOCK_RESTAURANTS, VITE_MOCK_ORDERS, VITE_MOCK_GEOCODING (env vars mortas).
+- Removido: __MOCK_RESTAURANTS__, __MOCK_ORDERS__ (defines).
+- isMockRestaurants() / isMockOrders() agora retornam alse hardcoded (gate do provider layer paralelo).
+- Mantido: MSW inteiro (test + dev PC) — ver [[MSW - Mock Service Worker]].
 
 > [!tip] Padrões Relacionados
-> [[Testes — Configuração e Padrões]] · [[Testes — Frontend Components e Hooks]] · [[MSW — Mock Service Worker]]
+> [[Testes - Configuração e Padrões]] - [[Testes - Frontend Components e Hooks]] - [[MSW - Mock Service Worker]] - [[ADR-004 DB Seed como Single Source of Truth]]

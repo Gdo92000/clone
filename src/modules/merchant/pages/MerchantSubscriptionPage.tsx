@@ -1,7 +1,8 @@
-import { MerchantLayout } from '../components/MerchantLayout';
+import { PageHeader } from '../../../components/ui/PageHeader';
 import { Icon } from '../../../components/ui/Icon';
 import { useSaasWorkspace , calculateSubscriptionTotal } from '../../saas';
 import { useCompanies } from '../../../hooks/useMerchantData';
+import { EmptyState } from '../../../components/ui/EmptyState';
 
 export function MerchantSubscriptionPage() {
   const { plans, addons, subscriptions } = useSaasWorkspace();
@@ -14,12 +15,22 @@ export function MerchantSubscriptionPage() {
 
   if (!sub || !plan) {
     return (
-      <MerchantLayout title="Meu plano">
-        <div className="text-center py-12 rounded-xl border border-border-default bg-surface-elevated">
-          <Icon name="CreditCard" size={40} className="mx-auto text-text-tertiary" />
-          <p className="text-text-secondary mt-3">Nenhuma assinatura encontrada</p>
+      <>
+        <PageHeader title="Meu plano" />
+        <div className="rounded-xl border border-border-default bg-surface-elevated">
+          <EmptyState
+            icon="CreditCard"
+            title="Nenhuma assinatura encontrada"
+            description="Sua empresa ainda nao contratou um plano. Fale com o time para liberar acesso a todos os recursos do Flux Delivery."
+            size="lg"
+            action={{
+              label: 'Falar com o suporte',
+              onClick: () => { window.location.href = '/support'; },
+              variant: 'solid',
+            }}
+          />
         </div>
-      </MerchantLayout>
+      </>
     );
   }
 
@@ -27,7 +38,8 @@ export function MerchantSubscriptionPage() {
   const statusColor: Record<string, string> = { trial: 'text-feedback-info', active: 'text-feedback-success', past_due: 'text-feedback-warning', blocked: 'text-feedback-error', cancelled: 'text-text-disabled' };
 
   return (
-    <MerchantLayout title="Meu plano">
+    <>
+      <PageHeader title="Meu plano" />
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_2fr]">
         <section className="rounded-xl border border-border-default bg-surface-elevated p-5 space-y-5">
           <div className="text-center">
@@ -114,7 +126,7 @@ export function MerchantSubscriptionPage() {
           </section>
         </div>
       </div>
-    </MerchantLayout>
+    </>
   );
 }
 

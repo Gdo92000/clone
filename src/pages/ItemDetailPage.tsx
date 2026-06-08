@@ -81,7 +81,7 @@ export function ItemDetailPage() {
         </div>
       </header>
 
-      <main className="pb-32">
+      <main className="pb-40 md:pb-24">
         <FxImage
           src={item.imageUrl}
           alt={item.name}
@@ -111,15 +111,17 @@ export function ItemDetailPage() {
                 {item.additives.map((additive) => (
                   <label
                     key={additive.id}
-                    className="flex items-center justify-between cursor-pointer"
+                    className="flex items-center justify-between cursor-pointer min-h-[44px] gap-3 py-2"
                   >
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="checkbox"
-                        checked={selectedAdditives.has(additive.id)}
-                        onChange={() => { toggleAdditive(additive.id); }}
-                        className="w-5 h-5 rounded border-border-default text-brand-primary focus:ring-brand-primary"
-                      />
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <span className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] -ml-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedAdditives.has(additive.id)}
+                          onChange={() => { toggleAdditive(additive.id); }}
+                          className="w-5 h-5 rounded border-border-default text-brand-primary accent-brand-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
+                        />
+                      </span>
                       <span className="text-text-primary">{additive.name}</span>
                     </div>
                     <span className="text-text-secondary">
@@ -149,7 +151,7 @@ export function ItemDetailPage() {
         </div>
       </main>
 
-      <div className="fixed bottom-0 left-0 right-0 bg-surface-elevated border-t border-border-default p-4">
+      <div className="fixed bottom-20 left-0 right-0 z-40 bg-surface-elevated border-t border-border-default p-4 md:bottom-0">
         <div className="fx-container">
           <div className="flex items-center justify-between gap-4">
             <FxQuantitySelector

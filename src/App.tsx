@@ -1,4 +1,4 @@
-import { lazy, Suspense, type ReactNode, useEffect } from 'react';
+import { lazy, Suspense, type ReactNode, useEffect, useMemo } from 'react';
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { LocationProvider } from './context/LocationContext';
 import { ThemeProvider } from '../packages/ui/src/context';
@@ -8,7 +8,7 @@ import { QueryProvider } from './providers/QueryProvider';
 import { PublicLayout } from './layouts/PublicLayout';
 import { DashboardLayout } from './layouts/DashboardLayout';
 import type { DashboardNavItem } from './layouts/DashboardLayout';
-import { FeatureRoute } from './modules/saas';
+import { FeatureRoute, useFeatureAccess } from './modules/saas';
 import { ProtectedRoute, LoginPage } from './modules/auth';
 import { SuperadminLoginPage } from './modules/superadmin';
 import { ROUTES, getRouteArea } from './lib/routes';
@@ -76,14 +76,14 @@ const MerchantSettingsPage = lazy(() =>
     default: m.MerchantSettingsPage,
   })),
 );
-const MerchantPrinterConfigPage = lazy(() =>
-  import('./modules/merchant/pages/MerchantPrinterConfigPage').then((m) => ({
-    default: m.MerchantPrinterConfigPage,
-  })),
-);
 const MerchantKitchenAutoPrintPage = lazy(() =>
   import('./modules/merchant/pages/MerchantKitchenAutoPrintPage').then((m) => ({
     default: m.MerchantKitchenAutoPrintPage,
+  })),
+);
+const MerchantLoyaltyRewardsPage = lazy(() =>
+  import('./modules/merchant/pages/MerchantLoyaltyRewardsPage').then((m) => ({
+    default: m.MerchantLoyaltyRewardsPage,
   })),
 );
 const MerchantSubscriptionPage = lazy(() => import('./modules/merchant/pages/MerchantSubscriptionPage'));
@@ -98,6 +98,9 @@ const MerchantHolidaysPage = lazy(() =>
 );
 
 // ── Courier pages (lazy) ──
+const CourierLoginPage = lazy(() =>
+  import('./modules/courier/pages/CourierLoginPage').then((m) => ({ default: m.CourierLoginPage })),
+);
 const CourierDashboardPage = lazy(() =>
   import('./modules/courier/pages/CourierDashboardPage').then((m) => ({
     default: m.CourierDashboardPage,
@@ -142,11 +145,17 @@ const SupportPage = lazy(() =>
 );
 
 // ── Admin pages (lazy) ──
+const AdminLoginPage = lazy(() =>
+  import('./modules/admin/pages/AdminLoginPage').then((m) => ({ default: m.AdminLoginPage })),
+);
 const AdminDashboardPage = lazy(() =>
   import('./modules/admin/pages/AdminDashboardPage').then((m) => ({ default: m.AdminDashboardPage })),
 );
 const AdminCompaniesPage = lazy(() =>
   import('./modules/admin/pages/AdminCompaniesPage').then((m) => ({ default: m.AdminCompaniesPage })),
+);
+const AdminRestaurantsPage = lazy(() =>
+  import('./modules/admin/pages/AdminRestaurantsPage').then((m) => ({ default: m.AdminRestaurantsPage })),
 );
 const AdminCoveragePage = lazy(() =>
   import('./modules/admin/pages/AdminCoveragePage').then((m) => ({ default: m.AdminCoveragePage })),
@@ -241,6 +250,62 @@ const courierNavItems: DashboardNavItem[] = [
   { to: ROUTES.COURIER_DELIVERIES, label: 'Entregas', icon: 'Truck' },
 ];
 
+interface MerchantNavItem extends DashboardNavItem {
+  featureKey?:
+    | 'multi_users'
+    | 'campaigns'
+    | 'analytics'
+    | 'coupon_automation'
+    | 'financial_suite';
+}
+
+const merchantNavItems: MerchantNavItem[] = [
+  { to: ROUTES.MERCHANT, label: 'Dashboard', icon: 'LayoutDashboard', end: true },
+  { to: ROUTES.MERCHANT_ORDERS, label: 'Pedidos', icon: 'ShoppingBag' },
+  { to: ROUTES.MERCHANT_CATALOG, label: 'Cardapio', icon: 'UtensilsCrossed' },
+  { to: ROUTES.MERCHANT_BRANCHES, label: 'Empresas e filiais', icon: 'Building2' },
+  { to: ROUTES.MERCHANT_TEAM, label: 'Equipe', icon: 'Users', featureKey: 'multi_users' },
+  { to: ROUTES.MERCHANT_CAMPAIGNS, label: 'Campanhas', icon: 'Megaphone', featureKey: 'campaigns' },
+  { to: ROUTES.MERCHANT_ANALYTICS, label: 'Analytics', icon: 'BarChart3', featureKey: 'analytics' },
+  { to: ROUTES.MERCHANT_COUPONS, label: 'Cupons', icon: 'Tag', featureKey: 'coupon_automation' },
+  { to: ROUTES.MERCHANT_FINANCE, label: 'Financeiro', icon: 'DollarSign', featureKey: 'financial_suite' },
+  { to: ROUTES.MERCHANT_SUBSCRIPTION, label: 'Meu plano', icon: 'CreditCard' },
+  { to: ROUTES.MERCHANT_SETTINGS, label: 'Configuracoes', icon: 'Settings' },
+  { to: ROUTES.MERCHANT_KITCHEN_AUTO_PRINT, label: 'Impressao automatica', icon: 'Zap' },
+  { to: ROUTES.MERCHANT_HOURS, label: 'Horarios', icon: 'Clock' },
+  { to: ROUTES.MERCHANT_HOLIDAYS, label: 'Feriados', icon: 'CalendarOff' },
+  { to: ROUTES.MERCHANT_LOYALTY, label: 'Fidelidade', icon: 'Gift' },
+];
+
+function MerchantDashboardLayout() {
+  const multiUsers = useFeatureAccess('company-1', 'multi_users');
+  const campaigns = useFeatureAccess('company-1', 'campaigns');
+  const analytics = useFeatureAccess('company-1', 'analytics');
+  const couponAutomation = useFeatureAccess('company-1', 'coupon_automation');
+  const financialSuite = useFeatureAccess('company-1', 'financial_suite');
+
+  const items = useMemo(() => {
+    const flags: Record<string, boolean> = {
+      multi_users: multiUsers.enabled,
+      campaigns: campaigns.enabled,
+      analytics: analytics.enabled,
+      coupon_automation: couponAutomation.enabled,
+      financial_suite: financialSuite.enabled,
+    };
+    return merchantNavItems.filter(
+      (item) => !item.featureKey || flags[item.featureKey],
+    );
+  }, [
+    multiUsers.enabled,
+    campaigns.enabled,
+    analytics.enabled,
+    couponAutomation.enabled,
+    financialSuite.enabled,
+  ]);
+
+  return <DashboardLayout logo="LJ" title="Lojista" navItems={items} />;
+}
+
 const routeFallback = (
   <div className="min-h-screen bg-surface-background p-6 text-center text-text-secondary">
     Carregando modulo...
@@ -270,73 +335,76 @@ function App() {
                   <Route path={ROUTES.LOGIN} element={<LoginPage />} />
                   <Route path={ROUTES.MERCHANT_LOGIN} element={<MerchantLoginPage />} />
                   <Route path={ROUTES.SUPERADMIN_LOGIN} element={<SuperadminLoginPage />} />
+                  <Route path={ROUTES.ADMIN_LOGIN} element={<AdminLoginPage />} />
+                  <Route path={ROUTES.COURIER_LOGIN} element={<CourierLoginPage />} />
 
-                  <Route path={ROUTES.CHECKOUT} element={<Suspense fallback={routeFallback}><ProtectedRoute><CheckoutPage /></ProtectedRoute></Suspense>} />
-                  <Route path={ROUTES.TRACKING} element={<Suspense fallback={routeFallback}><ProtectedRoute><TrackingPage /></ProtectedRoute></Suspense>} />
-                  <Route path={ROUTES.ORDERS} element={<Suspense fallback={routeFallback}><ProtectedRoute><OrderHistoryPage /></ProtectedRoute></Suspense>} />
-                  <Route path={ROUTES.PROFILE} element={<Suspense fallback={routeFallback}><ProtectedRoute><ProfilePage /></ProtectedRoute></Suspense>} />
-                  <Route path={ROUTES.ADDRESSES} element={<Suspense fallback={routeFallback}><ProtectedRoute><AddressBookPage /></ProtectedRoute></Suspense>} />
-                  <Route path={ROUTES.ACCESS} element={<Suspense fallback={routeFallback}><ProtectedRoute><AccessHubPage /></ProtectedRoute></Suspense>} />
-                   <Route path={ROUTES.NOTIFICATIONS} element={<Suspense fallback={routeFallback}><ProtectedRoute><NotificationsPage /></ProtectedRoute></Suspense>} />
-                   <Route path="/loyalty" element={<Suspense fallback={routeFallback}><ProtectedRoute><LoyaltyPage /></ProtectedRoute></Suspense>} />
-                   <Route path={ROUTES.FAVORITES} element={<Suspense fallback={routeFallback}><ProtectedRoute><FavoritesPage /></ProtectedRoute></Suspense>} />
+            <Route path={ROUTES.CHECKOUT} element={<ProtectedRoute><Suspense fallback={routeFallback}><CheckoutPage /></Suspense></ProtectedRoute>} />
+            <Route path={ROUTES.TRACKING} element={<ProtectedRoute><Suspense fallback={routeFallback}><TrackingPage /></Suspense></ProtectedRoute>} />
+            <Route path={ROUTES.ORDERS} element={<ProtectedRoute><Suspense fallback={routeFallback}><OrderHistoryPage /></Suspense></ProtectedRoute>} />
+            <Route path={ROUTES.PROFILE} element={<ProtectedRoute><Suspense fallback={routeFallback}><ProfilePage /></Suspense></ProtectedRoute>} />
+            <Route path={ROUTES.ADDRESSES} element={<ProtectedRoute><Suspense fallback={routeFallback}><AddressBookPage /></Suspense></ProtectedRoute>} />
+            <Route path={ROUTES.ACCESS} element={<ProtectedRoute><Suspense fallback={routeFallback}><AccessHubPage /></Suspense></ProtectedRoute>} />
+            <Route path={ROUTES.NOTIFICATIONS} element={<ProtectedRoute><Suspense fallback={routeFallback}><NotificationsPage /></Suspense></ProtectedRoute>} />
+            <Route path={ROUTES.LOYALTY} element={<ProtectedRoute><Suspense fallback={routeFallback}><LoyaltyPage /></Suspense></ProtectedRoute>} />
+            <Route path={ROUTES.FAVORITES} element={<ProtectedRoute><Suspense fallback={routeFallback}><FavoritesPage /></Suspense></ProtectedRoute>} />
 
-                  <Route path={ROUTES.PROMOTIONS} element={<Suspense fallback={routeFallback}><ProtectedRoute><PromotionsPage /></ProtectedRoute></Suspense>} />
-                  <Route path={ROUTES.SUPPORT} element={<Suspense fallback={routeFallback}><ProtectedRoute><SupportPage /></ProtectedRoute></Suspense>} />
-                  <Route path={ROUTES.FINANCE} element={<Suspense fallback={routeFallback}><ProtectedRoute><FinancePage /></ProtectedRoute></Suspense>} />
-                  <Route path={ROUTES.REVIEWS} element={<Suspense fallback={routeFallback}><ProtectedRoute><ReviewsPage /></ProtectedRoute></Suspense>} />
-                  <Route path={ROUTES.ONBOARDING} element={<Suspense fallback={routeFallback}><ProtectedRoute><OnboardingPage /></ProtectedRoute></Suspense>} />
-                  <Route path={ROUTES.PAYMENT_METHODS} element={<Suspense fallback={routeFallback}><ProtectedRoute><PaymentMethodsPage /></ProtectedRoute></Suspense>} />
+            <Route path={ROUTES.PROMOTIONS} element={<ProtectedRoute><Suspense fallback={routeFallback}><PromotionsPage /></Suspense></ProtectedRoute>} />
+            <Route path={ROUTES.SUPPORT} element={<ProtectedRoute><Suspense fallback={routeFallback}><SupportPage /></Suspense></ProtectedRoute>} />
+            <Route path={ROUTES.FINANCE} element={<ProtectedRoute><Suspense fallback={routeFallback}><FinancePage /></Suspense></ProtectedRoute>} />
+            <Route path={ROUTES.REVIEWS} element={<ProtectedRoute><Suspense fallback={routeFallback}><ReviewsPage /></Suspense></ProtectedRoute>} />
+            <Route path={ROUTES.ONBOARDING} element={<ProtectedRoute><Suspense fallback={routeFallback}><OnboardingPage /></Suspense></ProtectedRoute>} />
+            <Route path={ROUTES.PAYMENT_METHODS} element={<ProtectedRoute><Suspense fallback={routeFallback}><PaymentMethodsPage /></Suspense></ProtectedRoute>} />
                 </Route>
 
                 <Route path={ROUTES.SUPERADMIN} element={<DashboardLayout logo="SA" title="Superadmin SaaS" navItems={superadminNavItems} />}>
-                  <Route index element={<Suspense fallback={routeFallback}><ProtectedRoute roles={['superadmin']}><SuperadminDashboardPage /></ProtectedRoute></Suspense>} />
-                  <Route path="plans" element={<Suspense fallback={routeFallback}><ProtectedRoute permission="plans.manage"><PlansPage /></ProtectedRoute></Suspense>} />
-                  <Route path="capabilities" element={<Suspense fallback={routeFallback}><ProtectedRoute permission="plans.manage"><CapabilitiesPage /></ProtectedRoute></Suspense>} />
-                  <Route path="addons" element={<Suspense fallback={routeFallback}><ProtectedRoute permission="plans.manage"><AddonsPage /></ProtectedRoute></Suspense>} />
-                  <Route path="subscriptions" element={<Suspense fallback={routeFallback}><ProtectedRoute permission="billing.manage"><SubscriptionsPage /></ProtectedRoute></Suspense>} />
-                  <Route path="features" element={<Suspense fallback={routeFallback}><ProtectedRoute permission="features.manage"><FeatureFlagsPage /></ProtectedRoute></Suspense>} />
-                  <Route path="billing" element={<Suspense fallback={routeFallback}><ProtectedRoute permission="billing.manage"><BillingPage /></ProtectedRoute></Suspense>} />
-                  <Route path="users" element={<Suspense fallback={routeFallback}><ProtectedRoute permission="users.manage"><UsersPage /></ProtectedRoute></Suspense>} />
-                   <Route path="audit" element={<Suspense fallback={routeFallback}><ProtectedRoute roles={['superadmin']}><AuditPage /></ProtectedRoute></Suspense>} />
-                   <Route path="permissions" element={<Suspense fallback={routeFallback}><ProtectedRoute roles={['superadmin']}><PermissionPage /></ProtectedRoute></Suspense>} />
-                   <Route path="commissions" element={<Suspense fallback={routeFallback}><ProtectedRoute roles={['superadmin']}><CommissionsPage /></ProtectedRoute></Suspense>} />
+                  <Route index element={<ProtectedRoute roles={['superadmin']}><Suspense fallback={routeFallback}><SuperadminDashboardPage /></Suspense></ProtectedRoute>} />
+                  <Route path="plans" element={<ProtectedRoute permission="plans.manage"><Suspense fallback={routeFallback}><PlansPage /></Suspense></ProtectedRoute>} />
+                  <Route path="capabilities" element={<ProtectedRoute permission="plans.manage"><Suspense fallback={routeFallback}><CapabilitiesPage /></Suspense></ProtectedRoute>} />
+                  <Route path="addons" element={<ProtectedRoute permission="plans.manage"><Suspense fallback={routeFallback}><AddonsPage /></Suspense></ProtectedRoute>} />
+                  <Route path="subscriptions" element={<ProtectedRoute permission="billing.manage"><Suspense fallback={routeFallback}><SubscriptionsPage /></Suspense></ProtectedRoute>} />
+                  <Route path="features" element={<ProtectedRoute permission="features.manage"><Suspense fallback={routeFallback}><FeatureFlagsPage /></Suspense></ProtectedRoute>} />
+                  <Route path="billing" element={<ProtectedRoute permission="billing.manage"><Suspense fallback={routeFallback}><BillingPage /></Suspense></ProtectedRoute>} />
+                  <Route path="users" element={<ProtectedRoute permission="users.manage"><Suspense fallback={routeFallback}><UsersPage /></Suspense></ProtectedRoute>} />
+                   <Route path="audit" element={<ProtectedRoute roles={['superadmin']}><Suspense fallback={routeFallback}><AuditPage /></Suspense></ProtectedRoute>} />
+                   <Route path="permissions" element={<ProtectedRoute roles={['superadmin']}><Suspense fallback={routeFallback}><PermissionPage /></Suspense></ProtectedRoute>} />
+                   <Route path="commissions" element={<ProtectedRoute roles={['superadmin']}><Suspense fallback={routeFallback}><CommissionsPage /></Suspense></ProtectedRoute>} />
 
-                  <Route path="coupons" element={<Suspense fallback={routeFallback}><ProtectedRoute roles={['superadmin']}><CouponsPage /></ProtectedRoute></Suspense>} />
-                  <Route path="categories" element={<Suspense fallback={routeFallback}><ProtectedRoute roles={['superadmin']}><CategoriesPage /></ProtectedRoute></Suspense>} />
-                  <Route path="notifications" element={<Suspense fallback={routeFallback}><ProtectedRoute roles={['superadmin']}><SuperadminNotificationsPage /></ProtectedRoute></Suspense>} />
-                  <Route path="reports" element={<Suspense fallback={routeFallback}><ProtectedRoute roles={['superadmin']}><ReportsPage /></ProtectedRoute></Suspense>} />
-                  <Route path="demo" element={<Suspense fallback={routeFallback}><ProtectedRoute roles={['superadmin']}><DemoDataPage /></ProtectedRoute></Suspense>} />
+                  <Route path="coupons" element={<ProtectedRoute roles={['superadmin']}><Suspense fallback={routeFallback}><CouponsPage /></Suspense></ProtectedRoute>} />
+                  <Route path="categories" element={<ProtectedRoute roles={['superadmin']}><Suspense fallback={routeFallback}><CategoriesPage /></Suspense></ProtectedRoute>} />
+                  <Route path="notifications" element={<ProtectedRoute roles={['superadmin']}><Suspense fallback={routeFallback}><SuperadminNotificationsPage /></Suspense></ProtectedRoute>} />
+                  <Route path="reports" element={<ProtectedRoute roles={['superadmin']}><Suspense fallback={routeFallback}><ReportsPage /></Suspense></ProtectedRoute>} />
+                  <Route path="demo" element={<ProtectedRoute roles={['superadmin']}><Suspense fallback={routeFallback}><DemoDataPage /></Suspense></ProtectedRoute>} />
                 </Route>
 
-                <Route path={ROUTES.ADMIN} element={<DashboardLayout logo="AD" title="Administração" navItems={adminNavItems} />}>
-                  <Route index element={<Suspense fallback={routeFallback}><ProtectedRoute roles={['superadmin', 'admin']}><AdminDashboardPage /></ProtectedRoute></Suspense>} />
-                  <Route path="companies" element={<Suspense fallback={routeFallback}><ProtectedRoute roles={['superadmin', 'admin']}><AdminCompaniesPage /></ProtectedRoute></Suspense>} />
-                  <Route path="coverage" element={<Suspense fallback={routeFallback}><ProtectedRoute roles={['superadmin', 'admin']}><AdminCoveragePage /></ProtectedRoute></Suspense>} />
-                </Route>
+            <Route path={ROUTES.ADMIN} element={<DashboardLayout logo="AD" title="Administração" navItems={adminNavItems} />}>
+            <Route index element={<ProtectedRoute roles={["superadmin", "admin"]}><Suspense fallback={routeFallback}><AdminDashboardPage /></Suspense></ProtectedRoute>} />
+            <Route path="companies" element={<ProtectedRoute roles={["superadmin", "admin"]}><Suspense fallback={routeFallback}><AdminCompaniesPage /></Suspense></ProtectedRoute>} />
+            <Route path="restaurants" element={<ProtectedRoute roles={["superadmin", "admin", "company_owner", "branch_manager"]}><Suspense fallback={routeFallback}><AdminRestaurantsPage /></Suspense></ProtectedRoute>} />
+            <Route path="coverage" element={<ProtectedRoute roles={["superadmin", "admin"]}><Suspense fallback={routeFallback}><AdminCoveragePage /></Suspense></ProtectedRoute>} />
+            </Route>
 
-                <Route path={ROUTES.MERCHANT} element={<Suspense fallback={routeFallback}><ProtectedRoute roles={['superadmin', 'company_owner', 'branch_manager', 'attendant', 'finance']}><MerchantDashboardPage /></ProtectedRoute></Suspense>} />
-                <Route path={ROUTES.MERCHANT_ORDERS} element={<Suspense fallback={routeFallback}><ProtectedRoute permission="orders.manage"><MerchantOrdersPage /></ProtectedRoute></Suspense>} />
-                <Route path={ROUTES.MERCHANT_CATALOG} element={<Suspense fallback={routeFallback}><ProtectedRoute roles={['superadmin', 'company_owner', 'branch_manager']}><MerchantCatalogPage /></ProtectedRoute></Suspense>} />
-                <Route path={ROUTES.MERCHANT_BRANCHES} element={<Suspense fallback={routeFallback}><ProtectedRoute roles={['superadmin', 'company_owner']}><MerchantBranchesPage /></ProtectedRoute></Suspense>} />
-                <Route path={ROUTES.MERCHANT_TEAM} element={<Suspense fallback={routeFallback}><ProtectedRoute permission="users.manage"><FeatureRoute companyId="company-1" featureKey="multi_users"><MerchantTeamPage /></FeatureRoute></ProtectedRoute></Suspense>} />
-                <Route path={ROUTES.MERCHANT_CAMPAIGNS} element={<Suspense fallback={routeFallback}><ProtectedRoute roles={['superadmin', 'company_owner', 'branch_manager']}><FeatureRoute companyId="company-1" featureKey="campaigns"><MerchantCampaignsPage /></FeatureRoute></ProtectedRoute></Suspense>} />
-                <Route path={ROUTES.MERCHANT_ANALYTICS} element={<Suspense fallback={routeFallback}><ProtectedRoute roles={['superadmin', 'company_owner', 'branch_manager']}><FeatureRoute companyId="company-1" featureKey="analytics"><MerchantAnalyticsPage /></FeatureRoute></ProtectedRoute></Suspense>} />
-                <Route path={ROUTES.MERCHANT_FINANCE} element={<Suspense fallback={routeFallback}><ProtectedRoute permission="finance.view"><FeatureRoute companyId="company-1" featureKey="financial_suite"><MerchantFinancePage /></FeatureRoute></ProtectedRoute></Suspense>} />
-                <Route path={ROUTES.MERCHANT_COUPONS} element={<Suspense fallback={routeFallback}><ProtectedRoute roles={['superadmin', 'company_owner', 'branch_manager']}><FeatureRoute companyId="company-1" featureKey="coupon_automation"><MerchantCouponsPage /></FeatureRoute></ProtectedRoute></Suspense>} />
-                <Route path={ROUTES.MERCHANT_SUBSCRIPTION} element={<Suspense fallback={routeFallback}><ProtectedRoute><MerchantSubscriptionPage /></ProtectedRoute></Suspense>} />
-<Route path={ROUTES.MERCHANT_SETTINGS} element={<Suspense fallback={routeFallback}><ProtectedRoute><MerchantSettingsPage /></ProtectedRoute></Suspense>} />
-<Route path="/merchant/printer" element={<Suspense fallback={routeFallback}><ProtectedRoute><MerchantPrinterConfigPage /></ProtectedRoute></Suspense>} />
-<Route path="/merchant/kitchen-auto-print" element={<Suspense fallback={routeFallback}><ProtectedRoute><MerchantKitchenAutoPrintPage /></ProtectedRoute></Suspense>} />
-                   <Route path={ROUTES.MERCHANT_HOURS} element={<Suspense fallback={routeFallback}><ProtectedRoute><MerchantHoursPage /></ProtectedRoute></Suspense>} />
+                <Route path={ROUTES.MERCHANT} element={<MerchantDashboardLayout />}>
+            <Route index element={<ProtectedRoute roles={['superadmin', 'company_owner', 'branch_manager', 'attendant', 'finance']}><Suspense fallback={routeFallback}><MerchantDashboardPage /></Suspense></ProtectedRoute>} />
+            <Route path="orders" element={<ProtectedRoute permission="orders.manage"><Suspense fallback={routeFallback}><MerchantOrdersPage /></Suspense></ProtectedRoute>} />
+            <Route path="catalog" element={<ProtectedRoute roles={["superadmin", "company_owner", "branch_manager"]}><Suspense fallback={routeFallback}><MerchantCatalogPage /></Suspense></ProtectedRoute>} />
+            <Route path="branches" element={<ProtectedRoute roles={["superadmin", "company_owner"]}><Suspense fallback={routeFallback}><MerchantBranchesPage /></Suspense></ProtectedRoute>} />
+            <Route path="team" element={<ProtectedRoute permission="users.manage"><FeatureRoute companyId="company-1" featureKey="multi_users"><Suspense fallback={routeFallback}><MerchantTeamPage /></Suspense></FeatureRoute></ProtectedRoute>} />
+            <Route path="campaigns" element={<ProtectedRoute roles={["superadmin", "company_owner", "branch_manager"]}><FeatureRoute companyId="company-1" featureKey="campaigns"><Suspense fallback={routeFallback}><MerchantCampaignsPage /></Suspense></FeatureRoute></ProtectedRoute>} />
+            <Route path="analytics" element={<ProtectedRoute roles={["superadmin", "company_owner", "branch_manager"]}><FeatureRoute companyId="company-1" featureKey="analytics"><Suspense fallback={routeFallback}><MerchantAnalyticsPage /></Suspense></FeatureRoute></ProtectedRoute>} />
+            <Route path="finance" element={<ProtectedRoute permission="finance.view"><FeatureRoute companyId="company-1" featureKey="financial_suite"><Suspense fallback={routeFallback}><MerchantFinancePage /></Suspense></FeatureRoute></ProtectedRoute>} />
+            <Route path="coupons" element={<ProtectedRoute roles={["superadmin", "company_owner", "branch_manager"]}><FeatureRoute companyId="company-1" featureKey="coupon_automation"><Suspense fallback={routeFallback}><MerchantCouponsPage /></Suspense></FeatureRoute></ProtectedRoute>} />
+            <Route path="subscription" element={<ProtectedRoute><Suspense fallback={routeFallback}><MerchantSubscriptionPage /></Suspense></ProtectedRoute>} />
+            <Route path="settings" element={<ProtectedRoute><Suspense fallback={routeFallback}><MerchantSettingsPage /></Suspense></ProtectedRoute>} />
+            <Route path="kitchen-auto-print" element={<ProtectedRoute><Suspense fallback={routeFallback}><MerchantKitchenAutoPrintPage /></Suspense></ProtectedRoute>} />
+            <Route path="loyalty" element={<ProtectedRoute><Suspense fallback={routeFallback}><MerchantLoyaltyRewardsPage /></Suspense></ProtectedRoute>} />
+            <Route path="hours" element={<ProtectedRoute><Suspense fallback={routeFallback}><MerchantHoursPage /></Suspense></ProtectedRoute>} />
+            <Route path="holidays" element={<ProtectedRoute><Suspense fallback={routeFallback}><MerchantHolidaysPage /></Suspense></ProtectedRoute>} />
+            </Route>
 
-
-                <Route path={ROUTES.MERCHANT_HOLIDAYS} element={<Suspense fallback={routeFallback}><ProtectedRoute><MerchantHolidaysPage /></ProtectedRoute></Suspense>} />
-
-                <Route path={ROUTES.COURIER} element={<DashboardLayout logo="EN" title="Entregador" navItems={courierNavItems} />}>
-                  <Route index element={<Suspense fallback={routeFallback}><ProtectedRoute roles={['superadmin', 'courier']}><CourierDashboardPage /></ProtectedRoute></Suspense>} />
-                  <Route path="deliveries" element={<Suspense fallback={routeFallback}><ProtectedRoute permission="deliveries.manage"><CourierDeliveriesPage /></ProtectedRoute></Suspense>} />
-                </Route>
+            <Route path={ROUTES.COURIER} element={<DashboardLayout logo="EN" title="Entregador" navItems={courierNavItems} />}>  
+            <Route index element={<ProtectedRoute roles={["superadmin", "courier"]}><Suspense fallback={routeFallback}><CourierDashboardPage /></Suspense></ProtectedRoute>} />
+            <Route path="deliveries" element={<ProtectedRoute permission="deliveries.manage"><Suspense fallback={routeFallback}><CourierDeliveriesPage /></Suspense></ProtectedRoute>} />
+            </Route>
 
                 <Route path="*" element={
                   <div className="min-h-screen flex items-center justify-center">

@@ -27,6 +27,12 @@ dist-ssr
 # ESLint cache
 .eslintcache
 
+# Dev certs (alternate location)
+/.certs/
+
+# Phase planning artifacts
+phase3_skills_to_delete.txt
+
 # Debug / temp files
 _auth*
 _server*
@@ -35,3 +41,26 @@ contexto.txt
 server_log.txt
 nearby-*.png
 clone.nd
+
+# Screenshots de desenvolvimento
+*.png
+!public/**/*.png
+
+# Relatórios de auditoria (auto-gerados)
+audit-results/screenshots/
+playwright-report/
+test-results/
+.playwright-mcp/
+tests/screenshots/
+
+# Backups
+*.bak
+*.zip
+
+# Certificados locais (gerados por mkcert — NUNCA commitar)
+certs/*.pem
+certs/*.key
+certs/*.crt
+# Mantém o diretório certs/ e a documentação
+!certs/.gitkeep
+!certs/README.md

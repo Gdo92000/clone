@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { MerchantLayout } from '../components/MerchantLayout';
+import { PageHeader } from '../../../components/ui/PageHeader';
 import { Button } from '../../../components/ui/Button';
 import { useBusinessHours, useUpdateBusinessHours, useBranchStatus } from '../../../hooks/useOperations';
 import { usePersistentState } from '../../../hooks/usePersistentState';
@@ -122,20 +122,21 @@ export function MerchantHoursPage() {
   };
 
   return (
-    <MerchantLayout
-      title="Horários de funcionamento"
-      actions={
-         <select
-           value={selectedBranch}
-           onChange={(e) => { setSelectedBranch(e.target.value); }}
-           className="h-10 rounded-lg border border-border-default bg-surface-background px-3 text-sm"
-         >
-           {branches.map((b) => (
-             <option key={b.id} value={b.id}>{b.name}</option>
-           ))}
-         </select>
-      }
-    >
+    <>
+      <PageHeader
+        title="Horários de funcionamento"
+        actions={
+           <select
+             value={selectedBranch}
+             onChange={(e) => { setSelectedBranch(e.target.value); }}
+             className="h-10 rounded-lg border border-border-default bg-surface-background px-3 text-sm"
+           >
+             {branches.map((b) => (
+               <option key={b.id} value={b.id}>{b.name}</option>
+             ))}
+           </select>
+        }
+      />
       {status && (
         <div className="mb-4 rounded-xl border border-border-default bg-surface-elevated p-4">
           <div className="flex items-center gap-3">
@@ -261,8 +262,8 @@ export function MerchantHoursPage() {
               {updateHours.isPending ? 'Salvando...' : 'Salvar horários'}
             </Button>
           </div>
-        </div>
-      )}
-    </MerchantLayout>
+          </div>
+        )}
+    </>
   );
 }

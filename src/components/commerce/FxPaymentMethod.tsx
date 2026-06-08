@@ -19,14 +19,16 @@ export function FxPaymentMethod({
     <div className={clsx('space-y-3', className)}>
       <h3 className="font-semibold text-text-primary">Forma de pagamento</h3>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         {paymentMethods.map((method) => (
           <button
              key={method.id}
              onClick={() => { onSelect(method.id); }}
              aria-pressed={selected === method.id}
              className={clsx(
-              'flex items-center gap-3 p-3 rounded-xl border transition-all text-left',
+              'flex items-center gap-3 p-3 min-h-[44px] rounded-xl border transition-all text-left',
+              'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2',
+              'active:scale-[0.99]',
               selected === method.id
                 ? 'border-brand-primary bg-brand-primary/5 ring-1 ring-brand-primary'
                 : 'border-border-default hover:border-border-focus hover:bg-surface-elevated'

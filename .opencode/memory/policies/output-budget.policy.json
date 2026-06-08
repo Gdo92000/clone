@@ -1,0 +1,28 @@
+{
+  "policy_id": "output-budget",
+  "version": "1.0.0",
+  "description": "Limites globais para output_budget dos manifests. Lint falha se violar [minimums, maximums] ou se boolean_required_true=false. Estar abaixo de defaults NAO e violacao — e escolha de design documentada (ex.: debugging/performance/testing usam budgets mais apertados para tarefas tight).",
+  "defaults": {
+    "max_preamble_chars": 240,
+    "no_repeat_user_input": true,
+    "prefer_tables": true,
+    "max_items_before_summary": 5,
+    "truncate_grep_at": 20
+  },
+  "minimums": {
+    "max_preamble_chars": 100,
+    "no_repeat_user_input": true,
+    "prefer_tables": true,
+    "max_items_before_summary": 2,
+    "truncate_grep_at": 5
+  },
+  "maximums": {
+    "max_preamble_chars": 480,
+    "max_items_before_summary": 20,
+    "truncate_grep_at": 50
+  },
+  "booleans_required_true": [
+    "no_repeat_user_input",
+    "prefer_tables"
+  ]
+}

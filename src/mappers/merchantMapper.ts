@@ -1,11 +1,14 @@
 import type { MerchantBranch, MerchantCompany, MerchantMenuItem, MerchantOrder, MerchantOrderStatus } from '../types';
 import type { MerchantBranchDTO, MerchantCompanyDTO, MerchantMenuItemDTO, MerchantOrderDTO } from '../dto/merchantDto';
+import { coerceNumeric, coerceNumericOrZero } from '../utils/format';
 
 export function companyDtoToModel(dto: MerchantCompanyDTO): MerchantCompany {
   return { id: dto.id, name: dto.name, document: dto.document, plan: dto.plan };
 }
 
 export function branchDtoToModel(dto: MerchantBranchDTO): MerchantBranch {
+  const latitude = coerceNumeric(dto.latitude);
+  const longitude = coerceNumeric(dto.longitude);
   return {
     id: dto.id,
     companyId: dto.company_id,
@@ -16,15 +19,23 @@ export function branchDtoToModel(dto: MerchantBranchDTO): MerchantBranch {
     neighborhood: dto.neighborhood,
     city: dto.city,
     state: dto.state,
-    deliveryRadiusKm: dto.delivery_radius_km,
-    ...(dto.latitude !== null && dto.longitude !== null
-      ? { coordinates: { lat: dto.latitude, lng: dto.longitude } }
+    deliveryRadiusKm: coerceNumericOrZero(dto.delivery_radius_km),
+    ...(latitude !== null && longitude !== null
+      ? { coordinates: { lat: latitude, lng: longitude } }
       : {}),
   };
 }
 
 export function menuItemDtoToModel(dto: MerchantMenuItemDTO): MerchantMenuItem {
-  return { id: dto.id, branchId: dto.branch_id, name: dto.name, category: dto.category, price: dto.price, isAvailable: dto.is_available, description: dto.description };
+  return {
+    id: dto.id,
+    branchId: dto.branch_id,
+    name: dto.name,
+    category: dto.category,
+    price: coerceNumericOrZero(dto.price),
+    isAvailable: dto.is_available,
+    description: dto.description,
+  };
 }
 
 export function orderDtoToModel(dto: MerchantOrderDTO): MerchantOrder {
@@ -37,8 +48,12 @@ export function orderDtoToModel(dto: MerchantOrderDTO): MerchantOrder {
     status: dto.status as MerchantOrderStatus,
     paymentMethod: dto.payment_method,
     deliveryType: dto.delivery_type as 'delivery' | 'pickup',
-    total: dto.total,
-    items: dto.items,
+    total: coerceNumericOrZero(dto.total),
+    items: dto.items.map((item) => ({
+      name: item.name,
+      quantity: item.quantity,
+      price: coerceNumericOrZero(item.price),
+    })),
   };
 }
 

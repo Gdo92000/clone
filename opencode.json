@@ -22,10 +22,10 @@
     "context7": {
       "type": "remote",
       "url": "https://mcp.context7.com/mcp",
-      "enabled": true,
       "headers": {
-        "CONTEXT7_API_KEY": "${CONTEXT7_API_KEY}"
-      }
+        "CONTEXT7_API_KEY": "ctx7sk-9624e40d-fa93-4c55-8d8f-8d952ffbcca7"
+      },
+      "enabled": true
     },
     "playwright": {
       "type": "local",

@@ -1,19 +1,6 @@
-import { createContext, useContext, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
-
-interface OnlineStatusContextValue {
-  isOnline: boolean;
-  wasOffline: boolean;
-}
-
-const OnlineStatusContext = createContext<OnlineStatusContextValue>({
-  isOnline: true,
-  wasOffline: false,
-});
-
-export function useOnlineStatus(): OnlineStatusContextValue {
-  return useContext(OnlineStatusContext);
-}
+import { OnlineStatusContext } from './onlineStatusContext';
 
 export function OnlineStatusProvider({ children }: { children: ReactNode }) {
   const { isOnline, wasOffline } = useNetworkStatus();

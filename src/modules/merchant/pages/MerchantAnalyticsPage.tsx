@@ -1,5 +1,5 @@
 import { useOrders } from '../../../hooks/useMerchantData';
-import { MerchantLayout } from '../components/MerchantLayout';
+import { PageHeader } from '../../../components/ui/PageHeader';
 import { formatCurrency } from '../format';
 
 export function MerchantAnalyticsPage() {
@@ -8,7 +8,8 @@ export function MerchantAnalyticsPage() {
   const averageTicket = orders.length > 0 ? revenue / orders.length : 0;
 
   return (
-    <MerchantLayout title="Analytics Pro">
+    <>
+      <PageHeader title="Analytics Pro" />
       <section className="grid grid-cols-1 gap-3 md:grid-cols-3">
         <article className="rounded-xl border border-border-default bg-surface-elevated p-4">
           <p className="text-sm text-text-secondary">Receita analisada</p>
@@ -23,6 +24,6 @@ export function MerchantAnalyticsPage() {
            <p className="mt-2 text-2xl font-bold text-text-primary">{orders.length}</p>
         </article>
       </section>
-    </MerchantLayout>
+    </>
   );
 }

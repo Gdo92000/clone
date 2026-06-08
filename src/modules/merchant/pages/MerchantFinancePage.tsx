@@ -1,6 +1,6 @@
 import { Button } from '../../../components/ui/Button';
 import { useOrders } from '../../../hooks/useMerchantData';
-import { MerchantLayout } from '../components/MerchantLayout';
+import { PageHeader } from '../../../components/ui/PageHeader';
 import { formatCurrency } from '../format';
 import { infoToast } from '../../../lib/toast';
 
@@ -18,7 +18,8 @@ export function MerchantFinancePage() {
   const net = revenue - expenseTotal;
 
   return (
-    <MerchantLayout title="Financeiro completo">
+    <>
+      <PageHeader title="Financeiro completo" />
       <section className="grid grid-cols-1 gap-3 md:grid-cols-4">
         <article className="rounded-xl border border-border-default bg-surface-elevated p-4">
           <p className="text-sm text-text-secondary">Faturamento</p>
@@ -64,6 +65,6 @@ export function MerchantFinancePage() {
           <Button className="mt-4" variant="outline" onClick={() => { infoToast('Relatório financeiro disponível em breve.'); }}>Exportar relatorio</Button>
         </div>
       </section>
-    </MerchantLayout>
+    </>
   );
 }

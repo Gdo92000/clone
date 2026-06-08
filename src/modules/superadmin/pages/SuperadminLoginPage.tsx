@@ -10,6 +10,7 @@ const SUPERADMIN_CONFIG: LoginProfileConfig = {
   passwordPlaceholder: 'Sua senha',
   emailValidationError: 'Informe seu email.',
   passwordValidationError: 'Informe sua senha.',
+  devAllowedRoles: ['superadmin'],
 };
 
 export function SuperadminLoginPage() {

@@ -1,5 +1,6 @@
 export const ROUTES = {
   HOME: '/',
+  LOYALTY: '/loyalty',
 
   RESTAURANTS: '/restaurants',
   RESTAURANT_DETAIL: '/restaurant/:restaurantId',
@@ -29,6 +30,8 @@ export const ROUTES = {
   MERCHANT_SETTINGS: '/merchant/settings',
   MERCHANT_HOURS: '/merchant/hours',
   MERCHANT_HOLIDAYS: '/merchant/holidays',
+  MERCHANT_KITCHEN_AUTO_PRINT: '/merchant/kitchen-auto-print',
+  MERCHANT_LOYALTY: '/merchant/loyalty',
 
   COURIER: '/courier',
   COURIER_DELIVERIES: '/courier/deliveries',

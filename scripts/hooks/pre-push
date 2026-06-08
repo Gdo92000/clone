@@ -1,0 +1,4 @@
+@echo off
+REM Wrapper for Git hook to call PowerShell script
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0\pre-push.ps1"
+exit /b %ERRORLEVEL%

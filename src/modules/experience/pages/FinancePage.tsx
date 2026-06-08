@@ -1,14 +1,14 @@
 import { formatCurrency } from '../../merchant/format';
 import { useConsumerOrders } from '../../../hooks/useConsumerData';
-import type { ConsumerOrderDTO } from '../../../dto/superadminDto';
+import type { OrderDTO } from '../../../api/consumerApi';
 import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
 import { ExperienceLayout } from '../components/ExperienceLayout';
 
-function orderToFinanceRow(order: ConsumerOrderDTO, index: number) {
+function orderToFinanceRow(order: OrderDTO, index: number) {
   return {
     id: `fin-${index}`,
     title: `Pedido #${order.id}`,
-    amount: order.total,
+    amount: Number(order.total),
     detail: order.status ? `Status: ${order.status}` : 'Pedido realizado',
   } as const;
 }

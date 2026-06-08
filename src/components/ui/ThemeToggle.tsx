@@ -7,17 +7,17 @@ const themeOptions = [
   {
     value: 'light' as const,
     label: 'Claro',
-    icon: <Icon name="Sun" size={20} />,
+    icon: <Icon name="Sun" size={18} />,
   },
   {
     value: 'dark' as const,
     label: 'Escuro',
-    icon: <Icon name="Moon" size={20} />,
+    icon: <Icon name="Moon" size={18} />,
   },
   {
     value: 'system' as const,
     label: 'Sistema',
-    icon: <Icon name="Monitor" size={20} />,
+    icon: <Icon name="Monitor" size={18} />,
   },
 ];
 
@@ -44,7 +44,7 @@ export function ThemeToggle() {
       <button
         onClick={() => { setOpen(!open); }}
         className={clsx(
-          'w-11 h-11 rounded-full',
+          'w-10 h-10 sm:w-11 sm:h-11 rounded-full',
           'bg-surface-background border border-border-default',
           'flex items-center justify-center',
           'transition-colors hover:border-border-focus',

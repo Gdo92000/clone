@@ -1,0 +1,43 @@
+{
+  "capability": "frontend",
+  "description": "Interface do usuário, componentes React, estilização, UI/UX",
+  "version": "2.0.0",
+  "max_bootstrap_tokens": 500,
+  "max_working_tokens": 8000,
+  "max_retrieval_depth": 2,
+  "hot_docs": [],
+  "warm_docs": [
+    "docs/obsidian/project-operating-system/03-ENGINEERING/FOLDER_STRUCTURE.md",
+    "docs/obsidian/project-operating-system/03-ENGINEERING/CODE_STANDARDS.md",
+    "docs/obsidian/project-operating-system/02-ARCHITECTURE/C4_MODEL.md",
+    "docs/obsidian/wiki/decisions/**/*.md",
+    "docs/obsidian/wiki/patterns/frontend-*",
+    "docs/obsidian/wiki/patterns/react-*",
+    "docs/obsidian/wiki/patterns/ui-*",
+    "docs/obsidian/wiki/patterns/accessibility-*"
+  ],
+  "cold_docs": [
+    "docs/obsidian/project-operating-system/00-SYSTEM/*.md",
+    "docs/obsidian/project-operating-system/08-SECURITY/*.md",
+    "docs/obsidian/project-operating-system/04-AGENTS/*.md",
+    "docs/obsidian/project-operating-system/09-TESTING/TEST_PLAN.md",
+    "docs/obsidian/project-operating-system/99-TEMPLATES/**",
+    "docs/obsidian/wiki/patterns/claude-api/**",
+    "docs/obsidian/wiki/patterns/backend/**",
+    "docs/obsidian/wiki/patterns/database/**",
+    "docs/obsidian/wiki/patterns/security/**",
+    "docs/obsidian/wiki/log.md",
+    "docs/obsidian/archive/**"
+  ],
+  "allowed_skills": [
+    "react-best-practices",
+    "tailwind-patterns"
+  ],
+  "output_budget": {
+    "max_preamble_chars": 240,
+    "no_repeat_user_input": true,
+    "prefer_tables": true,
+    "max_items_before_summary": 5,
+    "truncate_grep_at": 20
+  }
+}

@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { PageHeader } from '../../../components/ui/PageHeader';
+import { FxPageNavbar } from '../../../components/navigation/FxPageNavbar';
 import { Icon } from '../../../components/ui/Icon';
 import { Button } from '../../../components/ui/Button';
 import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
 import { useConsumerLoyalty, useRedeemLoyaltyReward } from '../../../hooks/useConsumerData';
 import { clsx } from 'clsx';
+import { ROUTES } from '../../../lib/routes';
 
 export function ConsumerLoyaltyPage() {
   const [branchId, setBranchId] = useState('');
@@ -15,6 +17,8 @@ export function ConsumerLoyaltyPage() {
 
   return (
     <>
+      <FxPageNavbar title="Programa de fidelidade" backTo={ROUTES.PROFILE} />
+      <main className="max-w-2xl mx-auto px-4 py-6 space-y-6">
       <PageHeader title="Meu Programa de Fidelidade" />
       <FxQueryBoundary isLoading={isLoading} isError={false}>
         {!branchId ? (
@@ -83,6 +87,7 @@ export function ConsumerLoyaltyPage() {
           </div>
         )}
       </FxQueryBoundary>
+      </main>
     </>
   );
 }

@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Button } from '../../../components/ui/Button';
 import { FxImage } from '../../../components/ui/FxImage';
+import { PageHeader } from '../../../components/ui/PageHeader';
 import { roleLabels, useAuthSession } from '../../auth';
 import type { AuthUser, UserRole } from '../../auth';
 import { useAuditLog, usePlanLimits } from '../../enterprise';
 import { useBranches } from '../../../hooks/useMerchantData';
-import { MerchantLayout } from '../components/MerchantLayout';
 
 const employeeRoles: UserRole[] = [
   'company_owner',
@@ -19,8 +19,9 @@ export function MerchantTeamPage() {
   const { data: branches = [] } = useBranches();
   const { currentUser, setUsers, users } = useAuthSession();
   const { recordAudit } = useAuditLog();
-  const limits = usePlanLimits('company-1');
-  const companyUsers = users.filter((user) => user.companyId === 'company-1');
+  const companyId = currentUser?.companyId ?? '';
+  const limits = usePlanLimits(companyId);
+  const companyUsers = users.filter((user) => user.companyId === companyId);
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -57,7 +58,8 @@ export function MerchantTeamPage() {
   };
 
   return (
-    <MerchantLayout title="Equipe e permissoes">
+    <>
+      <PageHeader title="Equipe e permissoes" />
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-[0.75fr_1.25fr]">
         <div className="rounded-xl border border-border-default bg-surface-elevated p-4">
           <h2 className="font-semibold text-text-primary">Convidar funcionario</h2>
@@ -103,6 +105,6 @@ export function MerchantTeamPage() {
           ))}
         </div>
       </section>
-    </MerchantLayout>
+    </>
   );
 }

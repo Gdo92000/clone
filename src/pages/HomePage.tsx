@@ -30,9 +30,9 @@ export function HomePage() {
   const cityName = city?.name ?? 'você';
 
   const filteredAndSortedRestaurants = useMemo<RestaurantWithDistance[]>(() => {
-    const cityRestaurants = restaurants.filter(
-      (r) => r.city?.toLowerCase() === city?.name.toLowerCase(),
-    );
+    const cityRestaurants = city
+      ? restaurants.filter((r) => r.city?.toLowerCase() === city.name.toLowerCase())
+      : restaurants;
 
     if (!coordinates || !city) {
       return cityRestaurants.map((r) => ({
@@ -139,7 +139,7 @@ export function HomePage() {
                 Ver todos
               </button>
             </div>
-            <div className="flex gap-4 overflow-x-auto -mx-4 px-4 pb-2 scrollbar-hide">
+            <div className="flex gap-4 overflow-x-auto -mx-4 px-4 pb-2 snap-x snap-mandatory scroll-pl-4 scrollbar-hide">
               {featured.slice(0, 6).map((r) => (
                 <div key={r.id} className="min-w-[280px] sm:min-w-[320px] shrink-0">
                   <FxRestaurantCard

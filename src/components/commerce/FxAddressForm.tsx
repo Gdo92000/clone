@@ -78,7 +78,7 @@ export function FxAddressForm({ value, onChange, className }: FxAddressFormProps
     <div className={clsx('space-y-4', className)}>
       <h3 className="font-semibold text-text-primary">Endereço de entrega</h3>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {showAutocomplete ? (
           <div className="col-span-2">
             <label className="block text-sm font-medium text-text-secondary mb-1">

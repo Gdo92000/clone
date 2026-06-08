@@ -8,5 +8,5 @@ export const authApi = {
     post<{ success: boolean; id: string }>('/auth/register', { name, email, password }),
   logout: () => post<Record<string, never>>('/auth/logout'),
   me: () => get<AuthUserDTO>('/auth/me'),
-  getUsers: () => get<AuthUserDTO[]>('/users'),
+    getUsers: () => get<AuthUserDTO[]>('/admin/users'),
 };

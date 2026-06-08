@@ -2,10 +2,10 @@
 type: knowledge
 status: active
 created_at: 2026-05-23
-updated_at: 2026-05-23
+updated_at: 2026-06-08
 tags:
-- type/knowledge
-- domain/architecture
+  - type/knowledge
+  - domain/architecture
 ---
 
 # Decisões Arquiteturais
@@ -69,6 +69,18 @@ Server lida com `SIGTERM`/`SIGINT`: verifica DB connectivity (503 se down), fech
 Code splitting (lazy loading), bundle chunking (manualChunks), React Query caching (2min stale / 5min GC), DB indexes por domínio, rate limiting configurável com suporte Redis.
 
 → Ver também: [[Error Handling e Performance]]
+
+## 11. Mirror Service — Transação Atômica (ADR-005)
+
+Pedidos consumer e merchant são criados em 2 schemas do banco (`customer.orders` + `merchant.merchant_orders`). A operação DEVE ser atômica via `db.transaction` — sequential inserts produzem gravação parcial em 6 cenários de falha. `orders` é source of truth; `merchant_orders` é view derivada com mesmo `id`.
+
+→ Ver também: [[ADR-005 Mirror Service Atomicidade e Integridade]] · [[Mirror Service — Arquitetura e Auditoria]]
+
+## 12. Fallback em Lookup de Negócio = Erro Explícito
+
+`findBranchForRestaurant` e funções similares de lookup de negócio **NÃO devem retornar fallback** (primeira branch, default, etc.). Se o registro não existe, lançar erro explícito (ex: `BRANCH_NOT_FOUND`). Fallback silencioso atribui dados à entidade errada sem sinalização.
+
+→ Ver também: [[ADR-005 Mirror Service Atomicidade e Integridade]]
 
 > [!tip] Navegação
 > [[MOC — Arquitetura do Sistema]] · [[ARCHITECTURE]]

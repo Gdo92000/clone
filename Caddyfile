@@ -1,0 +1,114 @@
+{
+	"email": "ops@fluxdelivery.example.com"
+}
+
+# ============================================================
+# Flux Delivery — Caddyfile
+# ============================================================
+# Reverse proxy com HTTPS automático via Let's Encrypt.
+# Substitua `fluxdelivery.example.com` pelo seu domínio real.
+# Caddy emite e renova certificados automaticamente.
+# ============================================================
+
+# --- Bloco principal: Frontend (Vite/React) + Backend (Hono) ---
+# Em produção, o build estático do Vite é servido pelo app Node
+# (porta 3000) e o backend Hono roda na 3001. O Caddy encara os dois.
+fluxdelivery.example.com, www.fluxdelivery.example.com {
+
+	# Compressão Brotli + Gzip
+	encode zstd gzip
+
+	# Cache de assets estáticos com hash (Vite gera com hash no nome)
+	@assets path /assets/* /favicon.ico /manifest.webmanifest
+	header @assets Cache-Control "public, max-age=31536000, immutable"
+
+	# HTML sempre fresco
+	@html path *.html
+	header @html Cache-Control "no-cache, no-store, must-revalidate"
+
+	# ----- Backend (Hono) — API e SSR -----
+	# Encaminha /api/* e WebSocket para o backend Node
+	reverse_proxy /api/* localhost:3001 {
+		header_up Host {host}
+		header_up X-Real-IP {remote_host}
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+		header_up X-Forwarded-Host {host}
+		transport http {
+			dial_timeout 10s
+			response_header_timeout 30s
+		}
+	}
+
+	# ----- Frontend (build estático servido pelo Node) -----
+	# Em produção servimos o build via SSR/Node para suportar SPA
+	# fallback. Se preferir servir estático puro, troque para:
+	#   root * /var/www/flux-delivery/dist
+	#   file_server
+	#   try_files {path} /index.html
+	reverse_proxy localhost:3000 {
+		header_up Host {host}
+		header_up X-Real-IP {remote_host}
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+		header_up X-Forwarded-Host {host}
+	}
+
+	# ----- Security headers (HSTS só após confirmar) -----
+	header {
+		# Habilitar após confirmar que HTTPS funciona 100%
+		# Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "geolocation=(self), camera=(), microphone=()"
+		# Remove Server header
+		-Server
+	}
+
+	# ----- Logging estruturado -----
+	log {
+		output file /var/log/caddy/flux-delivery.log {
+			roll_size 100mb
+			roll_keep 10
+			roll_compression gzip
+		}
+		format console
+		level INFO
+	}
+}
+
+# ============================================================
+# Subdomínio de API dedicado (opcional)
+# Descomente se separar api.fluxdelivery.example.com
+# ============================================================
+# api.fluxdelivery.example.com {
+# 	encode zstd gzip
+# 	reverse_proxy localhost:3001 {
+# 		header_up Host {host}
+# 		header_up X-Real-IP {remote_host}
+# 		header_up X-Forwarded-For {remote_host}
+# 		header_up X-Forwarded-Proto {scheme}
+# 	}
+# 	header {
+# 		X-Content-Type-Options "nosniff"
+# 		X-Frame-Options "DENY"
+# 		Access-Control-Allow-Origin "https://fluxdelivery.example.com"
+# 	}
+# }
+
+# ============================================================
+# HTTP → HTTPS (automático pelo Caddy)
+# Caddy já redireciona HTTP para HTTPS automaticamente quando
+# um site block declara um domínio. Se precisar de um bloco
+# explícito, use:
+# ============================================================
+# :80 {
+# 	redir https://{host}{uri} permanent
+# }
+
+# ============================================================
+# Dev local com Caddy (opcional — Vite já usa mkcert)
+# Para testar o reverse proxy localmente:
+#   caddy run --config Caddyfile.dev
+# ============================================================

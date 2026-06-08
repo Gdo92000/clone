@@ -1,4 +1,4 @@
-import { MerchantLayout } from '../components/MerchantLayout';
+import { PageHeader } from '../../../components/ui/PageHeader';
 import { MerchantStatCard } from '../components/MerchantStatCard';
 import { MerchantStatusBadge } from '../components/MerchantStatusBadge';
 import { Icon } from '../../../components/ui/Icon';
@@ -18,7 +18,8 @@ export function MerchantDashboardPage() {
   const availableItems = menuItems.filter((item) => item.isAvailable).length;
 
   return (
-    <MerchantLayout title="Visao geral">
+    <>
+      <PageHeader title="Visao geral" />
       <FxQueryBoundary isLoading={branchesLoading || menuItemsLoading || ordersLoading} isError={branchesError || menuItemsError || ordersError}>
       <section className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
         <MerchantStatCard label="Faturamento hoje" value={formatCurrency(revenue)} detail="Mock local" icon={<Icon name="DollarSign" size={24} />} />
@@ -58,6 +59,6 @@ export function MerchantDashboardPage() {
         </div>
       </section>
       </FxQueryBoundary>
-    </MerchantLayout>
+    </>
   );
 }

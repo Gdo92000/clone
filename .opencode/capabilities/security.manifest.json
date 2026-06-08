@@ -1,0 +1,37 @@
+{
+  "capability": "security",
+  "description": "Vulnerabilidades, proteção de dados, segurança de aplicação",
+  "version": "2.0.0",
+  "max_bootstrap_tokens": 500,
+  "max_working_tokens": 8000,
+  "max_retrieval_depth": 2,
+  "hot_docs": [],
+  "warm_docs": [
+    "docs/obsidian/project-operating-system/08-SECURITY/**/*.md",
+    "docs/obsidian/project-operating-system/00-SYSTEM/SYSTEM_CONTRACT.md",
+    "docs/obsidian/wiki/patterns/security-*",
+    "docs/obsidian/wiki/decisions/**/*.md"
+  ],
+  "cold_docs": [
+    "docs/obsidian/project-operating-system/04-AGENTS/*.md",
+    "docs/obsidian/project-operating-system/99-TEMPLATES/generated/*",
+    "docs/obsidian/project-operating-system/99-TEMPLATES/reusable/*",
+    "docs/obsidian/project-operating-system/03-ENGINEERING/BUG_REPORT_TEMPLATE.md",
+    "docs/obsidian/wiki/patterns/claude-api/**",
+    "docs/obsidian/wiki/log.md",
+    "docs/obsidian/archive/**"
+  ],
+  "allowed_skills": [
+    "vulnerability-scanner",
+    "red-team-tactics",
+    "code-review-checklist",
+    "systematic-debugging"
+  ],
+  "output_budget": {
+    "max_preamble_chars": 240,
+    "no_repeat_user_input": true,
+    "prefer_tables": true,
+    "max_items_before_summary": 5,
+    "truncate_grep_at": 20
+  }
+}

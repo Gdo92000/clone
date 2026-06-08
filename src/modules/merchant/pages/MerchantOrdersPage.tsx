@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Button } from '../../../components/ui/Button';
-import { MerchantLayout } from '../components/MerchantLayout';
+import { PageHeader } from '../../../components/ui/PageHeader';
 import { MerchantStatusBadge } from '../components/MerchantStatusBadge';
 import { formatCurrency } from '../format';
 import { useOrders, useBranches, useUpdateOrderStatus } from '../../../hooks/useMerchantData';
@@ -34,34 +34,35 @@ export function MerchantOrdersPage() {
   // Handle loading states
   if (ordersLoading || branchesLoading) {
     return (
-      <MerchantLayout title="Pedidos recebidos">
+      <>
+        <PageHeader title="Pedidos recebidos" />
         <section className="flex min-h-[200px] items-center justify-center">
           <div className="text-center">
             <p className="text-text-secondary">Carregando pedidos...</p>
           </div>
         </section>
-      </MerchantLayout>
+      </>
     );
   }
 
   return (
     <FxQueryBoundary isLoading={false} isError={ordersError || branchesError} error={ordersErr}>
-    <MerchantLayout
-      title="Pedidos recebidos"
-      actions={
-        <select
-          value={branchId}
-          onChange={(event) => { setBranchId(event.target.value); }}
-          className="h-10 rounded-lg border border-border-default bg-surface-background px-3 text-sm"
-          disabled={updateStatusPending}
-        >
-          <option value="all">Todas as filiais</option>
-          {branches.map((branch) => (
-            <option key={branch.id} value={branch.id}>{branch.name}</option>
-          ))}
-        </select>
-      }
-    >
+      <PageHeader
+        title="Pedidos recebidos"
+        actions={
+          <select
+            value={branchId}
+            onChange={(event) => { setBranchId(event.target.value); }}
+            className="h-10 rounded-lg border border-border-default bg-surface-background px-3 text-sm"
+            disabled={updateStatusPending}
+          >
+            <option value="all">Todas as filiais</option>
+            {branches.map((branch) => (
+              <option key={branch.id} value={branch.id}>{branch.name}</option>
+            ))}
+          </select>
+        }
+      />
       <section className="space-y-3">
         {filteredOrders.map((order) => {
           const branch = branches.find((item) => item.id === order.branchId);
@@ -110,7 +111,6 @@ export function MerchantOrdersPage() {
           );
         })}
       </section>
-    </MerchantLayout>
     </FxQueryBoundary>
   );
 }

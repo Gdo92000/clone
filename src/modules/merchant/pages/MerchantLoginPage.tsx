@@ -15,6 +15,7 @@ const MERCHANT_CONFIG: LoginProfileConfig = {
       iF
     </span>
   ),
+  devAllowedRoles: ['company_owner', 'branch_manager', 'attendant', 'finance'],
 };
 
 export function MerchantLoginPage() {
