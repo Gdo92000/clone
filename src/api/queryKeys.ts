@@ -62,6 +62,15 @@ export const coverageKeys = {
   cities: ['coverage', 'cities'] as const,
 } as const;
 
+export const citiesKeys = {
+  all: ['cities'] as const,
+  active: () => ['cities', 'active'] as const,
+  neighborhoods: (city: string, state: string) => ['cities', 'neighborhoods', city, state] as const,
+  coverage: (city: string, state: string) => ['cities', 'coverage', city, state] as const,
+  neighborhoodCoverage: (city: string, state: string, neighborhood: string) =>
+    ['cities', 'neighborhood-coverage', city, state, neighborhood] as const,
+} as const;
+
 export const courierKeys = {
   all: ['courier'] as const,
   deliveries: ['courier', 'deliveries'] as const,

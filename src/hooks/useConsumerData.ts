@@ -2,7 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { consumerApi } from '../api/consumerApi';
 import { consumerKeys } from '../api/queryKeys';
 import { errorToast, successToast } from '../lib/toast';
-import type { ConsumerNotificationDTO, ConsumerOrderDTO, ConsumerLoyaltyDTO, SupportTicketDTO, ReviewDTO } from '../dto/superadminDto';
+import type { ConsumerNotificationDTO, ConsumerLoyaltyDTO, SupportTicketDTO, ReviewDTO } from '../dto/superadminDto';
+import type { OrderDTO } from '../api/consumerApi';
 
 const STALE = 1000 * 60 * 5;
 
@@ -31,7 +32,7 @@ export function useRedeemLoyaltyReward(branchId: string) {
 }
 
 export function useConsumerOrders() {
-  return useQuery<ConsumerOrderDTO[]>({
+  return useQuery<OrderDTO[]>({
     queryKey: consumerKeys.orders,
     queryFn: () => consumerApi.getMyOrders(),
     staleTime: STALE,

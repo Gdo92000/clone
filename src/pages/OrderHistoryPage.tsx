@@ -23,7 +23,7 @@ export function OrderHistoryPage() {
 
   return (
     <div className="min-h-screen bg-surface-background">
-      <FxPageNavbar title="Meus Pedidos" />
+      <FxPageNavbar title="Meus Pedidos" backTo={ROUTES.HOME} />
 
       <main>
         <div className="fx-container py-4 space-y-3">

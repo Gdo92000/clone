@@ -1,4 +1,4 @@
-import { get, post, put, del } from './httpClient';
+import { get, post, put, patch, del } from './httpClient';
 import type { MerchantCompanyDTO, MerchantBranchDTO, MerchantMenuItemDTO, MerchantOrderDTO, BranchSettingsDTO, CreateBranchRequest, UpdateBranchRequest }
   from '../dto/merchantDto';
 import type { MerchantOrderStatus } from '../types';
@@ -13,6 +13,14 @@ export const merchantApi = {
   deleteBranch: (id: string) => del<Record<string, never>>(`/branches/${id}`),
   getMenuItems: () => get<MerchantMenuItemDTO[]>('/menu-items'),
   getMenuItemsByBranch: (branchId: string) => get<MerchantMenuItemDTO[]>(`/branches/${branchId}/menu-items`),
+  createMenuItem: (branchId: string, data: { name: string; category: string; price: number; description?: string | null; is_available?: boolean }) =>
+    post<MerchantMenuItemDTO>(`/branches/${branchId}/menu-items`, data),
+  updateMenuItem: (branchId: string, itemId: string, data: { name?: string; category?: string; price?: number; description?: string | null; is_available?: boolean }) =>
+    put<Record<string, never>>(`/branches/${branchId}/menu-items/${itemId}`, data),
+  toggleMenuItemAvailability: (branchId: string, itemId: string, is_available: boolean) =>
+    patch<{ success: boolean; is_available: boolean }>(`/branches/${branchId}/menu-items/${itemId}/availability`, { is_available }),
+  deleteMenuItem: (branchId: string, itemId: string) =>
+    del<Record<string, never>>(`/branches/${branchId}/menu-items/${itemId}`),
   getOrders: () => get<MerchantOrderDTO[]>('/orders'),
   getOrdersByBranch: (branchId: string) => get<MerchantOrderDTO[]>(`/branches/${branchId}/orders`),
   updateOrderStatus: (orderId: string, status: MerchantOrderStatus) =>
