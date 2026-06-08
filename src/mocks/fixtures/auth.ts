@@ -1,31 +1,44 @@
-import type { AuthUserDTO, LoginResponseDTO } from '../../dto/authDto'
+import type { AuthUserDTO, LoginResponseDTO } from '../../dto/authDto';
+import { MOCK_USERS } from '../../auth/dev-mock-data';
 
-export const mockUsers: AuthUserDTO[] = [
-  { id: 'user-1', name: 'Admin Master', email: 'admin@admin.com', role: 'superadmin', avatar_url: '', active: true },
-  { id: 'user-2', name: 'João Restaurante', email: 'joao@burgerhouse.com', role: 'admin', company_id: 'comp-1', branch_id: 'branch-1', avatar_url: '', active: true },
-  { id: 'user-3', name: 'Maria Cozinha', email: 'maria@sakura.com', role: 'branch_manager', company_id: 'comp-2', avatar_url: '', active: true },
-  { id: 'user-4', name: 'Carlos Entregas', email: 'carlos@delivery.com', role: 'courier', branch_id: 'branch-1', avatar_url: '', active: true },
-  { id: 'user-5', name: 'Ana Cliente', email: 'ana@email.com', role: 'customer', avatar_url: '', active: true },
-]
-
-const defaultUser: AuthUserDTO = {
-  id: 'user-1', name: 'Admin Master', email: 'admin@admin.com', role: 'superadmin', avatar_url: '', active: true,
+function toAuthUserDTO(user: (typeof MOCK_USERS)[number]): AuthUserDTO {
+  const dto: AuthUserDTO = {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    avatar_url: user.avatarUrl,
+    active: user.active,
+  };
+  if (user.companyId !== undefined) dto.company_id = user.companyId;
+  if (user.branchId !== undefined) dto.branch_id = user.branchId;
+  return dto;
 }
+
+export const mockUsers: AuthUserDTO[] = MOCK_USERS.map(toAuthUserDTO);
+
+const firstUser = MOCK_USERS[0];
+
+if (!firstUser) {
+  throw new Error('MOCK_USERS is empty; cannot build mock auth fixture.');
+}
+
+const defaultUser: AuthUserDTO = mockUsers[0] ?? toAuthUserDTO(firstUser);
 
 export const mockLoginResponse: LoginResponseDTO = {
   user: defaultUser,
   token: 'mock-jwt-token-superadmin',
   refreshToken: 'mock-refresh-token',
   expiresIn: 86400,
-}
+};
 
 export function loginMock(email: string, _password: string): LoginResponseDTO | null {
-  const user = mockUsers.find(u => u.email === email)
-  if (!user) return null
+  const dto = mockUsers.find((u) => u.email === email);
+  if (!dto) return null;
   return {
-    user,
-    token: `mock-jwt-token-${user.role}`,
+    user: dto,
+    token: `mock-jwt-token-${dto.role}`,
     refreshToken: 'mock-refresh-token',
     expiresIn: 86400,
-  }
+  };
 }

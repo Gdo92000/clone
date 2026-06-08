@@ -1,24 +1,6 @@
 import type { AuthUserDTO } from '../../dto/authDto'
 import { mockUsers } from './auth'
 
-export interface CoverageCity {
-  id: string
-  name: string
-  state: string
-  latitude: string
-  longitude: string
-  radius_km: number
-  is_active: boolean
-  restaurant_count: number
-  created_at: string
-}
-
-export const mockCoverageCities: CoverageCity[] = [
-  { id: 'city-sao-paulo', name: 'São Paulo', state: 'SP', latitude: '-23.5505', longitude: '-46.6333', radius_km: 30, is_active: true, restaurant_count: 8, created_at: new Date(Date.now() - 86400000).toISOString() },
-  { id: 'city-rio-de-janeiro', name: 'Rio de Janeiro', state: 'RJ', latitude: '-22.9068', longitude: '-43.1729', radius_km: 25, is_active: true, restaurant_count: 0, created_at: new Date(Date.now() - 172800000).toISOString() },
-  { id: 'city-belo-horizonte', name: 'Belo Horizonte', state: 'MG', latitude: '-19.9167', longitude: '-43.9345', radius_km: 20, is_active: true, restaurant_count: 0, created_at: new Date(Date.now() - 259200000).toISOString() },
-]
-
 export interface Notification {
   id: string
   title: string

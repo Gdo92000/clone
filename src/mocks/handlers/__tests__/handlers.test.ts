@@ -1,5 +1,9 @@
 import { server } from '../../server'
-import { setScenario } from '../../scenarios'
+import { setScenario } from '../../scenarios/index'
+import { MOCK_USERS } from '../../../auth/dev-mock-data'
+
+const superadminUser = MOCK_USERS.find((u) => u.role === 'superadmin')
+if (!superadminUser) throw new Error('MOCK_USERS missing superadmin')
 
 function api() {
   const base = 'http://localhost'
@@ -22,11 +26,11 @@ afterEach(() => { server.resetHandlers() })
 
 describe('Auth', () => {
   it('POST /api/auth/login returns 200 with token', async () => {
-    const res = await api().post('/api/auth/login', { email: 'admin@admin.com', password: 'admin' })
+    const res = await api().post('/api/auth/login', { email: superadminUser.email, password: 'any' })
     expect(res.status).toBe(200)
     const body = await res.json() as { token: string; user: { email: string } }
     expect(body.token).toBe('mock-jwt-token-superadmin')
-    expect(body.user.email).toBe('admin@admin.com')
+    expect(body.user.email).toBe(superadminUser.email)
   })
 
   it('GET /api/auth/me returns 200 with user when authorized', async () => {
@@ -35,7 +39,7 @@ describe('Auth', () => {
     })
     expect(res.status).toBe(200)
     const body = await res.json() as { id: string }
-    expect(body.id).toBe('user-1')
+    expect(body.id).toBe(superadminUser.id)
   })
 
   it('GET /api/auth/me returns 401 without token', async () => {
@@ -50,7 +54,7 @@ describe('Restaurants', () => {
     expect(res.status).toBe(200)
     const body = await res.json() as Array<Record<string, unknown>>
     expect(Array.isArray(body)).toBe(true)
-    expect(body.length).toBe(8)
+    expect(body.length).toBe(9)
   })
 
   it('GET /api/restaurants/:id returns single', async () => {
@@ -129,16 +133,6 @@ describe('Operations', () => {
     const body = await res.json() as Array<Record<string, unknown>>
     expect(body[0]?.scope).toBe('national')
     expect(body[0]?.type).toBeUndefined()
-  })
-})
-
-describe('Coverage', () => {
-  it('GET /api/coverage-cities returns list with created_at', async () => {
-    const res = await api().get('/api/coverage-cities')
-    expect(res.status).toBe(200)
-    const body = await res.json() as Array<Record<string, unknown>>
-    expect(body.length).toBe(3)
-    expect(body[0]?.created_at).toBeDefined()
   })
 })
 

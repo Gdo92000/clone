@@ -3,7 +3,7 @@ import {
   mockPlans, mockAddons, mockSubscriptions, mockInvoices,
 } from '../fixtures/subscriptions'
 import { logMock } from '../logger'
-import { getCurrentScenario } from '../scenarios'
+import { getCurrentScenario } from '../scenarios/index'
 
 export const subscriptionHandlers = [
   http.get('*/api/plans', () => {

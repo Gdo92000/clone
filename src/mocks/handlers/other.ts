@@ -6,7 +6,7 @@ import {
   mockConsumerTickets, mockConsumerReviews,
 } from '../fixtures/superadmin'
 import { logMock } from '../logger'
-import { getCurrentScenario } from '../scenarios'
+import { getCurrentScenario } from '../scenarios/index'
 
 export const themeHandlers = [
   http.get('*/api/theme/me/theme', () => {

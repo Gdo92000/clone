@@ -5,7 +5,7 @@ import {
 } from '../fixtures/merchant'
 import type { MerchantBranchDTO } from '../../dto/merchantDto'
 import { logMock } from '../logger'
-import { getCurrentScenario } from '../scenarios'
+import { getCurrentScenario } from '../scenarios/index'
 
 const branchesStore: MerchantBranchDTO[] = mockBranches.map((b) => ({ ...b }))
 

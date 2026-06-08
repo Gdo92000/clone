@@ -1,7 +1,7 @@
 import { http, HttpResponse } from 'msw'
 import { mockBusinessHours, mockOperationStatus, mockHolidays, mockTodayPeriods } from '../fixtures/operations'
 import { logMock } from '../logger'
-import { getCurrentScenario } from '../scenarios'
+import { getCurrentScenario } from '../scenarios/index'
 
 export const operationHandlers = [
   http.get('*/api/operations/:branchId/status', ({ params }) => {

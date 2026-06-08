@@ -1,4 +1,4 @@
-import { setScenario, getCurrentScenario } from './scenarios'
+import { setScenario, getCurrentScenario } from './scenarios/index'
 import type { ScenarioName } from './scenarios/types'
 import { logger } from '../lib/logger'
 
