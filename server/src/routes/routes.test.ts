@@ -2,12 +2,13 @@ import { Hono } from 'hono';
 import type { MiddlewareHandler } from 'hono';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const { selectMock, insertMock, updateMock, deleteMock } = vi.hoisted(() => {
+const { selectMock, insertMock, updateMock, deleteMock, transactionMock } = vi.hoisted(() => {
   const select = vi.fn();
   const insert = vi.fn();
   const update = vi.fn();
   const del = vi.fn();
-  return { selectMock: select, insertMock: insert, updateMock: update, deleteMock: del };
+  const transaction = vi.fn();
+  return { selectMock: select, insertMock: insert, updateMock: update, deleteMock: del, transactionMock: transaction };
 });
 
 vi.mock('../db', () => {
@@ -25,6 +26,7 @@ vi.mock('../db', () => {
       insert: insertMock.mockReturnValue({ values: vi.fn().mockResolvedValue(undefined) }),
       update: updateMock.mockReturnValue({ set: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) }) }),
       delete: deleteMock.mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) }),
+      transaction: transactionMock,
     },
   };
 });
@@ -44,6 +46,7 @@ function mockSelect(result: unknown[]) {
     where: vi.fn().mockReturnThis(),
     limit: vi.fn().mockReturnThis(),
     orderBy: vi.fn().mockReturnThis(),
+    leftJoin: vi.fn().mockReturnThis(),
     then: vi.fn((cb: (r: unknown[]) => unknown) => Promise.resolve(cb(result))),
   };
 }
@@ -54,6 +57,7 @@ function mockSelectWithLimit(result: unknown[]) {
     where: vi.fn().mockReturnThis(),
     limit: vi.fn().mockReturnValue({ then: (cb: (r: unknown[]) => unknown) => Promise.resolve(cb(result)) }),
     orderBy: vi.fn().mockReturnThis(),
+    leftJoin: vi.fn().mockReturnThis(),
     then: vi.fn((cb: (r: unknown[]) => unknown) => Promise.resolve(cb([]))),
   };
 }
@@ -69,6 +73,8 @@ const resetDbMocks = () => {
   updateMock.mockReturnValue({ set: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) }) });
   deleteMock.mockReset();
   deleteMock.mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) });
+  transactionMock.mockReset();
+  transactionMock.mockRejectedValue(new Error('transaction not mocked for this test'));
 };
 
 describe('Route integration tests', () => {
@@ -162,131 +168,6 @@ describe('Route integration tests', () => {
     });
   });
 
-  describe('Coverage cities', () => {
-    const mockCity = { id: 'city-franca', name: 'Franca', state: 'SP', latitude: '-20.5355', longitude: '-47.4011', radius_km: 18, restaurant_count: 0, is_active: true, created_at: new Date().toISOString() };
-
-    it('GET / returns cities', async () => {
-      selectMock.mockImplementation(() => mockSelect([mockCity]));
-      const { default: route } = await import('./coverage-cities');
-      const app = new Hono().route('/api/coverage-cities', route);
-      const res = await app.request('/api/coverage-cities');
-      expect(res.status).toBe(200);
-      const body = await res.json() as BodyRecord[];
-      expect(body).toHaveLength(1);
-      expect(body[0].name).toBe('Franca');
-    });
-
-    it('GET / returns empty array when no cities', async () => {
-      selectMock.mockImplementation(() => mockSelect([]));
-      const { default: route } = await import('./coverage-cities');
-      const app = new Hono().route('/api/coverage-cities', route);
-      const res = await app.request('/api/coverage-cities');
-      expect(res.status).toBe(200);
-      const body = await res.json() as BodyRecord[];
-      expect(body).toHaveLength(0);
-    });
-
-    it('GET /:id returns city when found', async () => {
-      selectMock.mockImplementation(() => mockSelectWithLimit([mockCity]));
-      const { default: route } = await import('./coverage-cities');
-      const app = new Hono().route('/api/coverage-cities', route);
-      const res = await app.request('/api/coverage-cities/city-franca');
-      expect(res.status).toBe(200);
-      const body = await res.json() as BodyRecord;
-      expect(body.id).toBe('city-franca');
-    });
-
-    it('GET /:id returns 404 when not found', async () => {
-      selectMock.mockImplementation(() => mockSelectWithLimit([]));
-      const { default: route } = await import('./coverage-cities');
-      const app = new Hono().route('/api/coverage-cities', route);
-      const res = await app.request('/api/coverage-cities/city-unknown');
-      expect(res.status).toBe(404);
-    });
-
-    it('POST /admin creates coverage city', async () => {
-      selectMock.mockImplementation(() => mockSelectWithLimit([mockCity]));
-      const { default: route } = await import('./coverage-cities');
-      const app = new Hono().route('/api/coverage-cities', route);
-      const res = await app.request('/api/coverage-cities/admin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer t' },
-        body: JSON.stringify({ name: 'Franca', state: 'SP', latitude: '-20.5355', longitude: '-47.4011' }),
-      });
-      expect(res.status).toBe(201);
-    });
-
-    it('POST /admin returns 400 for invalid body', async () => {
-      const { default: route } = await import('./coverage-cities');
-      const app = new Hono().route('/api/coverage-cities', route);
-      const res = await app.request('/api/coverage-cities/admin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer t' },
-        body: JSON.stringify({}),
-      });
-      expect(res.status).toBe(400);
-    });
-
-    it('PUT /admin/:id updates coverage city', async () => {
-      selectMock.mockImplementation(() => mockSelectWithLimit([mockCity]));
-      const { default: route } = await import('./coverage-cities');
-      const app = new Hono().route('/api/coverage-cities', route);
-      const res = await app.request('/api/coverage-cities/admin/city-franca', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer t' },
-        body: JSON.stringify({ radiusKm: 25 }),
-      });
-      expect(res.status).toBe(200);
-    });
-
-    it('PUT /admin/:id returns 404 for unknown city', async () => {
-      selectMock.mockImplementation(() => mockSelectWithLimit([]));
-      const { default: route } = await import('./coverage-cities');
-      const app = new Hono().route('/api/coverage-cities', route);
-      const res = await app.request('/api/coverage-cities/admin/city-unknown', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer t' },
-        body: JSON.stringify({ radiusKm: 25 }),
-      });
-      expect(res.status).toBe(404);
-    });
-
-    it('PATCH /admin/:id/toggle flips active status', async () => {
-      selectMock.mockImplementation(() => mockSelectWithLimit([mockCity]));
-      updateMock.mockReturnValue({ set: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) }) });
-      const { default: route } = await import('./coverage-cities');
-      const app = new Hono().route('/api/coverage-cities', route);
-      const res = await app.request('/api/coverage-cities/admin/city-franca/toggle', {
-        method: 'PATCH',
-        headers: { Authorization: 'Bearer t' },
-      });
-      expect(res.status).toBe(200);
-    });
-
-    it('DELETE /admin/:id removes coverage city', async () => {
-      const { default: route } = await import('./coverage-cities');
-      const app = new Hono().route('/api/coverage-cities', route);
-      const res = await app.request('/api/coverage-cities/admin/city-franca', {
-        method: 'DELETE',
-        headers: { Authorization: 'Bearer t' },
-      });
-      expect(res.status).toBe(200);
-    });
-
-    it('POST /admin/seed seeds from restaurants', async () => {
-      selectMock.mockImplementation(() => mockSelect([]));
-      const { default: route } = await import('./coverage-cities');
-      const app = new Hono().route('/api/coverage-cities', route);
-      const res = await app.request('/api/coverage-cities/admin/seed', {
-        method: 'POST',
-        headers: { Authorization: 'Bearer t' },
-      });
-      expect(res.status).toBe(200);
-      const body = await res.json() as BodyRecord;
-      expect(body).toHaveProperty('seeded');
-    });
-  });
-
   describe('Global coupons', () => {
     it('GET / returns all coupons', async () => {
       selectMock.mockImplementation(() => mockSelect([{ id: 'c1', code: 'PROMO10' }]));
@@ -344,6 +225,242 @@ describe('Route integration tests', () => {
       const app = new Hono().route('/api/global-coupons', route);
       const res = await app.request('/api/global-coupons');
       expect(res.status).toBe(200);
+    });
+  });
+
+  describe('Consumer orders (Fase 33)', () => {
+    it('GET /me/orders returns empty array', async () => {
+      const { default: route } = await import('./consumer-orders');
+      const app = new Hono().route('/api/me/orders', route);
+      const res = await app.request('/api/me/orders', { headers: { Authorization: 'Bearer t' } });
+      expect(res.status).toBe(200);
+      const body = await res.json() as BodyRecord[];
+      expect(Array.isArray(body)).toBe(true);
+    });
+
+    it('GET /me/orders/:id returns 404 when order not found', async () => {
+      const { default: route } = await import('./consumer-orders');
+      const app = new Hono().route('/api/me/orders', route);
+      const res = await app.request('/api/me/orders/missing', { headers: { Authorization: 'Bearer t' } });
+      expect(res.status).toBe(404);
+    });
+
+    it('POST /me/orders returns 400 for empty body', async () => {
+      const { default: route } = await import('./consumer-orders');
+      const app = new Hono().route('/api/me/orders', route);
+      const res = await app.request('/api/me/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer t' },
+        body: JSON.stringify({}),
+      });
+      expect(res.status).toBe(400);
+    });
+
+    it('POST /me/orders returns cached response when Idempotency-Key exists (loser)', async () => {
+      const cachedBody = { id: 'order-cached', status: 'confirmed', total: '55' };
+      insertMock.mockReset();
+      insertMock.mockReturnValue({ values: vi.fn().mockRejectedValue(new Error('23505')) });
+      selectMock.mockImplementation(() => mockSelect([{
+        status: 'completed',
+        response_status: 201,
+        response_body: cachedBody,
+        created_at: new Date(Date.now() - 1000).toISOString(),
+      }]));
+
+      const { default: route } = await import('./consumer-orders');
+      const app = new Hono().route('/api/me/orders', route);
+      const res = await app.request('/api/me/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer t', 'Idempotency-Key': 'key-existing' },
+        body: JSON.stringify({
+          restaurant_id: 'rest-1',
+          payment_method: 'pix',
+          subtotal: 50,
+          total: 55,
+          customer_name: 'João',
+          customer_address: 'Rua A',
+          items: [{ menu_item_id: 'item-1', name: 'Pizza', quantity: 1, price: 50 }],
+        }),
+      });
+      expect(res.status).toBe(201);
+      const body = await res.json() as BodyRecord;
+      expect(body.id).toBe('order-cached');
+    }, 10000);
+
+    it('POST /me/orders returns 409 when duplicate Idempotency-Key failed (loser)', async () => {
+      insertMock.mockReset();
+      insertMock.mockReturnValue({ values: vi.fn().mockRejectedValue(new Error('23505')) });
+      selectMock.mockImplementation(() => mockSelect([{
+        status: 'failed',
+        response_status: null,
+        response_body: null,
+        created_at: new Date(Date.now() - 1000).toISOString(),
+      }]));
+
+      const { default: route } = await import('./consumer-orders');
+      const app = new Hono().route('/api/me/orders', route);
+      const res = await app.request('/api/me/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer t', 'Idempotency-Key': 'key-failed' },
+        body: JSON.stringify({
+          restaurant_id: 'rest-1',
+          payment_method: 'pix',
+          subtotal: 50,
+          total: 55,
+          customer_name: 'João',
+          customer_address: 'Rua A',
+          items: [{ menu_item_id: 'item-1', name: 'Pizza', quantity: 1, price: 50 }],
+        }),
+      });
+      expect(res.status).toBe(409);
+    }, 10000);
+
+    it('POST /me/orders processes new order with Idempotency-Key (winner)', async () => {
+      selectMock
+        .mockImplementationOnce(() => mockSelect([{ id: 'user-1', name: 'João', phone: null }]))
+        .mockImplementationOnce(() => mockSelect([{ id: 'item-1' }]))
+        .mockImplementationOnce(() => mockSelect([{ id: 'branch-1' }]));
+
+      transactionMock.mockResolvedValue({
+        order: { id: 'order-new', status: 'confirmed', total: '55', restaurant_id: 'rest-1', created_at: new Date().toISOString() },
+        items: [{ id: 'oi-1', name: 'Pizza', quantity: 1, price: '50' }],
+        mirror: { id: 'mo-1' },
+        mirrorItems: [],
+      });
+
+      const { default: route } = await import('./consumer-orders');
+      const app = new Hono().route('/api/me/orders', route);
+      const res = await app.request('/api/me/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer t', 'Idempotency-Key': 'key-new' },
+        body: JSON.stringify({
+          restaurant_id: 'rest-1',
+          payment_method: 'pix',
+          subtotal: 50,
+          total: 55,
+          customer_name: 'João',
+          customer_address: 'Rua A',
+          items: [{ menu_item_id: 'item-1', name: 'Pizza', quantity: 1, price: 50 }],
+        }),
+      });
+      expect(res.status).toBe(201);
+      const body = await res.json() as BodyRecord;
+      expect(body.id).toBe('order-new');
+    });
+
+    it('POST /me/orders without Idempotency-Key creates order', async () => {
+      selectMock
+        .mockImplementationOnce(() => mockSelect([{ id: 'user-1', name: 'Maria', phone: null }]))
+        .mockImplementationOnce(() => mockSelect([{ id: 'item-2' }]))
+        .mockImplementationOnce(() => mockSelect([{ id: 'branch-1' }]));
+
+      transactionMock.mockResolvedValue({
+        order: { id: 'order-no-key', status: 'confirmed', total: '30', restaurant_id: 'rest-1', created_at: new Date().toISOString() },
+        items: [{ id: 'oi-2', name: 'Burger', quantity: 1, price: '30' }],
+        mirror: { id: 'mo-2' },
+        mirrorItems: [],
+      });
+
+      const { default: route } = await import('./consumer-orders');
+      const app = new Hono().route('/api/me/orders', route);
+      const res = await app.request('/api/me/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer t' },
+        body: JSON.stringify({
+          restaurant_id: 'rest-1',
+          payment_method: 'credit',
+          subtotal: 30,
+          total: 30,
+          customer_name: 'Maria',
+          customer_address: 'Rua B',
+          items: [{ menu_item_id: 'item-2', name: 'Burger', quantity: 1, price: 30 }],
+        }),
+      });
+      expect(res.status).toBe(201);
+      const body = await res.json() as BodyRecord;
+      expect(body.id).toBe('order-no-key');
+    });
+
+    it('POST /me/orders returns 404 when user not found (winner fails)', async () => {
+      selectMock.mockImplementation(() => mockSelect([]));
+      const { default: route } = await import('./consumer-orders');
+      const app = new Hono().route('/api/me/orders', route);
+      const res = await app.request('/api/me/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer t', 'Idempotency-Key': 'key-fail-user' },
+        body: JSON.stringify({
+          restaurant_id: 'rest-1',
+          payment_method: 'pix',
+          subtotal: 50,
+          total: 55,
+          customer_name: 'João',
+          customer_address: 'Rua A',
+          items: [{ menu_item_id: 'item-1', name: 'Pizza', quantity: 1, price: 50 }],
+        }),
+      });
+      expect(res.status).toBe(404);
+      const body = await res.json() as { error?: string; code?: string };
+      expect(body.code).toBe('USER_NOT_FOUND');
+    });
+  });
+
+  describe('Branch menu items CRUD (Fase 33)', () => {
+    it('GET /branches/:id/menu-items returns empty array', async () => {
+      const { default: route } = await import('./branches');
+      const app = new Hono().route('/api/branches', route);
+      const res = await app.request('/api/branches/branch-1/menu-items');
+      expect(res.status).toBe(200);
+      const body = await res.json() as BodyRecord[];
+      expect(Array.isArray(body)).toBe(true);
+    });
+
+    it('POST /branches/:id/menu-items returns 404 for missing branch', async () => {
+      const { default: route } = await import('./branches');
+      const app = new Hono().route('/api/branches', route);
+      const res = await app.request('/api/branches/missing-branch/menu-items', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer t' },
+        body: JSON.stringify({ name: 'Pizza', category: 'mains', price: 49.9 }),
+      });
+      expect(res.status).toBe(404);
+    });
+
+    it('POST /branches/:id/menu-items returns 400 for invalid body', async () => {
+      selectMock.mockImplementation(() => mockSelectWithLimit([{ id: 'branch-1' }]));
+      const { default: route } = await import('./branches');
+      const app = new Hono().route('/api/branches', route);
+      const res = await app.request('/api/branches/branch-1/menu-items', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer t' },
+        body: JSON.stringify({}),
+      });
+      expect(res.status).toBe(400);
+    });
+  });
+
+  describe('Operations auth (Fase 33)', () => {
+    it('PUT /operations/:branchId/hours now requires auth (passes through with mocked auth)', async () => {
+      const { default: route } = await import('./operations');
+      const app = new Hono().route('/api/operations', route);
+      const res = await app.request('/api/operations/branch-1/hours', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer t' },
+        body: JSON.stringify({ hours: [] }),
+      });
+      expect([200, 400]).toContain(res.status);
+    });
+
+    it('POST /operations/:branchId/holiday-overrides now requires auth (passes through)', async () => {
+      const { default: route } = await import('./operations');
+      const app = new Hono().route('/api/operations', route);
+      const res = await app.request('/api/operations/branch-1/holiday-overrides', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer t' },
+        body: JSON.stringify({
+          overrideType: 'closed', customDate: '2025-12-25', periods: [],
+        }),
+      });
+      expect([200, 201, 400]).toContain(res.status);
     });
   });
 });

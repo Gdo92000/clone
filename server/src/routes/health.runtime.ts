@@ -6,7 +6,7 @@ export async function healthz(): Promise<HealthStatus> {
   return checkHealth();
 }
 
-export async function liveness(): Promise<{ status: 'ok'; timestamp: string }> {
+export function liveness(): { status: 'ok'; timestamp: string } {
   return { status: 'ok', timestamp: new Date().toISOString() };
 }
 

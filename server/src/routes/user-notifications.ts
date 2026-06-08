@@ -4,11 +4,16 @@ import { z } from 'zod';
 import { desc, eq, and } from 'drizzle-orm';
 import { db } from '../db';
 import { userNotifications } from '../db/schema';
+import { authMiddleware, getTokenPayload } from '../middleware/auth';
 
 const route = new Hono();
 
+route.use('*', authMiddleware);
+
+const idParam = z.object({ id: z.string().min(1).max(64) });
+
 route.get('/', async (c) => {
-  const payload = c.get('jwtPayload') as { sub: string } | undefined;
+  const payload = getTokenPayload(c);
   if (!payload) return c.json({ error: 'Unauthorized' }, 401);
   const items = await db.select()
     .from(userNotifications)
@@ -17,8 +22,8 @@ route.get('/', async (c) => {
   return c.json(items);
 });
 
-route.put('/:id/read', zValidator('param', z.object({ id: z.string().min(1) })), async (c) => {
-  const payload = c.get('jwtPayload') as { sub: string } | undefined;
+route.put('/:id/read', zValidator('param', idParam), async (c) => {
+  const payload = getTokenPayload(c);
   if (!payload) return c.json({ error: 'Unauthorized' }, 401);
   const { id } = c.req.valid('param');
   const result = await db.update(userNotifications)
@@ -29,7 +34,7 @@ route.put('/:id/read', zValidator('param', z.object({ id: z.string().min(1) })),
 });
 
 route.put('/read-all', async (c) => {
-  const payload = c.get('jwtPayload') as { sub: string } | undefined;
+  const payload = getTokenPayload(c);
   if (!payload) return c.json({ error: 'Unauthorized' }, 401);
   await db.update(userNotifications)
     .set({ read: true, read_at: new Date() })

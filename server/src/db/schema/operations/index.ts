@@ -1,3 +1,4 @@
+export { idempotencyKeys } from './idempotency-keys';
 export { authSessions } from './auth-sessions';
 export { passwordResets } from './password-resets';
 export { auditLogs } from './audit-logs';
