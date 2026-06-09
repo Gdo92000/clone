@@ -3,13 +3,12 @@ import type { IRestaurantRepository, RestaurantFilter } from 'src/domain/reposit
 import type { MenuItem, Additive, Category, Restaurant } from 'src/domain/entities/Restaurant';
 import { mockRestaurants } from '../data/restaurants';
 import { mockCategories } from '../data/categories';
-import { mockMenuItems, mockAdditives } from '../data/menu-items';
+import { mockMenuItems } from '../data/menu-items';
 
 export class MemoryRestaurantRepository implements IRestaurantRepository {
   private restaurants = [...mockRestaurants];
   private cats = [...mockCategories];
   private menuItems = [...mockMenuItems];
-  private addons = [...mockAdditives];
 
   async findMany(filter?: RestaurantFilter): Promise<Restaurant[]> {
     let result = this.restaurants;
@@ -68,8 +67,9 @@ export class MemoryRestaurantRepository implements IRestaurantRepository {
     return this.cats;
   }
 
-  async findAdditives(_menuItemId: string): Promise<Additive[]> {
-    return this.addons;
+  async findAdditives(menuItemId: string): Promise<Additive[]> {
+    const item = this.menuItems.find((m) => m.restaurantId === menuItemId || m.id === menuItemId);
+    return item?.additives ?? [];
   }
 
   async findByCuisine(cuisine: string): Promise<Restaurant[]> {

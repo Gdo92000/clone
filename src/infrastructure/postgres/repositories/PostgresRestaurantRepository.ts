@@ -73,7 +73,7 @@ export class PostgresRestaurantRepository implements IRestaurantRepository {
   }
 
   async findAdditives(menuItemId: string): Promise<Additive[]> {
-    const rows = await this._db.select().from(additives).where(eq(additives.id, menuItemId));
+    const rows = await this._db.select().from(additives).where(eq(additives.menu_item_id, menuItemId));
     return fromDbRows<Additive>(rows);
   }
 

@@ -5,6 +5,12 @@ import type { CartItem } from '../types';
 import { calculateCartTotals } from '../useCases/cartUseCase';
 import { logger } from '../lib/logger';
 
+function additiveSetsEqual(a: CartItem['additives'], b: CartItem['additives']): boolean {
+  const aIds = a?.map((x) => x.id).sort() ?? [];
+  const bIds = b?.map((x) => x.id).sort() ?? [];
+  return aIds.length === bIds.length && aIds.every((id, i) => id === bIds[i]);
+}
+
 // ── State ──────────────────────────────────────────────────────────────────────
 
 interface CartState {
@@ -45,7 +51,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
       // Se o item já existe no carrinho (mesmo menuItemId e mesmos additives),
       // apenas incrementa a quantidade
       const existingIndex = state.items.findIndex(
-        (i) => i.menuItemId === item.menuItemId && i.notes === item.notes,
+        (i) => i.menuItemId === item.menuItemId && i.notes === item.notes && additiveSetsEqual(i.additives, item.additives),
       );
       if (existingIndex >= 0) {
         const updated = [...state.items];
