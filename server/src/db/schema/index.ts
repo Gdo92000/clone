@@ -29,7 +29,7 @@ import {
 import {
   notifications, userNotifications, auditEvents,
   supportTickets, permissions,
-  printerConfigs, printJobs,
+  printerConfigs, printJobs, pushSubscriptions,
 } from './ops';
 import {
   idempotencyKeys, authSessions, passwordResets, auditLogs,
@@ -86,6 +86,7 @@ export interface Tables {
   specialDates:       typeof specialDates;
   printerConfigs:     typeof printerConfigs;
   printJobs:          typeof printJobs;
+  pushSubscriptions:  typeof pushSubscriptions;
 }
 
 /** Objeto tables — reúne todas as tabelas num único objeto. */
@@ -135,4 +136,5 @@ export const tables: Tables = {
   specialDates,
   printerConfigs,
   printJobs,
+  pushSubscriptions,
 };

@@ -3,11 +3,12 @@ import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { eq, and, sql } from 'drizzle-orm';
 import { db } from '../db';
-import { merchantOrders, orders, loyaltySettings, userLoyaltyPoints, subscriptions, subscriptionAddons, addons } from '../db/schema';
+import { merchantOrders, orders, loyaltySettings, userLoyaltyPoints, subscriptions, subscriptionAddons, addons, pushSubscriptions } from '../db/schema';
 import { PrintingService } from '../services/printing/service';
 import { logger } from '../lib/logger';
 import { tenantIsolationMiddleware } from '../lib/tenant';
 import { publish } from '../services/sse';
+import { sendPush } from '../services/push';
 import type { SSEMessage } from 'hono/streaming';
 
 const route = new Hono();
@@ -164,6 +165,34 @@ route.post('/:id/status', zValidator('param', idParam), zValidator('json', statu
     data: JSON.stringify({ orderId: id, status, previousStatus: currentStatus, branchId }),
   };
   publish(`branch:${branchId}`, event);
+
+  const customerOrder = await db.select({ user_id: orders.user_id }).from(orders).where(eq(orders.id, id)).limit(1);
+  if (customerOrder.length > 0) {
+    const customerUserId = customerOrder[0].user_id;
+    const subs = await db.select({ endpoint: pushSubscriptions.endpoint, keys: pushSubscriptions.keys })
+      .from(pushSubscriptions)
+      .where(eq(pushSubscriptions.user_id, customerUserId));
+
+    if (subs.length > 0) {
+      const statusMessages: Record<string, string> = {
+        accepted: 'Seu pedido foi aceito pelo restaurante.',
+        preparing: 'Seu pedido está em preparo.',
+        ready: 'Seu pedido está pronto!',
+        dispatched: 'Seu pedido saiu para entrega.',
+        delivered: 'Seu pedido foi entregue.',
+        rejected: 'Seu pedido foi recusado.',
+      };
+      const message = statusMessages[status];
+      if (message) {
+        for (const sub of subs) {
+          await sendPush(
+            { endpoint: sub.endpoint, keys: sub.keys as { p256dh: string; auth: string } },
+            { title: 'Flux Delivery', body: message, data: { orderId: id, status } },
+          );
+        }
+      }
+    }
+  }
 
   return c.json({ success: true });
 });

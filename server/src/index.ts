@@ -62,6 +62,7 @@ import consumerSupportRoutes from './routes/consumer-support';
 import consumerOrdersRoutes from './routes/consumer-orders';
 import permissionsRoutes from './routes/permissions';
 import sseRoutes from './routes/sse';
+import pushRoutes from './routes/push';
 import type { TokenPayload } from './auth/types';
 import type { AppVariables } from './types/hono';
 
@@ -162,6 +163,7 @@ app.route('/api/reviews', consumerReviewsRoutes);
 app.route('/api/plans', plansRoutes);
 app.route('/api/capabilities', capabilitiesRoutes);
 app.route('/api/theme', themeRoutes);
+app.route('/api/push', pushRoutes);
 
 // Protected routes (require JWT)
 const api = new Hono();

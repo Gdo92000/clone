@@ -60,5 +60,7 @@ export const indexDefinitions = {
     'idx_support_tickets_status ON support_tickets (status)',
     'idx_user_notifications_user ON user_notifications (user_id, created_at DESC)',
     'idx_user_notifications_read ON user_notifications (user_id, read)',
+    'idx_push_subscriptions_user ON push_subscriptions (user_id)',
+    'idx_push_subscriptions_endpoint ON push_subscriptions (endpoint)',
   ],
 } as const;

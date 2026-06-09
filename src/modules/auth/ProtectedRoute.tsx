@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuthSession } from './useAuthSession';
 import { getLoginUrlForPath } from '../../lib/routes';
+import { usePushNotifications } from '../../hooks/usePushNotifications';
 import type { PermissionKey, UserRole } from './types';
 
 interface ProtectedRouteProps {
@@ -15,6 +16,7 @@ export function ProtectedRoute({ roles, permission, children }: ProtectedRoutePr
   const { currentUser, hasPermission, hasRole } = useAuthSession();
   const location = useLocation();
   const loginUrl = getLoginUrlForPath(location.pathname);
+  usePushNotifications(!!currentUser);
   const roleAllowed = roles ? hasRole(roles) : true;
   const permissionAllowed = permission ? hasPermission(permission) : true;
 

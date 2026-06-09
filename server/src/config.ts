@@ -13,6 +13,9 @@ const envSchema = z.object({
   MAX_BODY_SIZE: z.coerce.number().int().positive().default(1_000_000),
   LOGIN_MAX_ATTEMPTS: z.coerce.number().int().positive().default(5),
   LOGIN_LOCKOUT_MINUTES: z.coerce.number().int().positive().default(15),
+  VAPID_PUBLIC_KEY: z.string().min(1, 'VAPID_PUBLIC_KEY é obrigatória para Web Push'),
+  VAPID_PRIVATE_KEY: z.string().min(1, 'VAPID_PRIVATE_KEY é obrigatória para Web Push'),
+  VAPID_SUBJECT: z.string().default('mailto:dev@fluxdelivery.com'),
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;
@@ -22,6 +25,8 @@ function validateEnv(): EnvConfig {
   if (isTest) {
     if (!process.env.DATABASE_URL) process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test';
     if (!process.env.JWT_SECRET) process.env.JWT_SECRET = 'test-jwt-secret-for-testing-only';
+    if (!process.env.VAPID_PUBLIC_KEY) process.env.VAPID_PUBLIC_KEY = 'BF6kYMoL-rjFycPGZRdABQzz2e0vQbLFp0SorteBkwtFaYjqkEz4iQv4L88QLm4fi83F2Ze07PMtGASS4xiYWH8';
+    if (!process.env.VAPID_PRIVATE_KEY) process.env.VAPID_PRIVATE_KEY = 'UVr3DVIu_avx7vHJTB00941YQEprBpaMm6IZMscUDPg';
   }
   const result = envSchema.safeParse(process.env);
   if (!result.success) {
@@ -42,6 +47,9 @@ function validateEnv(): EnvConfig {
         MAX_BODY_SIZE: parseInt(process.env.MAX_BODY_SIZE ?? '1000000', 10),
         LOGIN_MAX_ATTEMPTS: parseInt(process.env.LOGIN_MAX_ATTEMPTS ?? '5', 10),
         LOGIN_LOCKOUT_MINUTES: parseInt(process.env.LOGIN_LOCKOUT_MINUTES ?? '15', 10),
+        VAPID_PUBLIC_KEY: process.env.VAPID_PUBLIC_KEY ?? 'BF6kYMoL-rjFycPGZRdABQzz2e0vQbLFp0SorteBkwtFaYjqkEz4iQv4L88QLm4fi83F2Ze07PMtGASS4xiYWH8',
+        VAPID_PRIVATE_KEY: process.env.VAPID_PRIVATE_KEY ?? 'UVr3DVIu_avx7vHJTB00941YQEprBpaMm6IZMscUDPg',
+        VAPID_SUBJECT: process.env.VAPID_SUBJECT ?? 'mailto:dev@fluxdelivery.com',
       };
     }
     const missing = result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('\n  ');
@@ -63,6 +71,9 @@ export const PORT = env.PORT;
 export const MAX_BODY_SIZE = env.MAX_BODY_SIZE;
 export const LOGIN_MAX_ATTEMPTS = env.LOGIN_MAX_ATTEMPTS;
 export const LOGIN_LOCKOUT_MINUTES = env.LOGIN_LOCKOUT_MINUTES;
+export const VAPID_PUBLIC_KEY = env.VAPID_PUBLIC_KEY;
+export const VAPID_PRIVATE_KEY = env.VAPID_PRIVATE_KEY;
+export const VAPID_SUBJECT = env.VAPID_SUBJECT;
 
 export function getJwtSecret(): string {
   return env.JWT_SECRET;

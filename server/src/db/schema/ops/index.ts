@@ -5,3 +5,4 @@ export { ticketStatus, supportTickets } from './support';
 export { supportTicketsRelations } from './relations';
 export { permissions, rolePermissions } from './permissions';
 export { printerConfigs, printJobs } from './printing';
+export { pushSubscriptions } from './push-subscriptions';

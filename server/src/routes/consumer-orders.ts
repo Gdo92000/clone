@@ -3,9 +3,10 @@ import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { authMiddleware, getTokenPayload } from '../middleware/auth';
 import { db } from '../db';
-import { orders, orderItems, restaurants, addresses, users, idempotencyKeys } from '../db/schema';
+import { orders, orderItems, restaurants, addresses, users, idempotencyKeys, pushSubscriptions } from '../db/schema';
 import { eq, and, lte, desc } from 'drizzle-orm';
 import { createConsumerOrderWithMirror, MirrorServiceError } from '../services/orders/mirrorService';
+import { sendPush } from '../services/push';
 import { logger } from '../lib/logger';
 
 const POLL_INTERVALS_MS = [100, 200, 400, 800, 800];
@@ -220,6 +221,21 @@ route.post('/', zValidator('json', createOrderSchema), async (c) => {
         price: it.price,
       })),
     };
+
+    const branchId = result.mirror.branch_id;
+    const merchantUsers = await db.select({ id: users.id }).from(users)
+      .where(and(eq(users.branch_id, branchId), eq(users.role, 'merchant')));
+    for (const mu of merchantUsers) {
+      const subs = await db.select({ endpoint: pushSubscriptions.endpoint, keys: pushSubscriptions.keys })
+        .from(pushSubscriptions)
+        .where(eq(pushSubscriptions.user_id, mu.id));
+      for (const sub of subs) {
+        void sendPush(
+          { endpoint: sub.endpoint, keys: sub.keys as { p256dh: string; auth: string } },
+          { title: 'Flux Delivery', body: 'Novo pedido recebido.', data: { orderId: result.order.id, status: 'new' } },
+        );
+      }
+    }
 
     return c.json(responseBody, 201);
   } catch (err) {
