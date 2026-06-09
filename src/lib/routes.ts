@@ -31,6 +31,7 @@ export const ROUTES = {
   MERCHANT_HOURS: '/merchant/hours',
   MERCHANT_HOLIDAYS: '/merchant/holidays',
   MERCHANT_KITCHEN_AUTO_PRINT: '/merchant/kitchen-auto-print',
+  MERCHANT_KDS: '/merchant/kds',
   MERCHANT_LOYALTY: '/merchant/loyalty',
 
   COURIER: '/courier',

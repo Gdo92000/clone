@@ -10,3 +10,4 @@ export { MerchantSettingsPage } from './pages/MerchantSettingsPage';
 export { MerchantCouponsPage } from './pages/MerchantCouponsPage';
 export { MerchantSubscriptionPage } from './pages/MerchantSubscriptionPage';
 export { MerchantTeamPage } from './pages/MerchantTeamPage';
+export { MerchantKDSPage } from './pages/MerchantKDSPage';

@@ -96,6 +96,9 @@ const MerchantHoursPage = lazy(() =>
 const MerchantHolidaysPage = lazy(() =>
   import('./modules/merchant/pages/MerchantHolidaysPage').then((m) => ({ default: m.MerchantHolidaysPage })),
 );
+const MerchantKDSPage = lazy(() =>
+  import('./modules/merchant/pages/MerchantKDSPage').then((m) => ({ default: m.MerchantKDSPage })),
+);
 
 // ── Courier pages (lazy) ──
 const CourierLoginPage = lazy(() =>
@@ -256,7 +259,8 @@ interface MerchantNavItem extends DashboardNavItem {
     | 'campaigns'
     | 'analytics'
     | 'coupon_automation'
-    | 'financial_suite';
+    | 'financial_suite'
+    | 'kitchen_display';
 }
 
 const merchantNavItems: MerchantNavItem[] = [
@@ -272,6 +276,7 @@ const merchantNavItems: MerchantNavItem[] = [
   { to: ROUTES.MERCHANT_SUBSCRIPTION, label: 'Meu plano', icon: 'CreditCard' },
   { to: ROUTES.MERCHANT_SETTINGS, label: 'Configuracoes', icon: 'Settings' },
   { to: ROUTES.MERCHANT_KITCHEN_AUTO_PRINT, label: 'Impressao automatica', icon: 'Zap' },
+  { to: ROUTES.MERCHANT_KDS, label: 'Cozinha', icon: 'UtensilsCrossed', featureKey: 'kitchen_display' },
   { to: ROUTES.MERCHANT_HOURS, label: 'Horarios', icon: 'Clock' },
   { to: ROUTES.MERCHANT_HOLIDAYS, label: 'Feriados', icon: 'CalendarOff' },
   { to: ROUTES.MERCHANT_LOYALTY, label: 'Fidelidade', icon: 'Gift' },
@@ -283,6 +288,7 @@ function MerchantDashboardLayout() {
   const analytics = useFeatureAccess('company-1', 'analytics');
   const couponAutomation = useFeatureAccess('company-1', 'coupon_automation');
   const financialSuite = useFeatureAccess('company-1', 'financial_suite');
+  const kitchenDisplay = useFeatureAccess('company-1', 'kitchen_display');
 
   const items = useMemo(() => {
     const flags: Record<string, boolean> = {
@@ -291,6 +297,7 @@ function MerchantDashboardLayout() {
       analytics: analytics.enabled,
       coupon_automation: couponAutomation.enabled,
       financial_suite: financialSuite.enabled,
+      kitchen_display: kitchenDisplay.enabled,
     };
     return merchantNavItems.filter(
       (item) => !item.featureKey || flags[item.featureKey],
@@ -301,6 +308,7 @@ function MerchantDashboardLayout() {
     analytics.enabled,
     couponAutomation.enabled,
     financialSuite.enabled,
+    kitchenDisplay.enabled,
   ]);
 
   return <DashboardLayout logo="LJ" title="Lojista" navItems={items} />;
@@ -396,6 +404,7 @@ function App() {
             <Route path="subscription" element={<ProtectedRoute><Suspense fallback={routeFallback}><MerchantSubscriptionPage /></Suspense></ProtectedRoute>} />
             <Route path="settings" element={<ProtectedRoute><Suspense fallback={routeFallback}><MerchantSettingsPage /></Suspense></ProtectedRoute>} />
             <Route path="kitchen-auto-print" element={<ProtectedRoute><Suspense fallback={routeFallback}><MerchantKitchenAutoPrintPage /></Suspense></ProtectedRoute>} />
+            <Route path="kds" element={<ProtectedRoute permission="kitchen.manage"><FeatureRoute companyId="company-1" featureKey="kitchen_display"><Suspense fallback={routeFallback}><MerchantKDSPage /></Suspense></FeatureRoute></ProtectedRoute>} />
             <Route path="loyalty" element={<ProtectedRoute><Suspense fallback={routeFallback}><MerchantLoyaltyRewardsPage /></Suspense></ProtectedRoute>} />
             <Route path="hours" element={<ProtectedRoute><Suspense fallback={routeFallback}><MerchantHoursPage /></Suspense></ProtectedRoute>} />
             <Route path="holidays" element={<ProtectedRoute><Suspense fallback={routeFallback}><MerchantHolidaysPage /></Suspense></ProtectedRoute>} />

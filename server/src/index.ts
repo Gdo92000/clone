@@ -6,7 +6,7 @@ import { logger } from 'hono/logger';
 import { serve } from '@hono/node-server';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
-import { eq, and, lte } from 'drizzle-orm';
+import { eq, and, lte, sql } from 'drizzle-orm';
 import { db, createDatabase } from './db';
 import { restaurants, menuItems, reviews, idempotencyKeys } from './db/schema';
 import operationsRoutes from './routes/operations';
@@ -144,8 +144,15 @@ app.get('/api/restaurants/:id', zValidator('param', idParam), async (c) => {
 
 app.get('/api/restaurants/:id/menu-items', zValidator('param', idParam), async (c) => {
   const { id } = c.req.valid('param');
-  const items = await db.select().from(menuItems).where(eq(menuItems.restaurant_id, id));
-  return c.json(items);
+  const items = await db.select().from(menuItems)
+    .where(and(eq(menuItems.restaurant_id, id), eq(menuItems.is_visible_to_consumer, true)));
+  if (items.length === 0) return c.json([]);
+  const result = [];
+  for (const item of items) {
+    const addRows = await db.select().from(additives).where(sql`menu_item_id = ${item.id}`);
+    result.push({ ...item, additives: addRows });
+  }
+  return c.json(result);
 });
 
 app.route('/api/categories', categoriesRoutes);

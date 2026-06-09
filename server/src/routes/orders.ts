@@ -7,6 +7,8 @@ import { merchantOrders, orders, loyaltySettings, userLoyaltyPoints, subscriptio
 import { PrintingService } from '../services/printing/service';
 import { logger } from '../lib/logger';
 import { tenantIsolationMiddleware } from '../lib/tenant';
+import { publish } from '../services/sse';
+import type { SSEMessage } from 'hono/streaming';
 
 const route = new Hono();
 
@@ -15,8 +17,10 @@ route.use('*', tenantIsolationMiddleware());
 
 const idParam = z.object({ id: z.string().min(1).max(64) });
 
+const merchantStatusEnum = z.enum(['new', 'accepted', 'preparing', 'ready', 'dispatched', 'delivered', 'rejected']);
+
 const statusSchema = z.object({
-  status: z.enum(['new', 'accepted', 'preparing', 'ready', 'dispatched', 'delivered', 'rejected']),
+  status: merchantStatusEnum,
 });
 
 /**
@@ -54,8 +58,30 @@ route.post('/:id/status', zValidator('param', idParam), zValidator('json', statu
   const { id } = c.req.valid('param');
   const { status } = c.req.valid('json');
   
-  const existing = await db.select().from(merchantOrders).where(eq(merchantOrders.id, id)).limit(1);
-  if (!existing.length) return c.json({ error: 'Not found' }, 404);
+  const rows = await db.select({
+    id: merchantOrders.id,
+    status: merchantOrders.status,
+    branch_id: merchantOrders.branch_id,
+  }).from(merchantOrders).where(eq(merchantOrders.id, id)).limit(1);
+  if (!rows.length) return c.json({ error: 'Not found' }, 404);
+
+  const existingOrder = rows[0];
+  const currentStatus = merchantStatusEnum.parse(existingOrder.status);
+  const newStatus = merchantStatusEnum.parse(status);
+
+  const ALLOWED: Record<string, readonly string[]> = {
+    new: ['accepted', 'rejected'],
+    accepted: ['preparing'],
+    preparing: ['ready'],
+    ready: ['dispatched'],
+    dispatched: ['delivered'],
+    delivered: [],
+    rejected: [],
+  };
+  const allowed = ALLOWED[currentStatus];
+  if (!allowed.includes(newStatus)) {
+    throw new Error(`Invalid order status transition: ${currentStatus} → ${newStatus}`);
+  }
 
   await db.transaction(async (tx) => {
     await tx.update(merchantOrders).set({ status }).where(eq(merchantOrders.id, id));
@@ -131,6 +157,13 @@ route.post('/:id/status', zValidator('param', idParam), zValidator('json', statu
       }
     }
   });
+
+  const branchId = z.string().parse(existingOrder.branch_id);
+  const event: SSEMessage = {
+    event: 'order_update',
+    data: JSON.stringify({ orderId: id, status, previousStatus: currentStatus, branchId }),
+  };
+  publish(`branch:${branchId}`, event);
 
   return c.json({ success: true });
 });

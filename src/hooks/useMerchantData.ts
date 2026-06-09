@@ -54,6 +54,15 @@ export function useOrders() {
   return useQuery({ queryKey: merchantKeys.orders, queryFn: getOrders, staleTime: STALE_MEDIUM });
 }
 
+export function useKdsOrders() {
+  return useQuery({
+    queryKey: merchantKeys.orders,
+    queryFn: getOrders,
+    staleTime: 0,
+    refetchInterval: 5000,
+  });
+}
+
 export function useOrdersByBranch(branchId: string | undefined) {
   return useQuery({
     queryKey: merchantKeys.ordersByBranch(branchId ?? ''),
