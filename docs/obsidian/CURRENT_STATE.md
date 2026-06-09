@@ -23,11 +23,10 @@ related:
 # CURRENT_STATE
 
 ## Fase Atual
-**Idle** — Fases 38-43 concluídas. **Fase A + Fase B concluídas** (2026-06-09, working tree).
+**Idle** — Fases 38-43 + Fase A + Fase B + Push merchant + Migration 0015 concluídas (2026-06-09).
 
 ## Ultimo Commit Valido
-`5ebc84d` — feat: analytics, financeiro, remocao enterprise e fluxo condicional de pedidos
-**Fase A + B:** alterações em working tree (NÃO commitadas ainda)
+`590b3e6` — feat(merchant): Fase A (bloqueadores produção) + Fase B (SSE/Push) + push merchant
 
 ## Comandos de Validacao
 | Comando | Status |
@@ -38,8 +37,7 @@ related:
 | `npm run lint` (full) | ⏳ Não executado (timeout histórico) |
 
 ## Bloqueios
-- Migration 0015 não aplicada (DB Supabase indisponível)
-- Working tree sujo — aguardando commit
+- Nenhum bloqueio ativo
 
 ## Status Geral
 | Dominio | Status |
@@ -101,5 +99,6 @@ related:
 ## Próximo Passo
 1. ✅ Testes 393/393 passando
 2. ✅ Tarefa 5 (Push merchant) implementada
-3. Commit do working tree
-4. Aplicar migration 0015 quando DB disponível
+3. ✅ Commit do working tree
+4. ✅ Migration 0015 aplicada (local DB)
+5. Sem bloqueios ativos — aguardando nova fase/tarefa

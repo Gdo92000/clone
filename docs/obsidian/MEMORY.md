@@ -100,8 +100,7 @@ Percentual Merchant estimado: ~88% (antes ~68%).
 
 ### Pendente
 
-- Migration `0015` nao aplicada (DB Supabase indisponivel no ambiente dev)
-- Commits do working tree (Fase A+B + Push merchant) pendentes
+- (nada — todas as tarefas concluídas)
 
 > [!tip] Navegacao
 > [[CURRENT_STATE]] · [[MOC — Historico do Projeto]] · [[Learnings Fases 41-43]]
