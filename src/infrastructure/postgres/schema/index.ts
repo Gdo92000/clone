@@ -1,2 +1,1 @@
-export { enterpriseSchema } from './enterprise';
-export type { EnterpriseTables } from './enterprise';
+// Schema barrel — currently empty after Enterprise removal

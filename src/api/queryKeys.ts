@@ -15,6 +15,8 @@ export const merchantKeys = {
   branchSettings: (branchId: string) => ['merchant', 'branch-settings', branchId] as const,
   loyaltySettings: (branchId: string) => ['merchant', 'loyalty-settings', branchId] as const,
   loyaltyRewards: (branchId: string) => ['merchant', 'loyalty-rewards', branchId] as const,
+  analytics: (days?: number) => ['merchant', 'analytics', days ?? 30] as const,
+  finance: (year?: number, month?: number) => ['merchant', 'finance', year ?? new Date().getFullYear(), month ?? new Date().getMonth() + 1] as const,
 } as const;
 
 export const operationsKeys = {

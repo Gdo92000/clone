@@ -13,5 +13,4 @@ export type { Review } from './entities/Review';
 export type { FeatureFlag, Capability } from './entities/FeatureFlag';
 export type { Invoice, InvoiceStatus } from './entities/Invoice';
 export type { LoyaltySettings, LoyaltyReward, CustomerLoyalty } from './entities/Loyalty';
-export type { DemoCategory, DemoProduct, DemoProductOption, DemoCompanyProfile, DemoCustomer, PlanLimits, PlanUsage, PlanLimitInfo } from './entities/Enterprise';
 export type { CartItem, CartItemAdditive, CartState } from './entities/Cart';

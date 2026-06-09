@@ -11,17 +11,23 @@ import { FxQueryBoundary } from '../components/ui/FxQueryBoundary';
 import { formatCurrency } from '../modules/merchant/format';
 import { ROUTES } from '../lib/routes';
 
-const STATUS_STEPS: OrderStatusStep[] = [
-  { status: 'confirmed', label: 'Pedido confirmado' },
-  { status: 'preparing', label: 'Preparando seu pedido' },
-  { status: 'ready', label: 'Pronto para retirada' },
-  { status: 'dispatched', label: 'Saiu para entrega' },
-  { status: 'delivered', label: 'Entregue' },
-];
+export function getStatusSteps(deliveryType: string): OrderStatusStep[] {
+  const steps: OrderStatusStep[] = [
+    { status: 'confirmed', label: 'Pedido confirmado' },
+    { status: 'preparing', label: 'Preparando seu pedido' },
+    { status: 'ready', label: deliveryType === 'pickup' ? 'Pronto para retirada' : 'Pedido pronto' },
+    { status: 'delivered', label: 'Entregue' },
+  ];
+  if (deliveryType !== 'pickup') {
+    steps.splice(3, 0, { status: 'dispatched', label: 'Saiu para entrega' });
+  }
+  return steps;
+}
 
-function statusToStep(status: string | undefined): number {
+export function statusToStep(status: string | undefined, deliveryType: string): number {
   if (!status) return 0;
-  const idx = STATUS_STEPS.findIndex((s) => s.status === status);
+  const steps = getStatusSteps(deliveryType);
+  const idx = steps.findIndex((s) => s.status === status);
   return idx >= 0 ? idx : 0;
 }
 
@@ -31,11 +37,12 @@ export function TrackingPage() {
   const orderId = params.get('order') ?? undefined;
 
   const { data, isLoading, isError } = useOrder(orderId, { refetchInterval: 30000 });
+  const deliveryType = data?.order.delivery_type ?? 'delivery';
 
   const steps = useMemo<OrderStatusStep[]>(() => {
-    const statusIndex = statusToStep(data?.order.status);
-    return STATUS_STEPS.map((s, i) => (i <= statusIndex ? { ...s, time: 'agora' } : s));
-  }, [data?.order.status]);
+    const statusIndex = statusToStep(data?.order.status, deliveryType);
+    return getStatusSteps(deliveryType).map((s, i) => (i <= statusIndex ? { ...s, time: 'agora' } : s));
+  }, [data?.order.status, deliveryType]);
 
   const sseTracking = useSSEOrderTracking({
     steps,

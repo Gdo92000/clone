@@ -63,6 +63,8 @@ import consumerOrdersRoutes from './routes/consumer-orders';
 import permissionsRoutes from './routes/permissions';
 import sseRoutes from './routes/sse';
 import pushRoutes from './routes/push';
+import merchantAnalyticsRoutes from './routes/merchant-analytics';
+import merchantFinanceRoutes from './routes/merchant-finance';
 import type { TokenPayload } from './auth/types';
 import type { AppVariables } from './types/hono';
 
@@ -230,6 +232,8 @@ api.route('/loyalty', loyaltyRoutes);
 api.route('/coupons/validate', couponEngineRoutes);
 api.route('/printing', printingRoutes);
 api.route('/permissions', permissionsRoutes);
+api.route('/merchant-analytics', merchantAnalyticsRoutes);
+api.route('/merchant-finance', merchantFinanceRoutes);
 
 const reviewCreateSchema = z.object({
   restaurant_id: z.string().min(1).max(64),

@@ -13,7 +13,6 @@ import type { SSEMessage } from 'hono/streaming';
 
 const route = new Hono();
 
-// Apply tenant isolation middleware to all routes in this group
 route.use('*', tenantIsolationMiddleware());
 
 const idParam = z.object({ id: z.string().min(1).max(64) });
@@ -23,6 +22,15 @@ const merchantStatusEnum = z.enum(['new', 'accepted', 'preparing', 'ready', 'dis
 const statusSchema = z.object({
   status: merchantStatusEnum,
 });
+
+const MERCHANT_TO_CUSTOMER_STATUS: Record<string, string> = {
+  accepted: 'preparing',
+  preparing: 'preparing',
+  ready: 'ready',
+  dispatched: 'dispatched',
+  delivered: 'delivered',
+  rejected: 'cancelled',
+};
 
 /**
  * Verifica se tenant possui addon kitchen_auto_print ativo
@@ -63,18 +71,20 @@ route.post('/:id/status', zValidator('param', idParam), zValidator('json', statu
     id: merchantOrders.id,
     status: merchantOrders.status,
     branch_id: merchantOrders.branch_id,
+    delivery_type: merchantOrders.delivery_type,
   }).from(merchantOrders).where(eq(merchantOrders.id, id)).limit(1);
   if (!rows.length) return c.json({ error: 'Not found' }, 404);
 
   const existingOrder = rows[0];
   const currentStatus = merchantStatusEnum.parse(existingOrder.status);
   const newStatus = merchantStatusEnum.parse(status);
+  const isPickup = existingOrder.delivery_type === 'pickup';
 
   const ALLOWED: Record<string, readonly string[]> = {
     new: ['accepted', 'rejected'],
     accepted: ['preparing'],
     preparing: ['ready'],
-    ready: ['dispatched'],
+    ready: isPickup ? ['delivered'] : ['dispatched'],
     dispatched: ['delivered'],
     delivered: [],
     rejected: [],
@@ -87,12 +97,16 @@ route.post('/:id/status', zValidator('param', idParam), zValidator('json', statu
   await db.transaction(async (tx) => {
     await tx.update(merchantOrders).set({ status }).where(eq(merchantOrders.id, id));
 
+    const customerStatus = MERCHANT_TO_CUSTOMER_STATUS[status];
+    if (customerStatus) {
+      await tx.update(orders).set({ status: customerStatus }).where(eq(orders.id, id));
+    }
+
     if (status === 'accepted') {
       const order = await tx.select().from(orders).where(eq(orders.id, id)).limit(1);
       if (order.length) {
         const o = order[0];
         
-        // Feature gating: verifica se tenant possui addon ativo
         const hasAddon = await hasKitchenAutoPrintAddon(o.restaurant_id);
         
         if (hasAddon) {
@@ -169,20 +183,33 @@ route.post('/:id/status', zValidator('param', idParam), zValidator('json', statu
   const customerOrder = await db.select({ user_id: orders.user_id }).from(orders).where(eq(orders.id, id)).limit(1);
   if (customerOrder.length > 0) {
     const customerUserId = customerOrder[0].user_id;
+
+    publish(`user:${customerUserId}`, event);
+
     const subs = await db.select({ endpoint: pushSubscriptions.endpoint, keys: pushSubscriptions.keys })
       .from(pushSubscriptions)
       .where(eq(pushSubscriptions.user_id, customerUserId));
 
     if (subs.length > 0) {
-      const statusMessages: Record<string, string> = {
-        accepted: 'Seu pedido foi aceito pelo restaurante.',
-        preparing: 'Seu pedido está em preparo.',
-        ready: 'Seu pedido está pronto!',
-        dispatched: 'Seu pedido saiu para entrega.',
-        delivered: 'Seu pedido foi entregue.',
-        rejected: 'Seu pedido foi recusado.',
+      const statusMessages: Record<string, Record<string, string | undefined>> = {
+        delivery: {
+          accepted: 'Seu pedido foi aceito pelo restaurante.',
+          preparing: 'Seu pedido está em preparo.',
+          ready: 'Seu pedido está pronto!',
+          dispatched: 'Seu pedido saiu para entrega.',
+          delivered: 'Seu pedido foi entregue.',
+          rejected: 'Seu pedido foi recusado.',
+        },
+        pickup: {
+          accepted: 'Seu pedido foi aceito pelo restaurante.',
+          preparing: 'Seu pedido está em preparo.',
+          ready: 'Seu pedido está pronto para retirada!',
+          delivered: 'Pedido retirado. Obrigado!',
+          rejected: 'Seu pedido foi recusado.',
+        },
       };
-      const message = statusMessages[status];
+      const messages = statusMessages[existingOrder.delivery_type];
+      const message = messages[status];
       if (message) {
         for (const sub of subs) {
           await sendPush(

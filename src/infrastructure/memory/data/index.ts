@@ -26,6 +26,5 @@ export { mockConsumerTickets } from './consumer-tickets';
 export { mockUserNotifications } from './user-notifications';
 export { mockBusinessHours, mockOperationStatus, mockHolidays } from './operations';
 export { mockTheme } from './theme';
-export { mockDemoCategories, mockDemoCompanyProfiles, mockDemoProducts, mockDemoCustomers, mockPlanLimits } from './enterprise';
 export { mockPrintConfig, mockPrintHistory } from './printing';
 export { KNOWN_CITIES, KNOWN_CEPS } from './geocoding';

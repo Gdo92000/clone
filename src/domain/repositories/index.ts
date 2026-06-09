@@ -5,4 +5,4 @@ export type { IConsumerRepository, ConsumerOrderFilter } from './IConsumerReposi
 export type { IAuthRepository } from './IAuthRepository';
 export type { ISubscriptionRepository } from './ISubscriptionRepository';
 export type { IOperationsRepository, BusinessHour, OperationStatus, HolidayRule, ThemeSettings } from './IOperationsRepository';
-export type { IEnterpriseRepository } from './IEnterpriseRepository';
+

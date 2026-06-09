@@ -3,6 +3,7 @@ import type { MerchantCompanyDTO, MerchantBranchDTO, MerchantMenuItemDTO, Mercha
   from '../dto/merchantDto';
 import type { MerchantOrderStatus } from '../types';
 import type { PrinterConfigDTO, PrintHistoryDTO, MerchantCouponDTO, CampaignDTO, LoyaltySettingsDTO, LoyaltyRewardDTO } from '../dto/superadminDto';
+import type { MerchantAnalyticsDTO, MerchantFinanceDTO } from '../dto/analyticsDto';
 
 export const merchantApi = {
   getCompanies: () => get<MerchantCompanyDTO[]>('/companies'),
@@ -45,4 +46,6 @@ export const merchantApi = {
   getPrinterConfig:           (branchId: string) => get<PrinterConfigDTO>(`/printing/config/${branchId}`),
   savePrinterConfig:          (branchId: string, data: Record<string, unknown>) => put<Record<string, never>>(`/printing/config/${branchId}`, data),
   getPrintHistory:            (branchId: string) => get<PrintHistoryDTO[]>(`/printing/history/${branchId}`),
+  getAnalytics:               (days?: number) => get<MerchantAnalyticsDTO>(`/merchant-analytics/dashboard?days=${days ?? 30}`),
+  getFinance:                 (year?: number, month?: number) => get<MerchantFinanceDTO>(`/merchant-finance/summary?year=${year ?? new Date().getFullYear()}&month=${month ?? new Date().getMonth() + 1}`),
 };

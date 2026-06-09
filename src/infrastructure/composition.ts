@@ -4,7 +4,7 @@ import { MemoryConsumerRepository } from 'src/infrastructure/memory/repositories
 import { MemoryAuthRepository } from 'src/infrastructure/memory/repositories/MemoryAuthRepository';
 import { MemorySubscriptionRepository } from 'src/infrastructure/memory/repositories/MemorySubscriptionRepository';
 import { MemoryOperationsRepository } from 'src/infrastructure/memory/repositories/MemoryOperationsRepository';
-import { MemoryEnterpriseRepository } from 'src/infrastructure/memory/repositories/MemoryEnterpriseRepository';
+
 
 import { RestaurantService } from 'src/domain/services/RestaurantService';
 import { MerchantService } from 'src/domain/services/MerchantService';
@@ -14,7 +14,7 @@ import { SubscriptionService } from 'src/domain/services/SubscriptionService';
 import { AdminService } from 'src/domain/services/AdminService';
 import { SuperadminService } from 'src/domain/services/SuperadminService';
 import { OperationsService } from 'src/domain/services/OperationsService';
-import { EnterpriseService } from 'src/domain/services/EnterpriseService';
+
 import { ConsumerApiService } from 'src/domain/services/ConsumerApiService';
 import { MerchantApiService } from 'src/domain/services/MerchantApiService';
 import { OperationsApiService } from 'src/domain/services/OperationsApiService';
@@ -27,7 +27,7 @@ import type { IConsumerRepository } from 'src/domain/repositories/IConsumerRepos
 import type { IAuthRepository } from 'src/domain/repositories/IAuthRepository';
 import type { ISubscriptionRepository } from 'src/domain/repositories/ISubscriptionRepository';
 import type { IOperationsRepository } from 'src/domain/repositories/IOperationsRepository';
-import type { IEnterpriseRepository } from 'src/domain/repositories/IEnterpriseRepository';
+
 
 import {
   globalCouponApi,
@@ -53,7 +53,7 @@ export interface Services {
   adminService: AdminService;
   superadminService: SuperadminService;
   operationsService: OperationsService;
-  enterpriseService: EnterpriseService;
+
   consumerApiService: ConsumerApiService;
   merchantApiService: MerchantApiService;
   operationsApiService: OperationsApiService;
@@ -69,7 +69,7 @@ export function createMemoryServices(): Services {
   const authRepo: IAuthRepository = new MemoryAuthRepository();
   const subscriptionRepo: ISubscriptionRepository = new MemorySubscriptionRepository();
   const operationsRepo: IOperationsRepository = new MemoryOperationsRepository();
-  const enterpriseRepo: IEnterpriseRepository = new MemoryEnterpriseRepository();
+
 
   return {
     restaurantService: new RestaurantService(restaurantRepo),
@@ -89,7 +89,7 @@ export function createMemoryServices(): Services {
       superadminApi
     ),
     operationsService: new OperationsService(operationsRepo),
-    enterpriseService: new EnterpriseService(enterpriseRepo),
+
     consumerApiService: new ConsumerApiService(consumerApi),
     merchantApiService: new MerchantApiService(merchantApi),
     operationsApiService: new OperationsApiService(operationsApi, holidaysApi),

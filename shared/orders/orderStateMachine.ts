@@ -6,7 +6,7 @@ export const MERCHANT_ORDER_TRANSITIONS: Record<MerchantOrderStatus, readonly Me
   new: ['accepted', 'rejected'],
   accepted: ['preparing'],
   preparing: ['ready'],
-  ready: ['dispatched'],
+  ready: ['dispatched', 'delivered'],
   dispatched: ['delivered'],
   delivered: [],
   rejected: [],

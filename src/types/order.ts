@@ -33,9 +33,10 @@ export const ORDER_STATUS_FLOW: Record<string, string[]> = {
   new: ['accepted', 'rejected'],
   accepted: ['preparing'],
   preparing: ['ready'],
-  ready: ['dispatched'],
+  ready: ['dispatched', 'delivered'],
   dispatched: ['delivered'],
   confirmed: ['preparing'],
+  delivered: [],
 };
 
 export const ORDER_STATUS_LABELS: Record<string, string> = {

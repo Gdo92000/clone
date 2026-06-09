@@ -5,15 +5,27 @@ import { MerchantStatusBadge } from '../components/MerchantStatusBadge';
 import { formatCurrency } from '../format';
 import { useOrders, useBranches, useUpdateOrderStatus } from '../../../hooks/useMerchantData';
 import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
-import type { MerchantOrderStatus } from '../types';
+import type { MerchantOrder, MerchantOrderStatus } from '../types';
 
-const nextStatus: Partial<Record<MerchantOrderStatus, MerchantOrderStatus>> = {
-  new: 'accepted',
-  accepted: 'preparing',
-  preparing: 'ready',
-  ready: 'dispatched',
-  dispatched: 'delivered',
+const NEXT_STATUS_MAP: Record<'delivery' | 'pickup', Partial<Record<MerchantOrderStatus, MerchantOrderStatus>>> = {
+  delivery: {
+    new: 'accepted',
+    accepted: 'preparing',
+    preparing: 'ready',
+    ready: 'dispatched',
+    dispatched: 'delivered',
+  },
+  pickup: {
+    new: 'accepted',
+    accepted: 'preparing',
+    preparing: 'ready',
+    ready: 'delivered',
+  },
 };
+
+function getNextStatus(order: MerchantOrder): MerchantOrderStatus | undefined {
+  return NEXT_STATUS_MAP[order.deliveryType]?.[order.status];
+}
 
 export function MerchantOrdersPage() {
   const { data: orders = [], isLoading: ordersLoading, isError: ordersError, error: ordersErr } = useOrders();
@@ -66,7 +78,7 @@ export function MerchantOrdersPage() {
       <section className="space-y-3">
         {filteredOrders.map((order) => {
           const branch = branches.find((item) => item.id === order.branchId);
-          const statusToApply = nextStatus[order.status];
+          const statusToApply = getNextStatus(order);
 
           return (
             <article key={order.id} className="rounded-xl border border-border-default bg-surface-elevated p-4">

@@ -6,4 +6,4 @@ export { SubscriptionService } from './SubscriptionService';
 export { AdminService } from './AdminService';
 export { SuperadminService } from './SuperadminService';
 export { OperationsService } from './OperationsService';
-export { EnterpriseService } from './EnterpriseService';
+

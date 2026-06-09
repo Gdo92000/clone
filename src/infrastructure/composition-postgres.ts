@@ -5,7 +5,7 @@ import { PostgresConsumerRepository } from 'src/infrastructure/postgres/reposito
 import { PostgresAuthRepository } from 'src/infrastructure/postgres/repositories/PostgresAuthRepository';
 import { PostgresSubscriptionRepository } from 'src/infrastructure/postgres/repositories/PostgresSubscriptionRepository';
 import { PostgresOperationsRepository } from 'src/infrastructure/postgres/repositories/PostgresOperationsRepository';
-import { PostgresEnterpriseRepository } from 'src/infrastructure/postgres/repositories/PostgresEnterpriseRepository';
+
 import { RestaurantService } from 'src/domain/services/RestaurantService';
 import { MerchantService } from 'src/domain/services/MerchantService';
 import { ConsumerService } from 'src/domain/services/ConsumerService';
@@ -14,7 +14,7 @@ import { SubscriptionService } from 'src/domain/services/SubscriptionService';
 import { AdminService } from 'src/domain/services/AdminService';
 import { SuperadminService } from 'src/domain/services/SuperadminService';
 import { OperationsService } from 'src/domain/services/OperationsService';
-import { EnterpriseService } from 'src/domain/services/EnterpriseService';
+
 import { ConsumerApiService } from 'src/domain/services/ConsumerApiService';
 import { MerchantApiService } from 'src/domain/services/MerchantApiService';
 import { OperationsApiService } from 'src/domain/services/OperationsApiService';
@@ -43,7 +43,7 @@ export function createPostgresServices(db: PostgresJsDatabase): Services {
   const authRepo = new PostgresAuthRepository(db);
   const subscriptionRepo = new PostgresSubscriptionRepository(db);
   const operationsRepo = new PostgresOperationsRepository(db);
-  const enterpriseRepo = new PostgresEnterpriseRepository(db);
+
 
   return {
     restaurantService: new RestaurantService(restaurantRepo),
@@ -63,7 +63,7 @@ export function createPostgresServices(db: PostgresJsDatabase): Services {
       superadminApi
     ),
     operationsService: new OperationsService(operationsRepo),
-    enterpriseService: new EnterpriseService(enterpriseRepo),
+
     consumerApiService: new ConsumerApiService(consumerApi),
     merchantApiService: new MerchantApiService(merchantApi),
     operationsApiService: new OperationsApiService(operationsApi, holidaysApi),

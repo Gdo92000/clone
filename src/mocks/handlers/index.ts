@@ -8,6 +8,7 @@ import { printingHandlers } from './printing'
 import { themeHandlers, consumerHandlers, loyaltyHandlers } from './other'
 import { customerHandlers } from './customer'
 import { cityCoverageHandlers } from './cities'
+import { analyticsHandlers } from './analytics'
 
 export const handlers = [
   ...authHandlers,
@@ -22,4 +23,5 @@ export const handlers = [
   ...loyaltyHandlers,
   ...customerHandlers,
   ...cityCoverageHandlers,
+  ...analyticsHandlers,
 ]
