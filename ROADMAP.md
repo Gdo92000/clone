@@ -1,189 +1,110 @@
 # ROADMAP — Flux Delivery
 
-> Todas as **41 fases** concluídas. Lista completa abaixo.
+> **43 fases concluídas.** Último commit: `5ebc84d` (pushado para `origin/main`).
 
 ---
 
-## Etapa 1 — Produto Inicial (iFood Clone)
+## Etapa 1 — Fundação (Fases 1-6)
 
-### Fase 1 — Fundação
-**Tokens** (cores, tipografia, espaçamento), **Theme Provider** (light/dark), **Primitivos** (FxButton, FxText, FxInput, FxIcon, FxAvatar), **Layout** (FxContainer, FxStack, FxGrid, FxPageLayout)
+| Fase | Descrição | Status |
+|------|-----------|--------|
+| **1** | Tokens, Theme Provider, Primitivos (FxButton, FxText, FxInput, FxIcon, FxAvatar), Layout (FxContainer, FxStack, FxGrid, FxPageLayout) | ✅ |
+| **2** | Home/Marketplace, Listagem Restaurantes, Restaurante+Cardápio, Detalhe Item, FxRestaurantCard, FxProductCard, FxDeliveryBadge, FxSearchField, FxBottomNavigation, FxNavbar | ✅ |
+| **3** | Checkout e Pedidos: Carrinho→Checkout→Confirmação, Rastreamento, FxCartDrawer, FxCheckoutSummary, FxOrderTimeline, FxCouponField, FxPriceTag, FxQuantitySelector | ✅ |
+| **4** | Auth e Perfil: Login OTP, Cadastro, Recuperação Senha, Perfil, FxOtpField, FxPhoneField, FxAuthLayout | ✅ |
+| **5** | Admin Restaurante: Dashboard métricas, Pedidos tempo real, Cardápio, FxDashboardLayout, FxSidebar, FxProgressBar | ✅ |
+| **6** | Polimento Enterprise: Dark mode, Multi-brand, Playwright, Storybook, Performance audit, Changesets | ✅ |
 
-### Fase 2 — Telas Core
-Home/Marketplace, Listagem de Restaurantes, Restaurante + Cardápio, Detalhe do Item, FxRestaurantCard, FxProductCard, FxDeliveryBadge, FxSearchField, FxBottomNavigation, FxNavbar
+## Etapa 2 — Refatoração Arquitetural (Fases 7-14)
 
-### Fase 3 — Checkout e Pedidos
-Carrinho → Checkout → Confirmação, Rastreamento de Pedido, FxCartDrawer, FxCheckoutSummary, FxOrderTimeline, FxCouponField, FxPriceTag, FxQuantitySelector, FxStepper, FxAlertDialog, FxLoadingOverlay
+| Fase | Descrição | Status |
+|------|-----------|--------|
+| **7** | Remoção de arquivos obsoletos: viacepService, establishmentService, Toast legado, backups .rar | ✅ |
+| **8** | Documentação: 9 documentos canônicos | ✅ |
+| **9** | Rotas faltantes: menu-items, companies, branches, orders | ✅ |
+| **10** | Correção conexão API: baseUrl, proxy, categorias | ✅ |
+| **11** | Cleanup: ESLint 0 warnings, tabelas user_notifications + branch_settings | ✅ |
+| **12** | Quebra dependências circulares (relations desacopladas) | ✅ |
+| **13** | Refatoração arquitetural 7-phase | ✅ |
+| **14** | Correção ESLint + Build (0 erros, 0 warnings) | ✅ |
 
-### Fase 4 — Auth e Perfil
-Login por Telefone + OTP, Cadastro + Recuperação de Senha, Perfil do Usuário, FxOtpField, FxPhoneField, FxAuthLayout
+## Etapa 3 — Infraestrutura Enterprise (Fases 15-23)
 
-### Fase 5 — Admin do Restaurante
-Dashboard com métricas, Gestão de pedidos em tempo real, Gerenciamento de cardápio, FxDashboardLayout, FxSidebar, FxProgressBar
+| Fase | Descrição | Status |
+|------|-----------|--------|
+| **15** | Memory Repository (EntityStore, IDs LCG+DJB2, snapshot/restore) | ✅ |
+| **16** | Contract Schemas Zod (coverageCity, plan, globalCoupon, 23 testes endpoint parity) | ✅ |
+| **17** | Environment Runtime (initRuntime, healthz/livez/readyz, capabilities) | ✅ |
+| **18** | Snapshot Fixtures (serializador, snapshots registry, loader JSON, 18 testes) | ✅ |
+| **19** | Telemetry Real (withSpan, recordSpanMetric, event emitter, 18 testes) | ✅ |
+| **20** | Replay Recorder (gravação requisições por namespace, 21 testes) | ✅ |
+| **21** | Chaos Router (ChaosScenario, latency/shouldFail/shouldTimeout) | ✅ |
+| **22** | Resilience (delay, isTransientError, retry backoff+jitter, CircuitBreaker, runSaga compensator, 23 testes) | ✅ |
+| **22b** | City-Guard Hardening (isSameCityName, normalizeCityName) | ✅ |
+| **23** | IndexedDB Offline Storage (wrapper, mutation queue, ReconnectSync) | ✅ |
 
-### Fase 6 — Polimento Enterprise
-Dark mode completo, Multi-brand, Visual regression tests (Playwright), Storybook, Performance audit (Lighthouse > 90), Publicação via Changesets + Semantic Versioning
+## Etapa 4 — Auditorias Production-Ready (Fases 24-29)
 
----
+| Fase | Descrição | Status |
+|------|-----------|--------|
+| **24** | Segurança: 15 findings (JWT localStorage, refresh token JSON, CORS `*`, rate limit) | ✅ |
+| **25** | React Runtime: runtime checks, error boundaries, memoização | ✅ |
+| **26** | Camadas L1-L6: validação camadas, portas, adapters | ✅ |
+| **27** | PWA/Offline: service worker, cache strategies, offline fallbacks | ✅ |
+| **28** | Performance: Leaflet code-split, vendor chunks (5), bundle visualizer, Tailwind tree-shaking | ✅ |
+| **29** | Documentação do Projeto: 9 documentos de arquitetura e memória | ✅ |
 
-## Etapa 2 — Refatoração Arquitetural Inicial
+## Etapa 5 — Geocodificação e Cobertura (Fases 30-34)
 
-### Fase 7 — Remoção de Arquivos Obsoletos
-viacepService, establishmentService, Toast legado, backups .rar
+| Fase | Descrição | Status |
+|------|-----------|--------|
+| **30** | Geocodificação: 8 ajustes no pipeline | ✅ |
+| **31** | Pipeline Geocoding + Persistência (ViaCEP/Nominatim, endereços, filiais) | ✅ |
+| **32** | Governança Geocoding + Auditoria Franca (schema coverage + campos geoespaciais) | ✅ |
+| **33** | Remoção mockCoverageCities + Cobertura Geofencing-Ready (city coverage service + admin) | ✅ |
+| **34** | Coordenadas Reais: 8 restaurantes, Bahia Lanches, ViaCEP address-lookup, Mobile | ✅ |
 
-### Fase 8 — Documentação do Projeto
-Geração de 9 documentos canônicos de documentação
+## Etapa 6 — Saneamento e Correções (Fases 35-37)
 
-### Fase 9 — Implementação de Rotas Faltantes
-menu-items, companies, branches, orders — todas as rotas API implementadas
+| Fase | Descrição | Status |
+|------|-----------|--------|
+| **35** | Mock Cleanup + Correções Runtime (coerceNumeric, normalizeStateBR, CITY_TTL=0, consolidação printer pages) | ✅ |
+| **36** | Infrastructure Layer (Registry, ports, DI) | ✅ |
+| **37** | Modular Operations Schema + Novas Rotas | ✅ |
 
-### Fase 10 — Correção de Conexão API
-baseUrl, proxy e rota de categorias faltantes
+## Etapa 7 — Pedidos e Cardápio (Fases 38-44)
 
-### Fase 11 — Cleanup Final
-ESLint 0 warnings, tabelas user_notifications + branch_settings
+| Fase | Descrição | Status |
+|------|-----------|--------|
+| **38** | MirrorService + Idempotency-Key + Order Hooks | ✅ |
+| **39** | FK Constraints (Migration 0013 — 4 FKs) | ✅ |
+| **40** | FK Materialization (Migration 0014 — 53/53) + Menu Items Unification + Seed | ✅ |
+| **41** | State Machine Compartilhada + SSE Real | ✅ |
+| **42** | KDS Board (board visual + timers + som) | ✅ |
+| **43** | Unificar menu_items (Migration 0015): branch_id, is_visible_to_consumer, updated_at | ✅ |
 
-### Fase 12 — Quebra de Dependências Circulares
-Phase 2 — relations desacopladas
+## Etapa 8 — Additives, Notificações e Analytics (Fases 44-46)
 
-### Fase 13 — Refatoração Arquitetural 7-Phase
-Refatoração completa em 7 fases da arquitetura do projeto
+| Fase | Descrição | Status |
+|------|-----------|--------|
+| **44** | Additives CRUD (CRUD adicionais, fix findAdditives, JOIN rotas públicas, merge carrinho) | ✅ |
+| **45** | Web Push Notifications (Service Worker + Push API + notificação visual) | ✅ |
+| **46** | Analytics e Financeiro (recharts, endpoints merchant-analytics + merchant-finance, hooks useMerchantAnalytics/useMerchantFinance, MSW) | ✅ |
 
-### Fase 14 — Correção ESLint + Build
-Resolução de todos os erros ESLint e warnings TypeScript
+## Fases Adicionais
 
----
-
-## Etapa 3 — Infraestrutura Enterprise
-
-### Fase 15 — Memory Repository
-Repositórios em memória 100% determinísticos (EntityStore, IDs LCG+DJB2, timestamps controlados, snapshot/restore)
-
-### Fase 16 — Contract Schemas (Zod)
-Single source of truth para payloads de API (coverageCity, plan, globalCoupon — 23 testes de endpoint parity)
-
-### Fase 17 — Environment Runtime
-Auto-bootstrap completo: `initRuntime(env)`, healthz/livez/readyz, capabilities (replay, chaos, telemetry)
-
-### Fase 18 — Snapshot Fixtures
-Serializador de entidades, snapshots de registry, loader de fixtures JSON (18 testes)
-
-### Fase 19 — Telemetry Real
-`withSpan`, `recordSpanMetric`, evento emitter (18 testes)
-
-### Fase 20 — Replay Recorder
-Gravação de requisições por namespace (21 testes)
-
-### Fase 21 — Chaos Router
-ChaosScenario, getActiveChaosScenarios, latency/shouldFail/shouldTimeout
-
-### Fase 22 — Resilience
-`delay()`, `isTransientError()`, `retry()` backoff+jitter, CircuitBreaker (CLOSED/HALF_OPEN/OPEN), `runSaga()` com compensator rollback
-
-### Fase 22b — City-Guard Hardening
-`isSameCityName()` + `normalizeCityName` em useLiveCityEstablishments e memory-restaurants
-
-### Fase 23 — IndexedDB Offline Storage
-Wrapper IndexedDB (setItem/getItem/removeItem/clearStore), fila de mutations, ReconnectSync singleton
-
----
-
-## Etapa 4 — Auditorias Production-Ready
-
-### Fase 24 — Auditoria de Segurança (Production-Ready #1)
-15 findings: JWT em localStorage, refresh token em JSON, CORS `*`, token exposto em logs, sem rate limit
-
-### Fase 25 — Auditoria React Runtime (Production-Ready #2)
-Runtime checks, error boundaries, memoização, render optimization
-
-### Fase 26 — Auditoria Camadas L1-L6 (Production-Ready #3)
-Validação de camadas arquiteturais, portas, adapters
-
-### Fase 27 — Auditoria PWA/Offline (Production-Ready #4)
-Service worker, cache strategies, offline fallbacks
-
-### Fase 28 — Auditoria Performance (Production-Ready #5)
-Leaflet code-split (AddressMap), vendor chunk splitting (5 chunks), bundle visualizer, Tailwind CSS tree-shaking
-
-### Fase 29 — Documentação do Projeto
-Geração de 9 documentos de documentação e memória
-
----
-
-## Etapa 5 — Geocodificação e Cobertura
-
-### Fase 30 — Geocodificação (Refatoração 8 Ajustes)
-Correções no pipeline de geocodificação
-
-### Fase 31 — Pipeline de Geocoding + Persistência
-Address autocomplete (ViaCEP/Nominatim), persistência de endereços e filiais
-
-### Fase 32 — Governança de Geocoding + Auditoria França
-Schema de coverage + campos geoespaciais de restaurante
-
-### Fase 33 — Remoção de mockCoverageCities + Cobertura Geofencing-Ready
-City coverage service + admin panel
-
-### Fase 34 — Coordenadas Reais
-8 restaurantes com coordenadas reais, Bahia Lanches, ViaCEP address-lookup, Mobile
-
----
-
-## Etapa 6 — Saneamento e Correções
-
-### Fase 35 — Mock Cleanup + Correções Runtime
-coerceNumeric, normalizeStateBR, CITY_TTL=0, consolidação printer pages
-
-### Fase 36 — Infrastructure Layer
-Registry, ports, DI (infrastructure layer completa)
-
-### Fase 37 — Modular Operations Schema + New Routes
-Schema modular de operations, novas rotas
-
-### Fase 38 — MirrorService + Idempotency-Key + Order Hooks
-MirrorService, idempotency-key, order hooks + auth
-
-### Fase 39 — FK Constraints (Migration 0013 — 4 FKs)
-Materialização de 4 FK constraints em orders/branches
-
----
-
-## Etapa 7 — Pedidos e Cardápio
-
-### Fase 40 — FK Materialization + Menu Items Unification (Migration 0014 — 53/53)
-53 FKs materializadas no DB, unificação menu_items + merchant_menu_items, seed
-
-### Fase 41 — State Machine Compartilhada + SSE Real
-State machine no backend, SSE em tempo real
-
-### Fase 42 — KDS Board
-Board visual KDS com timers + som
-
-### Fase 43 — Unificar menu_items (Migration 0015)
-branch_id, is_visible_to_consumer, updated_at em menu_items; merchant_menu_items deprecada
-
-### Fase 44 — Additives CRUD
-CRUD de adicionais, fix findAdditives, JOIN em rotas públicas, merge no carrinho
-
----
-
-## Etapa 8 — Notificações e Analytics
-
-### Fase 45 — Web Push Notifications
-Notificações push nativas (Service Worker + Push API + notificação visual)
-
-### Fase 46 — Analytics e Financeiro
-recharts, endpoints merchant-analytics + merchant-finance, gráficos (linha/barra/pizza), hooks useMerchantAnalytics + useMerchantFinance
-
----
+| Fase | Descrição | Status |
+|------|-----------|--------|
+| **47** | Remoção módulo Enterprise órfão (14 arquivos deletados: páginas, repositórios, service, domain, schema) | ✅ |
+| **48** | Fluxo condicional delivery/pickup (state machine, sync merchantOrders→orders, SSE bidi, push diferenciado, TrackingPage 4/5 steps) | ✅ |
 
 ## Commits de Referência
 
 | Fase(s) | Commit |
 |---------|--------|
-| 1-6 | `d4f9a23` — primeiro commit |
+| 1-6 | `d4f9a23` |
 | 7-14 | `86a9dd2` · `92b42b4` · `1999d39` · `aeb09a7` |
-| 15-18 | `436ebd7` (FASE 19-23 inclui) |
+| 15-18 | `436ebd7` |
 | 19-23 | `436ebd7` |
 | 24-25 | `c257eb2` · `8b60d33` |
 | 26 | `7bb255d` · `9398dc3` · `68f1caa` |
@@ -200,4 +121,8 @@ recharts, endpoints merchant-analytics + merchant-finance, gráficos (linha/barr
 | 39 | `6d716b6` |
 | 35-39 (chore) | `3e25334` |
 | 40 | `73c3954` |
-| 41 | Atual (não commitado) |
+| 41-48 | `5ebc84d` |
+
+## Pendente
+
+- Aplicar migration `0015` (DB Supabase indisponível no ambiente dev)
