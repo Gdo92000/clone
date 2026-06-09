@@ -1,6 +1,9 @@
 import { pgTable, text, numeric, boolean, timestamp, index } from 'drizzle-orm/pg-core';
 import { branches } from './branches';
 
+/**
+ * Unificado em menu_items (core). Mantido apenas para referência.
+ */
 export const merchantMenuItems = pgTable('merchant_menu_items', {
   id: text('id').primaryKey(),
   branch_id: text('branch_id').references(() => branches.id).notNull(),

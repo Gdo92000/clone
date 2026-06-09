@@ -1,5 +1,6 @@
 import { relations } from 'drizzle-orm';
 import { categories, restaurants, menuItems, additives } from './index';
+import { branches } from '../merchant/branches';
 
 export const categoriesRelations = relations(categories, ({ many }) => ({
   restaurants: many(restaurants),
@@ -17,6 +18,10 @@ export const menuItemsRelations = relations(menuItems, ({ one, many }) => ({
   restaurant: one(restaurants, {
     fields: [menuItems.restaurant_id],
     references: [restaurants.id],
+  }),
+  branch: one(branches, {
+    fields: [menuItems.branch_id],
+    references: [branches.id],
   }),
   additives: many(additives),
 }));

@@ -1,5 +1,6 @@
 import { relations } from 'drizzle-orm';
-import { companies, branches, merchantOrders, merchantOrderItems, merchantMenuItems } from './index';
+import { companies, branches, merchantOrders, merchantOrderItems } from './index';
+import { menuItems } from '../core/menu-items';
 
 export const companiesRelations = relations(companies, ({ many }) => ({
   branches: many(branches),
@@ -11,7 +12,7 @@ export const branchesRelations = relations(branches, ({ one, many }) => ({
     references: [companies.id],
   }),
   merchantOrders: many(merchantOrders),
-  merchantMenuItems: many(merchantMenuItems),
+  menuItems: many(menuItems),
 }));
 
 export const merchantOrdersRelations = relations(merchantOrders, ({ one, many }) => ({
@@ -26,12 +27,5 @@ export const merchantOrderItemsRelations = relations(merchantOrderItems, ({ one 
   merchantOrder: one(merchantOrders, {
     fields: [merchantOrderItems.merchant_order_id],
     references: [merchantOrders.id],
-  }),
-}));
-
-export const merchantMenuItemsRelations = relations(merchantMenuItems, ({ one }) => ({
-  branch: one(branches, {
-    fields: [merchantMenuItems.branch_id],
-    references: [branches.id],
   }),
 }));

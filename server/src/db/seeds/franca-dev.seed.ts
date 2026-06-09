@@ -1,6 +1,6 @@
 import { eq, inArray } from 'drizzle-orm';
 import { db } from '../index';
-import { restaurants, categories, coverageCities } from '../schema';
+import { restaurants, categories, coverageCities, companies, branches, plans, menuItems, additives } from '../schema';
 import { logger } from '../../lib/logger';
 
 type CuisineEnum = 'pizza' | 'hamburger' | 'brazilian' | 'japanese' | 'mexican' | 'italian' | 'chinese' | 'healthy' | 'dessert' | 'cafe' | 'arabic' | 'seafood' | 'other';
@@ -128,10 +128,44 @@ const FRANCA_RESTAURANTS: FrancaRestaurant[] = [
   },
 ];
 
+interface SeedMenuItem {
+  id: string;
+  restaurant_id: string;
+  branch_id: string;
+  name: string;
+  description: string;
+  category: string;
+  price: string;
+  original_price: string | null;
+  image_url: string;
+  is_available: boolean;
+}
+
+const SEED_MENU_ITEMS: SeedMenuItem[] = [
+  { id: 'item-1', restaurant_id: 'rest-1', branch_id: 'rest-1', name: 'X-Burger Clássico', description: 'Hambúrguer 180g, queijo, alface, tomate e molho especial', category: 'Hambúrgueres', price: '28.90', original_price: '32.90', image_url: '/mock/burger1.svg', is_available: true },
+  { id: 'item-2', restaurant_id: 'rest-1', branch_id: 'rest-1', name: 'X-Bacon Supreme', description: 'Hambúrguer 250g, bacon crocante, cheddar, onion rings', category: 'Hambúrgueres', price: '34.90', original_price: null, image_url: '/mock/burger2.svg', is_available: true },
+  { id: 'item-3', restaurant_id: 'rest-1', branch_id: 'rest-1', name: 'Combo Familiar', description: '2 hambúrgueres, batata frita, 2 refrigerantes', category: 'Hambúrgueres', price: '59.90', original_price: null, image_url: '/mock/combo1.svg', is_available: true },
+  { id: 'item-4', restaurant_id: 'rest-2', branch_id: 'rest-2', name: 'Pizza Margherita', description: 'Molho de tomate, mussarela, manjericão fresco', category: 'Pizzas', price: '42.90', original_price: null, image_url: '/mock/pizza1.svg', is_available: true },
+  { id: 'item-5', restaurant_id: 'rest-2', branch_id: 'rest-2', name: 'Pizza Pepperoni', description: 'Pepperoni, mussarela, orégano', category: 'Pizzas', price: '45.90', original_price: null, image_url: '/mock/pizza2.svg', is_available: true },
+  { id: 'item-6', restaurant_id: 'rest-3', branch_id: 'rest-3', name: 'Sushi Combo 20 peças', description: '20 peças variadas: salmão, atum, kappa maki', category: 'Japonesa', price: '54.90', original_price: null, image_url: '/mock/sushi1.svg', is_available: true },
+  { id: 'item-7', restaurant_id: 'rest-3', branch_id: 'rest-3', name: 'Temaki Salmão', description: 'Temaki de salmão fresco com cream cheese', category: 'Japonesa', price: '18.90', original_price: null, image_url: '/mock/temaki1.svg', is_available: true },
+  { id: 'item-8', restaurant_id: 'rest-4', branch_id: 'rest-4', name: 'Tacos (3 unidades)', description: 'Tacos de carne, guacamole, sour cream', category: 'Mexicana', price: '32.90', original_price: null, image_url: '/mock/taco1.svg', is_available: true },
+  { id: 'item-9', restaurant_id: 'rest-5', branch_id: 'rest-5', name: 'Açaí 500ml', description: 'Açaí puro com banana, granola, leite condensado', category: 'Açaí & Sorvetes', price: '22.90', original_price: null, image_url: '/mock/acai1.svg', is_available: false },
+  { id: 'item-10', restaurant_id: 'rest-6', branch_id: 'rest-6', name: 'Salada Caesar', description: 'Alface, frango grelhado, croutons, parmesão', category: 'Saudável', price: '26.90', original_price: null, image_url: '/mock/salad1.svg', is_available: true },
+  { id: 'item-11', restaurant_id: 'rest-9', branch_id: 'rest-9', name: 'X-Burger Bahia', description: 'Hambúrguer 200g, queijo mussarela, alface, tomate e molho especial', category: 'Hambúrgueres', price: '26.90', original_price: '29.90', image_url: '/mock/burger1.svg', is_available: true },
+  { id: 'item-12', restaurant_id: 'rest-9', branch_id: 'rest-9', name: 'X-Tudo', description: 'Hambúrguer 250g, bacon, ovo, calabresa, queijo, alface, tomate, batata palha', category: 'Hambúrgueres', price: '34.90', original_price: null, image_url: '/mock/burger2.svg', is_available: true },
+  { id: 'item-13', restaurant_id: 'rest-9', branch_id: 'rest-9', name: 'Misto Quente', description: 'Pão de forma, presunto, queijo mussarela, tomate e orégano', category: 'Lanches', price: '15.90', original_price: null, image_url: '/mock/combo1.svg', is_available: true },
+  { id: 'item-14', restaurant_id: 'rest-9', branch_id: 'rest-9', name: 'Batata Frita', description: 'Porção de batata frita crocante serve 2 pessoas', category: 'Porções', price: '18.90', original_price: null, image_url: '/mock/pizza1.svg', is_available: true },
+  { id: 'item-15', restaurant_id: 'rest-9', branch_id: 'rest-9', name: 'Milk Shake de Chocolate', description: 'Milk shake cremoso de chocolate com calda e chantilly', category: 'Bebidas', price: '16.90', original_price: null, image_url: '/mock/pizza2.svg', is_available: true },
+  { id: 'item-16', restaurant_id: 'rest-9', branch_id: 'rest-9', name: 'Suco Natural de Laranja', description: 'Suco de laranja natural 500ml', category: 'Bebidas', price: '9.90', original_price: null, image_url: '/mock/acai1.svg', is_available: true },
+];
+
 export interface SeedFrancaDevResult {
   restaurantsInserted: number;
   categoriesInserted: number;
   coverageCityInserted: boolean;
+  branchesInserted: number;
+  menuItemsInserted: number;
   skipped: boolean;
 }
 
@@ -141,7 +175,7 @@ export async function seedFrancaDev(force = false): Promise<SeedFrancaDevResult>
   const existing = await db.select({ id: restaurants.id }).from(restaurants).limit(1);
   if (existing.length > 0 && !force) {
     logger.info('⏭️ Seed Franca Dev: banco já possui restaurants, pulando', { existing: existing.length });
-    return { restaurantsInserted: 0, categoriesInserted: 0, coverageCityInserted: false, skipped: true };
+    return { restaurantsInserted: 0, categoriesInserted: 0, coverageCityInserted: false, branchesInserted: 0, menuItemsInserted: 0, skipped: true };
   }
 
   if (force) {
@@ -225,16 +259,121 @@ export async function seedFrancaDev(force = false): Promise<SeedFrancaDevResult>
     });
   }
 
+  const existingPlans = await db.select({ id: plans.id }).from(plans).limit(1);
+  if (existingPlans.length === 0) {
+    logger.info('🌱 Seed Franca Dev: inserindo planos basic/pro/premium');
+    const planData = [
+      { id: 'basic' as const, name: 'Basic', monthly_price: '49.90', description: 'Para pequenos negócios', max_branches: 1, max_products: 50, max_users: 3, max_campaigns: 0 },
+      { id: 'pro' as const, name: 'Pro', monthly_price: '99.90', description: 'Para negócios em crescimento', max_branches: 3, max_products: 200, max_users: 10, max_campaigns: 5 },
+      { id: 'premium' as const, name: 'Premium', monthly_price: '199.90', description: 'Para redes e operações grandes', max_branches: 10, max_products: 1000, max_users: 50, max_campaigns: 20 },
+    ];
+    await db.insert(plans).values(planData);
+  }
+
+  const COMPANY_ID = 'company-1';
+  const existingCompany = await db.select({ id: companies.id }).from(companies).where(eq(companies.id, COMPANY_ID)).limit(1);
+  let branchesInserted = 0;
+  if (existingCompany.length === 0) {
+    logger.info('🌱 Seed Franca Dev: inserindo company-1');
+    await db.insert(companies).values({
+      id: COMPANY_ID,
+      name: 'Franca Delivery Ltda',
+      document: '00.000.000/0001-91',
+      plan_id: 'premium',
+      is_active: true,
+    });
+    logger.info('🌱 Seed Franca Dev: inserindo branches (1 por restaurant)');
+    for (const r of FRANCA_RESTAURANTS) {
+      await db.insert(branches).values({
+        id: r.id,
+        company_id: COMPANY_ID,
+        name: r.name,
+        address: r.address,
+        number: null,
+        neighborhood: r.neighborhood,
+        city: r.city,
+        state: r.state,
+        latitude: r.latitude,
+        longitude: r.longitude,
+        delivery_radius_km: r.delivery_radius_km,
+        phone: null,
+      });
+      branchesInserted++;
+    }
+  } else {
+    logger.info('⏭️ Seed Franca Dev: company já existe, pulando branches');
+  }
+
+  const existingMenuItems = await db.select({ id: menuItems.id }).from(menuItems).limit(1);
+  let menuItemsInserted = 0;
+  if (existingMenuItems.length === 0) {
+    logger.info('🌱 Seed Franca Dev: inserindo menu items');
+    await db.insert(menuItems).values(
+      SEED_MENU_ITEMS.map((item) => ({
+        id: item.id,
+        restaurant_id: item.restaurant_id,
+        branch_id: item.branch_id,
+        name: item.name,
+        description: item.description,
+        category: item.category,
+        price: item.price,
+        original_price: item.original_price,
+        image_url: item.image_url,
+        is_available: item.is_available,
+        is_visible_to_consumer: true,
+      })),
+    );
+    menuItemsInserted = SEED_MENU_ITEMS.length;
+  } else {
+    logger.info('⏭️ Seed Franca Dev: menu items já existem, pulando');
+  }
+
+  const existingAdditives = await db.select({ id: additives.id }).from(additives).limit(1);
+  if (existingAdditives.length === 0) {
+    logger.info('🌱 Seed Franca Dev: inserindo additives');
+    const additiveData = [
+      { id: 'add-1', menu_item_id: 'item-1', name: 'Bacon extra', price: '4.50' },
+      { id: 'add-2', menu_item_id: 'item-1', name: 'Queijo cheddar', price: '3.00' },
+      { id: 'add-3', menu_item_id: 'item-2', name: 'Bacon extra', price: '4.50' },
+      { id: 'add-4', menu_item_id: 'item-2', name: 'Molho especial', price: '2.00' },
+      { id: 'add-5', menu_item_id: 'item-3', name: 'Bacon extra', price: '4.50' },
+      { id: 'add-6', menu_item_id: 'item-3', name: 'Queijo cheddar', price: '3.00' },
+      { id: 'add-7', menu_item_id: 'item-3', name: 'Molho especial', price: '2.00' },
+      { id: 'add-8', menu_item_id: 'item-3', name: 'Batata frita', price: '6.00' },
+      { id: 'add-9', menu_item_id: 'item-4', name: 'Molho especial', price: '2.00' },
+      { id: 'add-10', menu_item_id: 'item-4', name: 'Sobremesa', price: '8.00' },
+      { id: 'add-11', menu_item_id: 'item-5', name: 'Bacon extra', price: '4.50' },
+      { id: 'add-12', menu_item_id: 'item-5', name: 'Molho especial', price: '2.00' },
+      { id: 'add-13', menu_item_id: 'item-6', name: 'Sobremesa', price: '8.00' },
+      { id: 'add-14', menu_item_id: 'item-8', name: 'Molho especial', price: '2.00' },
+      { id: 'add-15', menu_item_id: 'item-9', name: 'Sobremesa', price: '8.00' },
+      { id: 'add-16', menu_item_id: 'item-10', name: 'Molho especial', price: '2.00' },
+      { id: 'add-17', menu_item_id: 'item-11', name: 'Bacon extra', price: '4.50' },
+      { id: 'add-18', menu_item_id: 'item-11', name: 'Queijo cheddar', price: '3.00' },
+      { id: 'add-19', menu_item_id: 'item-11', name: 'Molho especial', price: '2.00' },
+      { id: 'add-20', menu_item_id: 'item-12', name: 'Bacon extra', price: '4.50' },
+      { id: 'add-21', menu_item_id: 'item-12', name: 'Queijo cheddar', price: '3.00' },
+      { id: 'add-22', menu_item_id: 'item-14', name: 'Batata frita', price: '6.00' },
+    ];
+    await db.insert(additives).values(additiveData);
+  } else {
+    logger.info('⏭️ Seed Franca Dev: additives já existem, pulando');
+  }
+
   logger.info('✅ Seed Franca Dev concluído', {
     restaurants: FRANCA_RESTAURANTS.length,
     categories: FRANCA_CATEGORIES.length,
     coverageCity: 'city-franca',
+    branches: branchesInserted,
+    menuItems: menuItemsInserted,
   });
 
   return {
     restaurantsInserted: FRANCA_RESTAURANTS.length,
     categoriesInserted: FRANCA_CATEGORIES.length,
     coverageCityInserted: existingCoverage.length === 0,
+    branchesInserted,
+    menuItemsInserted,
     skipped: false,
   };
 }
