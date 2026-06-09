@@ -81,6 +81,13 @@ function resetDbMocks() {
   sendPushMock.mockReset();
 }
 
+function alwaysReturnsDataMock(result: unknown[]) {
+  const m = mockSelect(result);
+  // make it work even after mockImplementationOnce exhaustion
+  m.then = vi.fn((cb: (r: unknown[]) => unknown) => Promise.resolve(cb(result)));
+  return m;
+}
+
 const BASE_ORDER = {
   id: 'order-1',
   branch_id: 'branch-1',

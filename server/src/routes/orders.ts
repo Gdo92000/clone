@@ -3,7 +3,7 @@ import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { eq, and, sql } from 'drizzle-orm';
 import { db } from '../db';
-import { merchantOrders, orders, loyaltySettings, userLoyaltyPoints, subscriptions, subscriptionAddons, addons, pushSubscriptions } from '../db/schema';
+import { merchantOrders, orders, loyaltySettings, userLoyaltyPoints, subscriptions, subscriptionAddons, addons, pushSubscriptions, users } from '../db/schema';
 import { PrintingService } from '../services/printing/service';
 import { logger } from '../lib/logger';
 import { tenantIsolationMiddleware } from '../lib/tenant';
@@ -218,6 +218,20 @@ route.post('/:id/status', zValidator('param', idParam), zValidator('json', statu
           );
         }
       }
+    }
+  }
+
+  const merchantUsers = await db.select({ id: users.id }).from(users)
+    .where(and(eq(users.branch_id, branchId), eq(users.role, 'merchant')));
+  for (const mu of merchantUsers) {
+    const subs = await db.select({ endpoint: pushSubscriptions.endpoint, keys: pushSubscriptions.keys })
+      .from(pushSubscriptions)
+      .where(eq(pushSubscriptions.user_id, mu.id));
+    for (const sub of subs) {
+      void sendPush(
+        { endpoint: sub.endpoint, keys: sub.keys as { p256dh: string; auth: string } },
+        { title: 'Flux Delivery', body: `Pedido #${id} atualizado para: ${status}`, data: { orderId: id, status } },
+      );
     }
   }
 

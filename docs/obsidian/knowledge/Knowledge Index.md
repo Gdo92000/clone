@@ -52,7 +52,8 @@ Arquitetura, padrões, integrações e fluxos críticos do projeto.
 | [[Testes — Configuração e Padrões]] | Vitest config, mock patterns, coverage, file org |
 | [[Dev vs Production - Comportamentos Diferenciados]] | NUMERIC coercion, UF normalization, localStorage per-origin, MSW scope, auto-seed |
 | [[Mirror Service — Arquitetura e Auditoria]] | Schema dual orders/merchant_orders, mapeamento de campos, problemas conhecidos, queries de monitoramento |
-
+| [[Learnings Fases 41-43]] | Fluxo delivery/pickup, TrackingPage condicional, Analytics/Financeiro, remocao Enterprise |
+ 
 ## API — Notas Especializadas
 
 | Nota | Conteúdo |

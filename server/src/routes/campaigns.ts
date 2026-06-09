@@ -7,6 +7,7 @@ import { campaigns, users, branches } from '../db/schema';
 import { authMiddleware } from '../middleware/auth';
 import { requirePermission } from '../middleware/permission';
 import { requireTenantOwnership } from '../middleware/tenant';
+import { requirePlanLimit } from '../middleware/planLimits';
 import type { TokenPayload } from '../auth/types';
 
 const route = new Hono();
@@ -64,7 +65,7 @@ route.get('/:id', requireTenantOwnership('branchId'), zValidator('param', idPara
   return c.json(item[0]);
 });
 
-route.post('/', zValidator('json', createSchema), async (c) => {
+route.post('/', requirePlanLimit('campaigns'), zValidator('json', createSchema), async (c) => {
   const payload = c.get('jwtPayload') as TokenPayload;
   const data = c.req.valid('json');
   

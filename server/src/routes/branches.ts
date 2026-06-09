@@ -6,6 +6,7 @@ import { db } from '../db';
 import { branches, menuItems, additives, merchantOrders } from '../db/schema';
 import { requirePermission } from '../middleware/permission';
 import { requireTenantOwnership } from '../middleware/tenant';
+import { requirePlanLimit } from '../middleware/planLimits';
 
 const route = new Hono();
 
@@ -50,10 +51,16 @@ const upsertSchema = z.object({
 
 const updateSchema = upsertSchema.partial().omit({ company_id: true });
 
-route.get('/', async (c) => {
-  const all = await db.select().from(branches);
-  return c.json(all);
-});
+route.get(
+'/',
+requirePermission({ roles: ['merchant', 'admin', 'superadmin'] }),
+requireTenantOwnership('companyId'),
+async (c) => {
+const companyId = c.get('userCompanyId') as string;
+const all = await db.select().from(branches).where(eq(branches.company_id, companyId));
+return c.json(all);
+},
+);
 
 route.get('/:id/menu-items', zValidator('param', idParam), async (c) => {
   const { id } = c.req.valid('param');
@@ -71,10 +78,11 @@ route.get('/:id/menu-items', zValidator('param', idParam), async (c) => {
 });
 
 route.post(
-  '/:id/menu-items',
-  requirePermission({ roles: ['merchant', 'admin', 'superadmin'] }),
-  requireTenantOwnership('branchId'),
-  zValidator('param', idParam),
+'/:id/menu-items',
+requirePermission({ roles: ['merchant', 'admin', 'superadmin'] }),
+requireTenantOwnership('branchId'),
+requirePlanLimit('products'),
+zValidator('param', idParam),
   zValidator('json', menuItemSchema),
   async (c) => {
     const { id } = c.req.valid('param');
@@ -220,10 +228,11 @@ route.get('/:id/orders', zValidator('param', idParam), async (c) => {
 });
 
 route.post(
-  '/',
-  requirePermission({ roles: ['merchant', 'admin', 'superadmin'] }),
-  zValidator('json', upsertSchema),
-  async (c) => {
+'/',
+requirePermission({ roles: ['merchant', 'admin', 'superadmin'] }),
+requirePlanLimit('branches'),
+zValidator('json', upsertSchema),
+async (c) => {
     const data = c.req.valid('json');
     const id = crypto.randomUUID();
     const values: typeof branches.$inferInsert = {
