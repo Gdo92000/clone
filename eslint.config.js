@@ -39,12 +39,12 @@ export default tseslint.config(
       ...fixupConfigRules(reactPlugin.configs.flat['jsx-runtime']),
     ],
 
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.app.json', './tsconfig.test.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
+  languageOptions: {
+    parserOptions: {
+      projectService: true,
+      tsconfigRootDir: import.meta.dirname,
     },
+  },
 
     plugins: {
       'react-hooks': reactHooksPlugin,
@@ -58,12 +58,7 @@ export default tseslint.config(
         version: 'detect',
       },
       'import/resolver': {
-          typescript: {
-            project: [
-              './tsconfig.app.json',
-              './tsconfig.test.json',
-            ],
-          },
+        typescript: {},
       },
     },
 
