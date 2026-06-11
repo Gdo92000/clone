@@ -7,9 +7,10 @@ aliases:
 - Memoria Operacional
 - Session Memory
 created_at: 2026-05-23
-updated_at: 2026-06-09
+updated_at: 2026-06-11
 related:
 - CURRENT_STATE.md
+- LOOP 3 — Testes Backend Faltantes
 tags:
 - type/memory
 ---
@@ -18,8 +19,10 @@ tags:
 
 ## Estado atual
 
-**Fases 38-43 commitadas. Fase A — Bloqueadores Produção + Fase B — SSE/Push Merchant CONCLUÍDAS** (2026-06-09, working tree).
-Percentual Merchant estimado: ~88% (antes ~68%).
+**LOOP 3 — Testes Backend CONCLUÍDO** (2026-06-11). 87 server test files, 650 testes. Full suite: 108 files, 851 testes. Lint 0 erros, 0 warnings. Build limpo.
+**LOOP 2 — Pipeline CI/CD CONCLUÍDO** (2026-06-10).
+**LOOP 1 — TypeScript Backend Cleanup CONCLUÍDO** (2026-06-10).
+Percentual Merchant: ~90%. Qualidade do código restaurada.
 
 | Fase | Descricao | Status |
 |------|-----------|--------|
@@ -29,123 +32,88 @@ Percentual Merchant estimado: ~88% (antes ~68%).
 | **41** | Analytics e Financeiro (recharts, endpoints, hooks, MSW) | ✅ completo |
 | **42** | Remocao modulo Enterprise orfao (14 arquivos deletados) | ✅ auditoria + cleanup |
 | **43** | Fluxo condicional delivery/pickup (backend + frontend + testes) | ✅ implementado |
+| **Fase A** | Bloqueadores produção (multi-tenant, plan limits, taxas) | ✅ completo |
+| **Fase B** | SSE no KDS + Push Merchant | ✅ completo |
+| **LOOP 1** | TypeScript Backend Cleanup | ✅ **100% (0 err TS, 0 err lint)** |
+| **LOOP 2** | Pipeline CI/CD | ✅ **Concluído** |
+| **LOOP 3** | Testes Backend | ✅ **100% (87 files, 650 tests, lint 0/0)** |
+| **LOOP 4** | Auditoria Arquitetural (System Contract) | ⏳ Pendente |
+| **LOOP 5** | Otimização Build/SEO | ⏳ Pendente |
+| **LOOP 6** | Documentação/Memória | ⏳ Pendente |
 
-### Fase 38 — Unificacao menu_items
+## LOOP 1 — TypeScript Backend Cleanup
 
-- `menu_items` agora tem `branch_id` (FK → branches), `is_visible_to_consumer` (default true), `updated_at`
-- `merchant_menu_items` deprecada no schema (mantida para compatibilidade de migration; sera DROPada em migration futura)
-- Relations atualizadas: `branchesRelations.menuItems` (era `merchantMenuItems`)
-- Rotas publicas filtram por `is_visible_to_consumer = true`
-- Convencao `restaurant_id = branch_id` mantida (mirrorService)
-- Migration `0015_many_puff_adder.sql` gerada (ALTER TABLE + FK + 2 indexes)
-- Seed atualizado: plans, company, branches, 16 menu items reais
-- `menu_items` NUNCA era escrita por codigo antes desta fase
+### Problema
+- `@typescript-eslint/no-explicit-any: error` com tolerância zero
+- `base-postgres.ts` usava `any` internamente (tipagem genérica `TTable extends PgTable`)
+- `registry.ts` acumulou tipos mortos (`TTablesSelect`, `TablesSelect`, `_TPostgresRow`)
+- Rotas usavam `as string` redundante em `c.get('userBranchId')`
+- `orders.ts` usava `as any` para cast de enum de status
+- `orders.test.ts` com 14 erros de tipo nos mocks Hono
+- TS6307 em `tsconfig.json` (arquivos fora do include)
 
-### Fase 39 — Additives
+### Solução
+1. **base-postgres.ts** — reescrito sem `any`. `PgTable` concreto (não genérico) + `PostgresJsDatabase<Record<string, unknown>>`. `Db` type exportado. `withTransaction` removido (não está na `RepositoryPort`).
+2. **registry.ts** — `Repositories` simplificado: `RepositoryPort` sem genérico. Imports limpos.
+3. **registry-memory.ts** — `T extends Record<string, unknown>`.
+4. **fixtures/loader.ts** — `as unknown as` para cast de Repositories. Guard `repo?.reset?.()`.
+5. **fixtures/registry-shots.ts** — funções síncronas.
+6. **Rotas** — `as string` removido de `c.get()`.
+7. **orders.ts** — `customerStatus as any` → `as 'confirmed' | ... | 'cancelled'`.
+8. **orders.test.ts** — 14 fixes de mock.
+9. **tsconfig.json** — `"../shared"` adicionado ao include.
 
-- `findAdditives()` bug corrigido: `eq(additives.id, menuItemId)` → `eq(additives.menu_item_id, menuItemId)` (Postgres + Memory repo)
-- Memory repo: `addons` field removido, filtro por menuItemId implementado
-- Rotas publicas (menu-items.ts, index.ts): additives embutidos via query individual por item (loop `sql` template)
-- `branches.ts`: CRUD completo de additives — `POST/PUT/DELETE /:id/menu-items/:itemId/additives`
-- `CartContext.tsx`: `additiveSetsEqual()` compara additives por IDs ao verificar item duplicado no carrinho
-- Seeds: 22 registros de additives cobrindo itens rest-1 a rest-9
-- `ON DELETE CASCADE` em `additives → menu_items`
+### Trade-off arquitetural
+`Repositories` perdeu o genérico de entidade. Dados retornados são `Record<string, unknown>`. Decisão forçada pelo Drizzle v0.45+ — impossibilitando abstração genérica sobre `PgTable`.
 
-### Fase 41 — Analytics e Financeiro
+## LOOP 2 — Pipeline CI/CD
+1. **`.github/workflows/ci.yml`** — Node 22, `npm ci`, lint → build → test
+2. **`.gitignore`** restaurado
 
-- Endpoints server-side: `server/src/routes/merchant-analytics.ts` e `merchant-finance.ts`
-- Graficos recharts: `FxLineChart`, `FxBarChart`, `FxPieChart` em `src/components/charts/`
-- Hooks: `useMerchantAnalytics`, `useMerchantFinance`
-- MSW handlers + fixtures para testes offline
-- Tipos e DTOs desacoplados de entidades DB
-- `FxPieChart` usa `fill` diretamente no `<Pie>` (nao `<Cell>`) — compatibilidade recharts v3+
+## LOOP 3 — Testes Backend Faltantes
 
-### Fase 42 — Remocao modulo Enterprise orfao
+### Escopo
+Cobrir todas as rotas, serviços, libs, middleware, auth e DB do backend.
 
-- Auditoria completa: 4 paginas nunca roteadas, dados mock duplicados, repositorios stub sem consumidor, backend inexistente
-- 14 arquivos deletados (paginas, enterpriseData, searchEnterprise, types, repos, service, domain, schema)
-- Preservados `usePlanLimits`, `useAuditLog`, `auditApi` (usados por outros modulos)
-- `DemoDataPage` migrada para dados inline
-- Conclusao: plano "Enterprise" nunca existiu no backend (`planId` enum so `basic|pro|premium`)
+### Resultados
+| Métrica | Antes | Depois |
+|---------|-------|--------|
+| Server test files | 34 | **87** |
+| Server tests | 393 | **650** |
+| Full suite tests | 393 | **851** |
+| Lint errors | 0 (3 warnings) | **0 erros, 0 warnings** |
+| DB test lint errors | 149 | **0** |
 
-### Fase 43 — Fluxo condicional delivery/pickup
+### Principais patches de lint
+- **`unbound-method`**: `vi.mocked(db.select)` → `const mockedDb = vi.mocked(db)` em 16 arquivos
+- **`no-unsafe-call`**: `next: () => Promise<void>` anotado em mocks de middleware (11 arquivos)
+- **`require-await`**: `async` removido de 5 callbacks
+- **DB tests**: `base-memory.test.ts` (139 err) — tipagem com `import type` + `Record<string, unknown>`. `provider.test.ts` (6 err) — `EnvConfig` tipado. `provider-selector.test.ts` (4 err) — `getCapabilities()`.
 
-- **State machine**: `shared/orders/orderStateMachine.ts` — `ready: ['dispatched', 'delivered']`
-- **Backend** (`server/src/routes/orders.ts`):
-  - `delivery_type` incluido no SELECT inicial do merchant
-  - `ALLOWED` condicional: delivery `ready→dispatched`, pickup `ready→delivered` (entrega sem gestao de frota)
-  - Sync `merchantOrders→orders` na mesma transacao via `MERCHANT_TO_CUSTOMER_STATUS`
-  - SSE publicado em `user:{customerUserId}` alem de `branch:{branchId}`
-  - Push diferenciado por `delivery_type` (pickup nunca recebe "saiu para entrega")
-- **Frontend**:
-  - `MerchantOrdersPage.tsx`: `NEXT_STATUS_MAP` por `delivery`/`pickup` — botao "Avancar status" dinamico
-  - `TrackingPage.tsx`: `getStatusSteps(deliveryType)` — delivery 5 steps (inclui "Saiu para entrega"), pickup 4 steps (sem essa etapa)
-  - `FxOrderStatus` renderiza steps recebidos — nunca mostra "Saiu para entrega" para pickup
-- **Testes**: 18 testes (10 backend Hono + 8 frontend steps)
+### 44 Rotas + serviços + lib + middleware + auth + DB
+Cobertura total: middleware (55+ testes), auth (16), serviços (125+), lib (46), DB (35), rotas (370+), outros (67).
 
-### Lint/Typecheck/Build — Validados
+### Bug corrigido
+- `loginLockout.ts:23,34` — condição `lockoutUntil = 0` causava reset de contagem e deleção indevida.
 
-- ESLint `strictTypeChecked` nao resolve tipos Drizzle de colunas fora do tsconfig include
-- Workaround: `sql` template literal (`sql`menu_item_id = ${id}``) em vez de `eq(additives.menu_item_id, id)`
-- `rows.at(0)` em vez de desconstrucao `[item]` para evitar `no-unnecessary-condition`
-- `_branchId` prefix para vars destruturadas nao usadas (convencao `_` permitida pelo lint)
-- `react-refresh/only-export-components` warnings no `TrackingPage.tsx` (exporta hooks + componentes) — warning aceito, nao erro
+## Decisoes-chave (LOOP 3)
 
-**393 testes (34 files)** — ✅ 100% passando. Lint 0 erros, typecheck 0 erros, build sucesso.
-
-### Ajustes relevantes
-
-- **orders.test.ts flaky**: 2 testes de transição de status (ready→dispatched, dispatched→delivered) tinham timeout próximo a 5000ms devido a `import()` dinâmico do módulo Hono. Após otimização de cache do Vitest, passam consistentemente em ~3000-4200ms.
-- **Push merchant implementado em orders.ts**: busca `users` com `role='merchant'` e `branch_id`, depois `pushSubscriptions`. Mesmo padrão de `consumer-orders.ts`. Mensagem: `"Pedido #{id} atualizado para: {status}"`.
-
-### Pendente
-
-- (nada — todas as tarefas concluídas)
-
-> [!tip] Navegacao
-> [[CURRENT_STATE]] · [[MOC — Historico do Projeto]] · [[Learnings Fases 41-43]]
+- **`mockedDb` pattern**: `vi.mocked(db)` retorna objeto mockado inteiro → acesso `mockedDb.select` sem separar método de `this`.
+- **Middleware mock tipagem**: `mockAuthMiddleware.mockImplementation(async (_c, next: () => Promise<void>) => ...)` — sem `async function` sem tipo, `next` vira `Function` e dispara `no-unsafe-call`.
+- **`holidays.test.ts` sem `as unknown as`**: `const mockMiddleware: MiddlewareHandler = async (c, next) => ...` em vez de cast.
+- **DB test types**: `EntityStore`/`BaseMemoryRepository` tipados com `import type` + construtores `new (namespace: string) => EntityStore` — elimina 139 erros de `any`.
 
 ## Progresso consolidado
+- Fases 1-24, 25-43, Fase A, Fase B concluídas
+- LOOP 1 (TypeScript cleanup) ✅
+- LOOP 2 (CI/CD) ✅
+- LOOP 3 (Testes backend) ✅
+- **87 server test files, 650 testes — 0 falhas, 0 lint, 0 build**
 
-- Fases 1-24 concluidas (codigo + infraestrutura)
-- Fases 1-5 (auditorias): seguranca, React runtime, camadas L1-L6, PWA/offline, performance
-- Fases 15-24 (enterprise): memory repo, contract schemas, env runtime, snapshots, telemetry, replay, chaos, resilience, IndexedDB, proximity
-- **Fase 25** — Geocodificacao (refatoracao 8 ajustes)
-- **Fase 26** — Pipeline de Geocoding + Persistencia de Enderecos/Filiais (2 sub-fases)
-- **Fase 27** — Governanca de Geocoding + Auditoria de Franca
-- **Fase 28** — Remocao de mockCoverageCities + Cobertura Geofencing-Ready
-- **Fase 29** — Coordenadas reais (8 restaurants) + Bahia Lanches + ViaCEP address-lookup + Mobile
-- **Fase 30** — Mock Cleanup + Correcoes runtime (coerceNumeric, normalizeStateBR, CITY_TTL=0)
-- **Fase 31** — Mobile First Correction (25/25 itens — touch targets, modais, grids, a11y)
-- **Fase 32** — Saneamento /merchant curto prazo (6 itens)
-- **Fase 33** — Checkout→Tracking→Catalog + Auth + Idempotency-Key (migration 0012 aplicada)
-- **Fase 34** — FK Constraints (migration 0013 — 4 FKs)
-- **Fase 35** — Materializar 8 FKs restantes (migration 0014 — 53/53)
-- **Fase 36** — State Machine compartilhada + SSE real
-- **Fase 37** — KDS (board visual + timers + som)
-- **Fase 38** — Unificar menu_items + merchant_menu_items (migration 0015 gerada)
-- **Fase 39** — CRUD additives + fix findAdditives + JOIN rotas publicas + carrinho
-- **Fase 41** — Analytics e Financeiro (recharts + hooks + endpoints + MSW)
-- **Fase 42** — Remocao modulo Enterprise orfao (14 arquivos)
-- **Fase 43** — Fluxo condicional delivery/pickup (state machine, sync, SSE bidi, push, tracking steps)
+## Pendente (prioridade)
+1. **LOOP 4 — Auditoria Arquitetural**: System Contract, invariantes L1-L6, FSM
+2. **LOOP 5 — Otimização Build/SEO**: Bundle size, Core Web Vitals, GEO
+3. **LOOP 6 — Documentação/Memória**: ADRs, knowledge base
 
-## Decisoes-chave
-
-- **Unificacao Opcao A**: tabela unica `menu_items` substitui `merchant_menu_items`. Merchant e consumer leem a mesma fonte.
-- **Convencao `restaurant_id = branch_id`**: mirrorService ja usa (`findBranchForRestaurant`). Sem constraint estrutural — e convencao, nao garantia.
-- **JSONB snapshot preservado**: `order_items.additives` (JSONB) mantem historico mesmo se merchant alterar/excluir adicionais depois.
-- **merchant_menu_items deprecada mas nao removida**: tabela ainda definida no schema para compatibilidade de migration; sera DROPada em migration futura.
-- **findAdditives() bug critico**: consultava `WHERE id = menuItemId` em vez de `WHERE menu_item_id = menuItemId` — nunca retornava resultados.
-- **State machine inline no backend**: `shared/orders/orderStateMachine.ts` e o contrato canonico. Validacao runtime inlinada para evitar conflito entre Drizzle "error types" e ESLint strictTypeChecked.
-- **Zod como bridge de tipos**: `merchantStatusEnum.parse()` converte valores Drizzle em tipos union concretos do Zod.
-- **Polling 5s para KDS**: SSE ideal mas polling simplifica implementacao inicial.
-- **53 FKs no DB**: schema Drizzle e banco PostgreSQL em sincronia total.
-- **Workaround strictTypeChecked + Drizzle**: `sql` template literal para queries em colunas additives; `rows.at(0)` para evitar `no-unnecessary-condition` em resultados de query Drizzle.
-- **Transicoes condicionais por delivery_type**: `ALLOWED` no backend e `NEXT_STATUS_MAP` no frontend replicam a mesma logica — sem gestao de frota, `ready→dispatched` so para delivery.
-- **SSE cliente no merchant**: `useMerchantSSE.ts` substitui polling no KDS. Backoff exponencial. Branch-aware.
-- **Sync via mapping tabelas separadas**: `orders` (cliente) e `merchantOrders` (merchant) tem enums diferentes. `MERCHANT_TO_CUSTOMER_STATUS` mapeia `rejected→cancelled`, `accepted→preparing`, etc.
-- **SSE bidi**: publica em `branch:{branchId}` (merchant escuta) E `user:{customerUserId}` (cliente escuta via `/api/realtime/orders` com `Authorization` header).
-- **Push mensagens distintas**: `statusMessages` tem blocos separados `delivery` e `pickup`. Pickup nunca contem chave `dispatched`.
-- **FxPieChart sem `<Cell>`**: recharts v3+ aceita `fill` diretamente no `<Pie>` — evita warning de `unique key` e simplifica o componente.
-- **TrackingPage sem dispatched para pickup**: `getStatusSteps(deliveryType)` retorna 4 steps (exclui `dispatched`) para pickup. Testes validam comprimento e ausencia. `FxOrderStatus` renderiza apenas steps recebidos.
-- **Plano Enterprise removido**: inexistente no backend (`planId` enum so `basic|pro|premium`); paginas orfas, dados mock duplicados, repositorios sem consumidor.
+> [!tip] Navegacao
+> [[CURRENT_STATE]] · [[MOC — Historico do Projeto]] · [[LOOP 3 — Testes Backend]]

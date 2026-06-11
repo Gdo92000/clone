@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getStatusSteps, statusToStep } from '../TrackingPage';
+import { getStatusSteps, statusToStep } from '../trackingSteps';
 
 describe('getStatusSteps', () => {
   it('retorna "Pedido pronto" para delivery quando status é ready', () => {

@@ -69,6 +69,21 @@ export function useToggleMenuItemAvailability() {
   });
 }
 
+export function useToggleMenuItemVisibility() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { branchId: string; itemId: string; is_visible_to_consumer: boolean }) =>
+      merchantApi.toggleMenuItemVisibility(input.branchId, input.itemId, input.is_visible_to_consumer),
+    onSuccess: async (_, input) => {
+      await queryClient.invalidateQueries({ queryKey: MENU_ITEMS_KEY });
+      await queryClient.invalidateQueries({ queryKey: branchMenuItemsKey(input.branchId) });
+    },
+    onError: (err: unknown) => {
+      errorToast(err instanceof Error ? err.message : 'Erro ao alterar visibilidade');
+    },
+  });
+}
+
 export function useDeleteMenuItem() {
   const queryClient = useQueryClient();
   return useMutation({

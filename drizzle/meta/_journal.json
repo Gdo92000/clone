@@ -2,124 +2,20 @@
   "version": "7",
   "dialect": "postgresql",
   "entries": [
-    {
-      "idx": 0,
-      "version": "7",
-      "when": 1779111385832,
-      "tag": "0000_new_miracleman",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1779193758712,
-      "tag": "0001_quiet_ken_ellis",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1779208706863,
-      "tag": "0002_stale_trish_tilby",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1779209078735,
-      "tag": "0003_nappy_micromacro",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1779210709062,
-      "tag": "0004_many_gambit",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1779212329968,
-      "tag": "0005_motionless_hellfire_club",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1779216341954,
-      "tag": "0006_tiny_toro",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1779216534097,
-      "tag": "0007_majestic_chronomancer",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1779219954659,
-      "tag": "0008_true_hex",
-      "breakpoints": true
-    },
-    {
-      "idx": 9,
-      "version": "7",
-      "when": 1779220480591,
-      "tag": "0009_nice_legion",
-      "breakpoints": true
-    },
-    {
-      "idx": 10,
-      "version": "7",
-      "when": 1779498823637,
-      "tag": "0010_worried_mesmero",
-      "breakpoints": true
-    },
-    {
-      "idx": 11,
-      "version": "7",
-      "when": 1780674527365,
-      "tag": "0011_next_miss_america",
-      "breakpoints": true
-    },
-    {
-      "idx": 12,
-      "version": "7",
-      "when": 1780924162197,
-      "tag": "0012_purple_ricochet",
-      "breakpoints": true
-    },
-    {
-      "idx": 13,
-      "version": "7",
-      "when": 1780927510644,
-      "tag": "0013_adorable_nitro",
-      "breakpoints": true
-    },
-    {
-      "idx": 14,
-      "version": "7",
-      "when": 1780937423952,
-      "tag": "0014_materialize_eight_fks",
-      "breakpoints": true
-    },
-    {
-      "idx": 15,
-      "version": "7",
-      "when": 1780963626048,
-      "tag": "0015_many_puff_adder",
-      "breakpoints": true
-    },
-    {
-      "idx": 16,
-      "version": "7",
-      "when": 1781007119778,
-      "tag": "0016_dry_drax",
-      "breakpoints": true
-    }
+    { "idx": 0, "version": "7", "when": 1779111385832, "tag": "0000_new_miracleman", "breakpoints": true },
+    { "idx": 1, "version": "7", "when": 1779193758712, "tag": "0001_quiet_ken_ellis", "breakpoints": true },
+    { "idx": 2, "version": "7", "when": 1779208706863, "tag": "0002_stale_trish_tilby", "breakpoints": true },
+    { "idx": 3, "version": "7", "when": 1779209078735, "tag": "0003_nappy_micromacro", "breakpoints": true },
+    { "idx": 4, "version": "7", "when": 1779210709062, "tag": "0004_many_gambit", "breakpoints": true },
+    { "idx": 5, "version": "7", "when": 1779212329968, "tag": "0005_motionless_hellfire_club", "breakpoints": true },
+    { "idx": 6, "version": "7", "when": 1779216341954, "tag": "0006_kitchen_auto_print", "breakpoints": true },
+    { "idx": 7, "version": "7", "when": 1779498823637, "tag": "0010_worried_mesmero", "breakpoints": true },
+    { "idx": 8, "version": "7", "when": 1780674527365, "tag": "0011_next_miss_america", "breakpoints": true },
+    { "idx": 9, "version": "7", "when": 1780924162197, "tag": "0012_purple_ricochet", "breakpoints": true },
+    { "idx": 10, "version": "7", "when": 1780927510644, "tag": "0013_adorable_nitro", "breakpoints": true },
+    { "idx": 11, "version": "7", "when": 1780937423952, "tag": "0014_materialize_eight_fks", "breakpoints": true },
+    { "idx": 12, "version": "7", "when": 1780963626048, "tag": "0015_many_puff_adder", "breakpoints": true },
+    { "idx": 13, "version": "7", "when": 1781007119778, "tag": "0016_dry_drax", "breakpoints": true },
+    { "idx": 14, "version": "7", "when": 1781558400000, "tag": "0017_team_sub_role", "breakpoints": true }
   ]
 }

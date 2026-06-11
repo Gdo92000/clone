@@ -4,80 +4,88 @@ import { getToken } from '../services/authService';
 import { merchantKeys } from '../api/queryKeys';
 
 interface MerchantSSEOptions {
-branchId: string | null;
-enabled?: boolean;
+  branchId: string | null;
+  enabled?: boolean;
 }
 
 export function useMerchantSSE({ branchId, enabled = true }: MerchantSSEOptions) {
-const queryClient = useQueryClient();
-const [connected, setConnected] = useState(false);
-const esRef = useRef<EventSource | null>(null);
-const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-const shouldReconnectRef = useRef(true);
-const branchIdRef = useRef(branchId);
-const enabledRef = useRef(enabled);
+  const queryClient = useQueryClient();
+  const [connected, setConnected] = useState(false);
+  const esRef = useRef<EventSource | null>(null);
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const shouldReconnectRef = useRef(true);
+  const branchIdRef = useRef(branchId);
+  const enabledRef = useRef(enabled);
+  const connectImplRef = useRef<() => void>(() => {});
 
-branchIdRef.current = branchId;
-enabledRef.current = enabled;
+  useEffect(() => {
+    branchIdRef.current = branchId;
+  }, [branchId]);
 
-function connectImpl() {
-if (branchIdRef.current == null || !enabledRef.current) return;
-const token = getToken();
-if (!token) return;
+  useEffect(() => {
+    enabledRef.current = enabled;
+  }, [enabled]);
 
-const params = new URLSearchParams({ branch_id: branchIdRef.current });
-const url = `/api/realtime/orders?${params.toString()}`;
+  useEffect(() => {
+    function connectImpl() {
+      if (branchIdRef.current == null || !enabledRef.current) return;
+      const token = getToken();
+      if (!token) return;
 
-if (esRef.current) {
-esRef.current.close();
-esRef.current = null;
-}
+      const params = new URLSearchParams({ branch_id: branchIdRef.current });
+      const url = `/api/realtime/orders?${params.toString()}`;
 
-const es = new EventSource(url, { withCredentials: true });
-esRef.current = es;
+      if (esRef.current) {
+        esRef.current.close();
+        esRef.current = null;
+      }
 
-let retryCount = 0;
-const MAX_RETRY = 10;
-const BASE_DELAY = 1000;
+      const es = new EventSource(url, { withCredentials: true });
+      esRef.current = es;
 
-function scheduleRetry() {
-if (!shouldReconnectRef.current) return;
-if (retryCount >= MAX_RETRY) return;
-const delay = Math.min(BASE_DELAY * Math.pow(2, retryCount), 30000);
-retryCount++;
-retryTimerRef.current = setTimeout(connectImpl, delay);
-}
+      let retryCount = 0;
+      const MAX_RETRY = 10;
+      const BASE_DELAY = 1000;
 
-es.addEventListener('connected', () => {
-setConnected(true);
-retryCount = 0;
-});
+      function scheduleRetry() {
+        if (!shouldReconnectRef.current) return;
+        if (retryCount >= MAX_RETRY) return;
+        const delay = Math.min(BASE_DELAY * Math.pow(2, retryCount), 30000);
+        retryCount++;
+        retryTimerRef.current = setTimeout(connectImplRef.current, delay);
+      }
 
-es.addEventListener('order_update', (_event: MessageEvent) => {
-void queryClient.invalidateQueries({ queryKey: merchantKeys.orders });
-});
+      es.addEventListener('connected', () => {
+        setConnected(true);
+        retryCount = 0;
+      });
 
-es.addEventListener('heartbeat', () => {
-});
+      es.addEventListener('order_update', (_event: MessageEvent) => {
+        void queryClient.invalidateQueries({ queryKey: merchantKeys.orders });
+      });
 
-es.onerror = () => {
-setConnected(false);
-es.close();
-esRef.current = null;
-scheduleRetry();
-};
-}
+      es.addEventListener('heartbeat', () => {
+      });
 
-useEffect(() => {
-shouldReconnectRef.current = true;
-connectImpl();
+      es.onerror = () => {
+        setConnected(false);
+        es.close();
+        esRef.current = null;
+        scheduleRetry();
+      };
+    }
 
-return () => {
-shouldReconnectRef.current = false;
-if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
-if (esRef.current) esRef.current.close();
-};
-}, [branchId, enabled, queryClient]);
+    connectImplRef.current = connectImpl;
 
-return { connected };
+    shouldReconnectRef.current = true;
+    connectImpl();
+
+    return () => {
+      shouldReconnectRef.current = false;
+      if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+      if (esRef.current) esRef.current.close();
+    };
+  }, [branchId, enabled, queryClient]);
+
+  return { connected };
 }

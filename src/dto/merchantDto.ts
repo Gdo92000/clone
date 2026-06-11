@@ -43,6 +43,7 @@ export interface MerchantMenuItemDTO {
   category: string;
   price: number;
   is_available: boolean;
+  is_visible_to_consumer: boolean;
   description: string;
 }
 

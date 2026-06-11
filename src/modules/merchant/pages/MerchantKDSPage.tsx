@@ -139,42 +139,42 @@ className="h-10 rounded-lg border border-border-default bg-surface-background px
 {order.status === 'new' && (
 <div className="flex gap-2">
 <button
-onClick={() => {
-updateStatus(order.id, 'rejected');
-}}
-className="rounded-lg bg-red-100 px-3 py-1.5 text-sm text-red-700 hover:bg-red-200"
->
-Recusar
-</button>
-<button
-onClick={() => {
-updateStatus(order.id, 'accepted');
-}}
-className="rounded-lg bg-yellow-100 px-3 py-1.5 text-sm text-yellow-700 hover:bg-yellow-200"
->
-Aceitar
-</button>
+          onClick={() => {
+            updateStatus(order.id, 'rejected');
+          }}
+          className="rounded-lg bg-red-100 px-4 py-2.5 text-sm text-red-700 hover:bg-red-200 min-h-[44px]"
+        >
+          Recusar
+        </button>
+        <button
+          onClick={() => {
+            updateStatus(order.id, 'accepted');
+          }}
+          className="rounded-lg bg-yellow-100 px-4 py-2.5 text-sm text-yellow-700 hover:bg-yellow-200 min-h-[44px]"
+        >
+          Aceitar
+        </button>
 </div>
 )}
 {order.status === 'accepted' && (
 <button
-onClick={() => {
-updateStatus(order.id, 'preparing');
-}}
-className="rounded-lg bg-blue-100 px-3 py-1.5 text-sm text-blue-700 hover:bg-blue-200"
->
-Iniciar preparo
-</button>
+          onClick={() => {
+            updateStatus(order.id, 'preparing');
+          }}
+          className="rounded-lg bg-blue-100 px-4 py-2.5 text-sm text-blue-700 hover:bg-blue-200 min-h-[44px]"
+        >
+          Iniciar preparo
+        </button>
 )}
 {order.status === 'preparing' && (
 <button
-onClick={() => {
-updateStatus(order.id, 'ready');
-}}
-className="rounded-lg bg-green-100 px-3 py-1.5 text-sm text-green-700 hover:bg-green-200"
->
-Finalizar
-</button>
+          onClick={() => {
+            updateStatus(order.id, 'ready');
+          }}
+          className="rounded-lg bg-green-100 px-4 py-2.5 text-sm text-green-700 hover:bg-green-200 min-h-[44px]"
+        >
+          Finalizar
+        </button>
 )}
 </div>
 </div>

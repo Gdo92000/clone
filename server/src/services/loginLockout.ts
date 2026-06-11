@@ -20,7 +20,7 @@ export function recordFailedAttempt(email: string, ip?: string): void {
     return;
   }
 
-  const count = (existing && now >= existing.lockoutUntil) ? 1 : (existing ? existing.count + 1 : 1);
+  const count = (existing && existing.lockoutUntil > 0 && now >= existing.lockoutUntil) ? 1 : (existing ? existing.count + 1 : 1);
   const lockoutUntil = count >= LOGIN_MAX_ATTEMPTS ? now + LOGIN_LOCKOUT_MINUTES * 60 * 1000 : 0;
   store.set(k, { count, lockoutUntil });
 }
@@ -31,7 +31,7 @@ export function isLockedOut(email: string, ip?: string): boolean {
   if (!entry) return false;
 
   const now = Date.now();
-  if (now >= entry.lockoutUntil) {
+  if (entry.lockoutUntil > 0 && now >= entry.lockoutUntil) {
     store.delete(k);
     return false;
   }

@@ -21,6 +21,9 @@ const memoryEnv: EnvConfig = {
   MAX_BODY_SIZE: 1024,
   LOGIN_MAX_ATTEMPTS: 5,
   LOGIN_LOCKOUT_MINUTES: 15,
+  VAPID_PUBLIC_KEY: 'BF6kYMoL-rjFycPGZRdABQzz2e0vQbLFp0SorteBkwtFaYjqkEz4iQv4L88QLm4fi83F2Ze07PMtGASS4xiYWH8',
+  VAPID_PRIVATE_KEY: 'UVr3DVIu_avx7vHJTB00941YQEprBpaMm6IZMscUDPg',
+  VAPID_SUBJECT: 'mailto:dev@fluxdelivery.com',
 };
 
 beforeAll(() => {

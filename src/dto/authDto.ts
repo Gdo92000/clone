@@ -5,6 +5,7 @@ export interface AuthUserDTO {
   name: string;
   email: string;
   role: UserRole;
+  sub_role?: string;
   company_id?: string;
   branch_id?: string;
   avatar_url: string;

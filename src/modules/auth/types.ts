@@ -32,6 +32,7 @@ export interface AuthUser {
   name: string;
   email: string;
   role: UserRole;
+  subRole?: string;
   companyId?: string;
   branchId?: string;
   avatarUrl: string;

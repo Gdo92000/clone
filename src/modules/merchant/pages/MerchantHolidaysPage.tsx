@@ -112,13 +112,13 @@ export function MerchantHolidaysPage() {
       <div className="mb-4 flex gap-2">
         <button
           onClick={() => { setTab('holidays'); }}
-          className={`rounded-lg px-4 py-2 text-sm font-medium ${tab === 'holidays' ? 'bg-brand-primary text-white' : 'bg-surface-elevated text-text-secondary'}`}
+          className={`rounded-lg px-4 py-2 text-sm font-medium min-h-[44px] ${tab === 'holidays' ? 'bg-brand-primary text-white' : 'bg-surface-elevated text-text-secondary'}`}
         >
           Feriados
         </button>
         <button
           onClick={() => { setTab('special'); }}
-          className={`rounded-lg px-4 py-2 text-sm font-medium ${tab === 'special' ? 'bg-brand-primary text-white' : 'bg-surface-elevated text-text-secondary'}`}
+          className={`rounded-lg px-4 py-2 text-sm font-medium min-h-[44px] ${tab === 'special' ? 'bg-brand-primary text-white' : 'bg-surface-elevated text-text-secondary'}`}
         >
           Datas especiais
         </button>
@@ -127,7 +127,7 @@ export function MerchantHolidaysPage() {
       {tab === 'holidays' && (
         <div className="space-y-4">
           <div className="rounded-xl border border-border-default bg-surface-elevated p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <h3 className="font-semibold text-text-primary">Feriados nacionais</h3>
               <Button size="sm" onClick={handleSeedCurrentYear} disabled={seedHolidays.isPending}>
                 {seedHolidays.isPending ? 'Carregando...' : 'Carregar feriados do ano'}
@@ -160,12 +160,12 @@ export function MerchantHolidaysPage() {
 
               <div>
                 <span className="text-sm font-medium text-text-primary">Tipo de exceção</span>
-                <div className="mt-1 flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   {OVERRIDE_TYPES.map((t) => (
                     <button
                       key={t.value}
                       onClick={() => { setOverrideForm({ ...overrideForm, overrideType: t.value, periods: t.value === 'custom_hours' ? [{ openTime: '08:00', closeTime: '22:00' }] : [] }); }}
-                      className={`rounded-lg px-3 py-1.5 text-sm ${overrideForm.overrideType === t.value ? 'bg-brand-primary text-white' : 'bg-surface-background text-text-secondary'}`}
+                      className={`rounded-lg px-3 py-1.5 text-sm min-h-[44px] ${overrideForm.overrideType === t.value ? 'bg-brand-primary text-white' : 'bg-surface-background text-text-secondary'}`}
                     >
                       {t.label}
                     </button>
@@ -245,7 +245,7 @@ export function MerchantHolidaysPage() {
           <div className="rounded-xl border border-border-default bg-surface-elevated p-4">
             <h3 className="font-semibold text-text-primary">Nova data especial</h3>
             <div className="mt-3 space-y-3">
-              <div className="grid grid-cols-[1fr_1fr] gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr] gap-2">
                 <label className="block">
                   <span className="text-sm font-medium text-text-primary">Data</span>
                   <input
@@ -266,22 +266,22 @@ export function MerchantHolidaysPage() {
                 </label>
               </div>
 
-              <div className="flex items-center gap-4">
-                <label className="flex items-center gap-1.5 text-sm text-text-secondary">
+              <div className="flex flex-wrap items-center gap-4">
+                <label className="flex items-center gap-1.5 text-sm text-text-secondary min-h-[44px]">
                   <input
                     type="checkbox"
                     checked={specialForm.isClosed}
                     onChange={(e) => { setSpecialForm({ ...specialForm, isClosed: e.target.checked, is24h: false }); }}
-                    className="accent-feedback-error"
+                    className="accent-feedback-error min-h-[44px] min-w-[44px]"
                   />
                   Fechado
                 </label>
-                <label className="flex items-center gap-1.5 text-sm text-text-secondary">
+                <label className="flex items-center gap-1.5 text-sm text-text-secondary min-h-[44px]">
                   <input
                     type="checkbox"
                     checked={specialForm.is24h}
                     onChange={(e) => { setSpecialForm({ ...specialForm, is24h: e.target.checked, isClosed: false }); }}
-                    className="accent-brand-primary"
+                    className="accent-brand-primary min-h-[44px] min-w-[44px]"
                   />
                   24 horas
                 </label>

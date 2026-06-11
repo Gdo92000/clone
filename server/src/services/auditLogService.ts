@@ -13,7 +13,11 @@ export type AuditAction =
   | 'PASSWORD_RESET_CONFIRM'
   | 'REGISTER'
   | 'SESSION_REVOKED'
-  | 'AUTH_FAILED';
+  | 'AUTH_FAILED'
+  | 'TEAM_INVITE'
+  | 'TEAM_UPDATE'
+  | 'TEAM_DEACTIVATE'
+  | 'TEAM_REACTIVATE';
 
 export async function createAuditLog(params: {
   userId?: string;

@@ -188,10 +188,10 @@ const openEdit = (c: MerchantCoupon) => {
                 <div className={clsx('h-full rounded-full', usagePercent(coupon) > 80 ? 'bg-feedback-error' : 'bg-brand-primary')} style={{ width: `${usagePercent(coupon)}%` }} />
               </div>
               <p className="text-xs text-text-tertiary mt-1">{usagePercent(coupon)}% utilizado</p>
-              <div className="flex gap-2 mt-4 pt-3 border-t border-border-default">
-                <Button variant="outline" intent="secondary" size="sm" className="flex-1" onClick={() => { toggleActive(coupon.id, coupon.is_active); }}>{coupon.is_active ? 'Pausar' : 'Ativar'}</Button>
-                <Button variant="outline" intent="secondary" size="sm" className="flex-1" onClick={() => { openEdit(coupon); }}>Editar</Button>
-                <button onClick={() => { deleteMutation.mutate(coupon.id); }} className="p-2 rounded-lg hover:bg-surface-background transition-colors" title="Excluir"><Icon name="Trash2" size={16} className="text-text-tertiary hover:text-feedback-error" /></button>
+              <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t border-border-default">
+                <Button variant="outline" intent="secondary" size="sm" className="flex-1 min-w-[100px]" onClick={() => { toggleActive(coupon.id, coupon.is_active); }}>{coupon.is_active ? 'Pausar' : 'Ativar'}</Button>
+                <Button variant="outline" intent="secondary" size="sm" className="flex-1 min-w-[80px]" onClick={() => { openEdit(coupon); }}>Editar</Button>
+                <button onClick={() => { deleteMutation.mutate(coupon.id); }} className="p-2 min-h-[44px] min-w-[44px] rounded-lg hover:bg-surface-background transition-colors flex items-center justify-center" title="Excluir"><Icon name="Trash2" size={16} className="text-text-tertiary hover:text-feedback-error" /></button>
               </div>
             </article>
           ))}

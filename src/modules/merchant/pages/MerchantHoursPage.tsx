@@ -179,27 +179,27 @@ export function MerchantHoursPage() {
                 <div className="flex items-center justify-between">
                   <span className="font-semibold text-text-primary">{day.label}</span>
                   <div className="flex items-center gap-2">
-                    <label className="flex items-center gap-1.5 text-sm text-text-secondary">
+                    <label className="flex items-center gap-1.5 text-sm text-text-secondary min-h-[44px]">
                       <input
                         type="checkbox"
                         checked={dayForm.is24h}
                         onChange={(e) => { updateDay(day.key, { is24h: e.target.checked, isClosed: false }); }}
-                        className="accent-brand-primary"
+                        className="accent-brand-primary min-h-[44px] min-w-[44px]"
                       />
                       24h
                     </label>
-                    <label className="flex items-center gap-1.5 text-sm text-text-secondary">
+                    <label className="flex items-center gap-1.5 text-sm text-text-secondary min-h-[44px]">
                       <input
                         type="checkbox"
                         checked={dayForm.isClosed}
                         onChange={(e) => { updateDay(day.key, { isClosed: e.target.checked, is24h: false }); }}
-                        className="accent-feedback-error"
+                        className="accent-feedback-error min-h-[44px] min-w-[44px]"
                       />
                       Fechado
                     </label>
                     <button
                       onClick={() => { duplicateToAll(day.key); }}
-                      className="text-xs text-brand-primary hover:text-brand-primary-hover"
+                      className="text-xs text-brand-primary hover:text-brand-primary-hover min-h-[44px] py-2"
                       title="Replicar para todos os dias"
                     >
                       Replicar
@@ -211,19 +211,19 @@ export function MerchantHoursPage() {
                   <div className="mt-3 space-y-2">
                     {dayForm.periods.map((period, idx) => (
                       <div key={idx} className="flex items-center gap-2">
-                        <input
-                          type="time"
-                          value={period.openTime}
-                          onChange={(e) => { updatePeriod(day.key, idx, { openTime: e.target.value }); }}
-                          className="h-9 rounded-lg border border-border-default bg-surface-background px-2 text-sm"
-                        />
-                        <span className="text-sm text-text-secondary">até</span>
-                        <input
-                          type="time"
-                          value={period.closeTime}
-                          onChange={(e) => { updatePeriod(day.key, idx, { closeTime: e.target.value }); }}
-                          className="h-9 rounded-lg border border-border-default bg-surface-background px-2 text-sm"
-                        />
+                          <input
+                            type="time"
+                            value={period.openTime}
+                            onChange={(e) => { updatePeriod(day.key, idx, { openTime: e.target.value }); }}
+                            className="h-10 rounded-lg border border-border-default bg-surface-background px-2 text-sm"
+                          />
+                          <span className="text-sm text-text-secondary">até</span>
+                          <input
+                            type="time"
+                            value={period.closeTime}
+                            onChange={(e) => { updatePeriod(day.key, idx, { closeTime: e.target.value }); }}
+                            className="h-10 rounded-lg border border-border-default bg-surface-background px-2 text-sm"
+                          />
                         {dayForm.periods.length > 1 && (
                           <button
                             onClick={() => { removePeriod(day.key, idx); }}

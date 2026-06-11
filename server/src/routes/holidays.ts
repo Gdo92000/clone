@@ -6,6 +6,8 @@ import { db } from '../db';
 import { holidayRules } from '../db/schema';
 import { seedHolidaysForYear, getHolidaysForDate } from '../services/operations';
 import { holidayRuleSchema } from '../../../shared/validations/operations';
+import { authMiddleware } from '../middleware/auth';
+import { requirePermission } from '../middleware/permission';
 
 const dateParam = z.object({ date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato AAAA-MM-DD') });
 const yearParam = z.object({ year: z.coerce.number().int().min(2000).max(2100) });
@@ -24,13 +26,13 @@ holidays.get('/date/:date', zValidator('param', dateParam), async (c) => {
   return c.json(result);
 });
 
-holidays.post('/seed/:year', zValidator('param', yearParam), async (c) => {
+holidays.post('/seed/:year', authMiddleware, requirePermission({ roles: ['superadmin', 'admin'] }), zValidator('param', yearParam), async (c) => {
   const { year } = c.req.valid('param');
   const count = await seedHolidaysForYear(year);
   return c.json({ seeded: count, year });
 });
 
-holidays.post('/', zValidator('json', holidayRuleSchema), async (c) => {
+holidays.post('/', authMiddleware, requirePermission({ roles: ['superadmin', 'admin'] }), zValidator('json', holidayRuleSchema), async (c) => {
   const data = c.req.valid('json');
   const id = crypto.randomUUID();
   await db.insert(holidayRules).values({
@@ -46,7 +48,7 @@ holidays.post('/', zValidator('json', holidayRuleSchema), async (c) => {
   return c.json({ success: true, id }, 201);
 });
 
-holidays.delete('/:id', zValidator('param', idParam), async (c) => {
+holidays.delete('/:id', authMiddleware, requirePermission({ roles: ['superadmin', 'admin'] }), zValidator('param', idParam), async (c) => {
   const { id } = c.req.valid('param');
   await db.delete(holidayRules).where(eq(holidayRules.id, id));
   return c.json({ success: true });

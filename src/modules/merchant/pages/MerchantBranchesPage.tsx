@@ -210,7 +210,7 @@ export function MerchantBranchesPage() {
                   inputSize="md"
                 />
 
-                <div className="grid grid-cols-[3fr_1fr] gap-2">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-[3fr_1fr]">
                   <label className="block">
                     <span className="text-sm font-medium text-text-primary">Logradouro</span>
                     <input
@@ -231,7 +231,7 @@ export function MerchantBranchesPage() {
                   </label>
                 </div>
 
-                <div className="grid grid-cols-[2fr_1fr] gap-2">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-[2fr_1fr]">
                   <label className="block">
                     <span className="text-sm font-medium text-text-primary">Bairro</span>
                     <input
@@ -252,7 +252,7 @@ export function MerchantBranchesPage() {
                   </label>
                 </div>
 
-                <div className="grid grid-cols-[2fr_1fr] gap-2">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-[2fr_1fr]">
                   <label className="block">
                     <span className="text-sm font-medium text-text-primary">Cidade</span>
                     <input

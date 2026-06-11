@@ -66,7 +66,6 @@ describe('loadFixture', () => {
 
     it('lança erro em strict mode se chave não existe no registry', async () => {
       const fixture = { nonexistentEntity: [{ id: '1', fake: 'data' }] };
-      // @ts-expect-error chave intencionalmente incorreta para teste
       await expect(loadFixture(registry, fixture, { strict: true }))
         .rejects
         .toThrow("'nonexistentEntity'");

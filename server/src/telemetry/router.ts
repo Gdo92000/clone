@@ -125,8 +125,8 @@ class SpanImpl implements ISpan {
         durationMs,
         ...this.tags,
         ...(this._error ? { errorMessage: this._error.message } : {}),
+        requestId: this.requestId,
       },
-      this.requestId,
     );
   }
 }
@@ -247,7 +247,8 @@ export function recordSpanMetric(
     metric: name,
     durationMs,
     ...tags,
-  }, requestId);
+    requestId,
+  });
 }
 
 /**

@@ -8,7 +8,7 @@ import type { Filter } from '../ports/repository';
  * Usa uma store vazia e BaseMemoryRepository padrão.  Campos específicos
  * (como restaurantes) devem ser populados por seed posterior.
  */
-function memoryRepo<T = Record<string, unknown>>(
+function memoryRepo<T extends Record<string, unknown> = Record<string, unknown>>(
   store: EntityStore,
 ): BaseMemoryRepository<T, Filter<T>> {
   return new BaseMemoryRepository<T, Filter<T>>(store);
@@ -39,11 +39,11 @@ export function createMemoryRegistry(
   capabilities: RuntimeCapabilities,
 ): Registry {
   const health = {
-    check: () => ({ ok: true }),
+    check: () => Promise.resolve({ ok: true }),
   };
 
 const transactions = {
-  start: () => ({
+  start: () => Promise.resolve({
     getTransaction: () => Promise.resolve(undefined),
     commit: () => Promise.resolve(),
     rollback: () => Promise.resolve(),

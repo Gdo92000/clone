@@ -34,6 +34,7 @@ export function menuItemDtoToModel(dto: MerchantMenuItemDTO): MerchantMenuItem {
     category: dto.category,
     price: coerceNumericOrZero(dto.price),
     isAvailable: dto.is_available,
+    isVisibleToConsumer: dto.is_visible_to_consumer,
     description: dto.description,
   };
 }

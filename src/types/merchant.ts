@@ -31,6 +31,7 @@ export interface MerchantMenuItem {
   category: string;
   price: number;
   isAvailable: boolean;
+  isVisibleToConsumer: boolean;
   description: string;
 }
 

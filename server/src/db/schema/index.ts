@@ -13,7 +13,7 @@ import {
   users, addresses, orders as customerOrders, orderItems, reviews,
 } from './customer';
 import {
-  categories, restaurants, menuItems, additives,
+  categories, restaurants, menuItems, additives, coverageCities,
 } from './core';
 import {
   companies, branches, branchSettings, merchantOrders, merchantOrderItems, merchantMenuItems,
@@ -50,6 +50,7 @@ export interface Tables {
   restaurants:        typeof restaurants;
   menuItems:          typeof menuItems;
   additives:          typeof additives;
+  coverageCities:     typeof coverageCities;
   companies:          typeof companies;
   branches:           typeof branches;
   branchSettings:     typeof branchSettings;
@@ -100,6 +101,7 @@ export const tables: Tables = {
   restaurants,
   menuItems,
   additives,
+  coverageCities,
   companies,
   branches,
   branchSettings,

@@ -5,10 +5,12 @@ import { eq } from 'drizzle-orm';
 import { db } from '../db';
 import { pushSubscriptions } from '../db/schema';
 import { getVapidPublicKey } from '../services/push';
-import { getTokenPayload } from '../middleware/auth';
+import { authMiddleware, getTokenPayload } from '../middleware/auth';
 import { logger } from '../lib/logger';
 
 const route = new Hono();
+
+route.use('*', authMiddleware);
 
 const subscribeSchema = z.object({
   endpoint: z.url(),

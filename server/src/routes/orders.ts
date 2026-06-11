@@ -1,12 +1,13 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and, sql, inArray } from 'drizzle-orm';
 import { db } from '../db';
-import { merchantOrders, orders, loyaltySettings, userLoyaltyPoints, subscriptions, subscriptionAddons, addons, pushSubscriptions, users } from '../db/schema';
+import { merchantOrders, orders, loyaltySettings, userLoyaltyPoints, subscriptions, subscriptionAddons, addons, pushSubscriptions, users, branches } from '../db/schema';
 import { PrintingService } from '../services/printing/service';
 import { logger } from '../lib/logger';
 import { tenantIsolationMiddleware } from '../lib/tenant';
+import { getTokenPayload } from '../middleware/auth';
 import { publish } from '../services/sse';
 import { sendPush } from '../services/push';
 import type { SSEMessage } from 'hono/streaming';
@@ -59,13 +60,47 @@ async function hasKitchenAutoPrintAddon(companyId: string): Promise<boolean> {
 }
 
 route.get('/', async (c) => {
-  const all = await db.select().from(merchantOrders);
-  return c.json(all);
+  const payload = getTokenPayload(c);
+  if (!payload) return c.json({ error: 'Não autenticado' }, 401);
+  
+  const user = await db.select({ branch_id: users.branch_id, company_id: users.company_id }).from(users).where(eq(users.id, payload.sub)).limit(1);
+  if (user.length === 0) return c.json({ error: 'Usuário não encontrado' }, 404);
+  
+  if (payload.role === 'superadmin') {
+    const all = await db.select().from(merchantOrders);
+    return c.json(all);
+  }
+
+  if (payload.role === 'merchant' && user[0].branch_id) {
+    const all = await db.select().from(merchantOrders).where(eq(merchantOrders.branch_id, user[0].branch_id));
+    return c.json(all);
+  }
+
+  if (payload.role === 'admin' || payload.role === 'company_owner') {
+    if (user[0].company_id) {
+      const companyBranches = await db.select({ id: branches.id }).from(branches).where(eq(branches.company_id, user[0].company_id));
+      const branchIds: string[] = companyBranches.map(b => b.id);
+      if (branchIds.length > 0) {
+        const all = await db.select().from(merchantOrders).where(inArray(merchantOrders.branch_id, branchIds));
+        return c.json(all);
+      }
+    }
+    return c.json([]);
+  }
+
+  if (payload.role === 'branch_manager' && user[0].branch_id) {
+    const all = await db.select().from(merchantOrders).where(eq(merchantOrders.branch_id, user[0].branch_id));
+    return c.json(all);
+  }
+
+  return c.json([]);
 });
 
 route.post('/:id/status', zValidator('param', idParam), zValidator('json', statusSchema), async (c) => {
   const { id } = c.req.valid('param');
   const { status } = c.req.valid('json');
+  const payload = getTokenPayload(c);
+  if (!payload) return c.json({ error: 'Não autenticado' }, 401);
   
   const rows = await db.select({
     id: merchantOrders.id,
@@ -74,8 +109,28 @@ route.post('/:id/status', zValidator('param', idParam), zValidator('json', statu
     delivery_type: merchantOrders.delivery_type,
   }).from(merchantOrders).where(eq(merchantOrders.id, id)).limit(1);
   if (!rows.length) return c.json({ error: 'Not found' }, 404);
-
+  
   const existingOrder = rows[0];
+  
+  // Permission check - superadmin pode alterar qualquer pedido
+  if (payload.role !== 'superadmin') {
+    if (payload.role === 'merchant' || payload.role === 'branch_manager') {
+      const user = await db.select({ branch_id: users.branch_id }).from(users).where(eq(users.id, payload.sub)).limit(1);
+      if (!user.length || !user[0].branch_id || user[0].branch_id !== existingOrder.branch_id) {
+        return c.json({ error: 'Acesso negado - você só pode alterar pedidos da própria filial' }, 403);
+      }
+    } else if (payload.role === 'admin' || payload.role === 'company_owner') {
+      if (!payload.company_id) {
+        return c.json({ error: 'Acesso negado' }, 403);
+      }
+      const orderBranch = await db.select({ company_id: branches.company_id }).from(branches).where(eq(branches.id, existingOrder.branch_id)).limit(1);
+      if (!orderBranch.length) return c.json({ error: 'Branch do pedido não encontrada' }, 404);
+      if (orderBranch[0].company_id !== payload.company_id) {
+        return c.json({ error: 'Acesso negado - pedido não pertence à sua empresa' }, 403);
+      }
+    }
+  }
+
   const currentStatus = merchantStatusEnum.parse(existingOrder.status);
   const newStatus = merchantStatusEnum.parse(status);
   const isPickup = existingOrder.delivery_type === 'pickup';
@@ -99,7 +154,7 @@ route.post('/:id/status', zValidator('param', idParam), zValidator('json', statu
 
     const customerStatus = MERCHANT_TO_CUSTOMER_STATUS[status];
     if (customerStatus) {
-      await tx.update(orders).set({ status: customerStatus }).where(eq(orders.id, id));
+      await tx.update(orders).set({ status: customerStatus as 'confirmed' | 'preparing' | 'ready' | 'dispatched' | 'delivered' | 'cancelled' }).where(eq(orders.id, id));
     }
 
     if (status === 'accepted') {

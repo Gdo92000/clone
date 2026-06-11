@@ -1,16 +1,11 @@
-import type { drizzle } from 'drizzle-orm/postgres-js';
 import type { RepositoryPort, HealthPort } from '../ports/repository';
 import type { TransactionPort } from '../ports/transaction';
 import type { DbProvider, RuntimeCapabilities } from './provider';
-import { PostgresRepository } from './repositories/base-postgres';
-import type * as schemaModule from './schema';
+import { PostgresRepository, type Db } from './repositories/base-postgres';
+import type { Tables } from './schema';
 
 // Re-export schema elements for registry type inference
-export { tables as schemaTables, Tables } from './schema';
-
-/** Alias local para reduzir verbosidade manual. */
-type _TPostgresRow<T extends ReturnType<typeof drizzle>['_']['allTables'][string]>
-= T['_']['columns'][string]['_']['rowType'];
+export { tables as schemaTables } from './schema';
 
 /**
  * Registry — contêiner centralizado de dependências do backend.
@@ -32,46 +27,46 @@ export interface Registry {
  * Cada entrada implementa RepositoryPort.
  */
 export interface Repositories {
-  restaurants:      RepositoryPort<TablesSelect['restaurants']>;
-  categories:       RepositoryPort<TTablesSelect['categories']>;
-  menuItems:        RepositoryPort<TTablesSelect['menuItems']>;
-  additives:        RepositoryPort<TTablesSelect['additives']>;
-  companies:        RepositoryPort<TTablesSelect['companies']>;
-  branches:         RepositoryPort<TTablesSelect['branches']>;
-  merchantOrders:   RepositoryPort<TTablesSelect['merchantOrders']>;
-  orders:           RepositoryPort<TTablesSelect['orders']>;
-  users:            RepositoryPort<TTablesSelect['users']>;
-  subscriptions:    RepositoryPort<TTablesSelect['subscriptions']>;
-  invoices:         RepositoryPort<TTablesSelect['invoices']>;
-  addons:           RepositoryPort<TTablesSelect['addons']>;
-  plans:            RepositoryPort<TTablesSelect['plans']>;
-  capabilities:     RepositoryPort<TTablesSelect['capabilities']>;
-  featureFlags:     RepositoryPort<TTablesSelect['feature_flags']>;
-  notifications:    RepositoryPort<TTablesSelect['notifications']>;
-  auditEvents:      RepositoryPort<TTablesSelect['auditEvents']>;
-  supportTickets:   RepositoryPort<TTablesSelect['supportTickets']>;
-  userNotifications: RepositoryPort<TTablesSelect['userNotifications']>;
-  branchSettings:   RepositoryPort<TTablesSelect['branchSettings']>;
-  commissionPlans:  RepositoryPort<TTablesSelect['commissionPlans']>;
-  campaigns:        RepositoryPort<TTablesSelect['campaigns']>;
-  coupons:          RepositoryPort<TTablesSelect['globalCoupons']>;
-  loyaltySettings:  RepositoryPort<TTablesSelect['loyaltySettings']>;
-  userLoyaltyPoints: RepositoryPort<TTablesSelect['userLoyaltyPoints']>;
-  loyaltyTransactions: RepositoryPort<TTablesSelect['loyaltyRewards']>;
-  coverageCities:   RepositoryPort<TTablesSelect['coverageCities']>;
-  consumerReviews:  RepositoryPort<TTablesSelect['reviews']>;
-  consumerOrders:   RepositoryPort<TTablesSelect['orders']>;
-  permissions:      RepositoryPort<TTablesSelect['permissions']>;
-  printingJobs:     RepositoryPort<TTablesSelect['printJobs']>;
-  consumerSupport:  RepositoryPort<TTablesSelect['supportTickets']>;
-  authSessions:     RepositoryPort<TTablesSelect['authSessions']>;
-  passwordResets:   RepositoryPort<TTablesSelect['passwordResets']>;
-  businessHours:    RepositoryPort<TTablesSelect['businessHours']>;
-  businessHourPeriods: RepositoryPort<TTablesSelect['businessHourPeriods']>;
-  holidayRules:     RepositoryPort<TTablesSelect['holidayRules']>;
-  holidayOverrides: RepositoryPort<TTablesSelect['holidayOverrides']>;
-  specialDates:     RepositoryPort<TTablesSelect['specialDates']>;
-  audits:           RepositoryPort<TTablesSelect['auditEvents']>;
+  restaurants:      RepositoryPort;
+  categories:       RepositoryPort;
+  menuItems:        RepositoryPort;
+  additives:        RepositoryPort;
+  companies:        RepositoryPort;
+  branches:         RepositoryPort;
+  merchantOrders:   RepositoryPort;
+  orders:           RepositoryPort;
+  users:            RepositoryPort;
+  subscriptions:    RepositoryPort;
+  invoices:         RepositoryPort;
+  addons:           RepositoryPort;
+  plans:            RepositoryPort;
+  capabilities:     RepositoryPort;
+  featureFlags:     RepositoryPort;
+  notifications:    RepositoryPort;
+  auditEvents:      RepositoryPort;
+  supportTickets:   RepositoryPort;
+  userNotifications: RepositoryPort;
+  branchSettings:   RepositoryPort;
+  commissionPlans:  RepositoryPort;
+  campaigns:        RepositoryPort;
+  coupons:          RepositoryPort;
+  loyaltySettings:  RepositoryPort;
+  userLoyaltyPoints: RepositoryPort;
+  loyaltyTransactions: RepositoryPort;
+  coverageCities:   RepositoryPort;
+  consumerReviews:  RepositoryPort;
+  consumerOrders:   RepositoryPort;
+  permissions:      RepositoryPort;
+  printingJobs:     RepositoryPort;
+  consumerSupport:  RepositoryPort;
+  authSessions:     RepositoryPort;
+  passwordResets:   RepositoryPort;
+  businessHours:    RepositoryPort;
+  businessHourPeriods: RepositoryPort;
+  holidayRules:     RepositoryPort;
+  holidayOverrides: RepositoryPort;
+  specialDates:     RepositoryPort;
+  audits:           RepositoryPort;
 }
 
 /**
@@ -80,17 +75,6 @@ export interface Repositories {
 export interface Transactions {
   start: () => Promise<TransactionPort>;
 }
-
-/**
- * Type helper — inferência unificada das tabelas do drizzle schema.
- */
-type Tables = typeof schemaModule.tables;
-type TablesSelect = {
-  [K in keyof Tables]: Tables[K] extends { $inferSelect: infer R } ? R : never;
-};
-
-// Alias curto para uso em Repositories
-type TTablesSelect = TablesSelect;
 
 /**
  * Export DbProvider and RuntimeCapabilities from provider module.
@@ -112,7 +96,7 @@ export type { RuntimeCapabilities } from './provider';
  * @returns Registry completo e pronto para uso.
  */
 export function createRegistry(
-  db: ReturnType<typeof drizzle>,
+  db: Db,
   schema: Tables,
   health: HealthPort,
   tx: Transactions,

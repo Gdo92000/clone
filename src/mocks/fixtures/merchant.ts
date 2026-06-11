@@ -15,14 +15,14 @@ export const mockBranches: MerchantBranchDTO[] = [
 ]
 
 export const mockMerchantMenuItems: MerchantMenuItemDTO[] = [
-  { id: 'm-item-1', branch_id: 'branch-1', name: 'X-Burger Clássico', category: 'Hambúrgueres', price: 28.90, is_available: true, description: 'Hambúrguer 180g, queijo, alface, tomate' },
-  { id: 'm-item-2', branch_id: 'branch-1', name: 'X-Bacon Supreme', category: 'Hambúrgueres', price: 34.90, is_available: true, description: 'Hambúrguer 250g, bacon, cheddar' },
-  { id: 'm-item-3', branch_id: 'branch-1', name: 'Batata Frita', category: 'Acompanhamentos', price: 12.90, is_available: true, description: 'Batata frita crocante' },
-  { id: 'm-item-4', branch_id: 'branch-2', name: 'X-Burger Clássico', category: 'Hambúrgueres', price: 29.90, is_available: true, description: 'Hambúrguer 180g, queijo, alface, tomate' },
-  { id: 'm-item-5', branch_id: 'branch-3', name: 'Sushi Combo 20 peças', category: 'Combinados', price: 54.90, is_available: true, description: '20 peças variadas' },
-  { id: 'm-item-6', branch_id: 'branch-3', name: 'Temaki Salmão', category: 'Temakis', price: 18.90, is_available: true, description: 'Temaki de salmão fresco' },
-  { id: 'm-item-7', branch_id: 'branch-4', name: 'Prato Feito', category: 'Executivos', price: 24.90, is_available: true, description: 'Arroz, feijão, bife acebolado, fritas' },
-  { id: 'm-item-8', branch_id: 'branch-4', name: 'Strogonoff de Frango', category: 'Executivos', price: 28.90, is_available: false, description: 'Strogonoff de frango com arroz e batata palha' },
+  { id: 'm-item-1', branch_id: 'branch-1', name: 'X-Burger Clássico', category: 'Hambúrgueres', price: 28.90, is_available: true, is_visible_to_consumer: true, description: 'Hambúrguer 180g, queijo, alface, tomate' },
+  { id: 'm-item-2', branch_id: 'branch-1', name: 'X-Bacon Supreme', category: 'Hambúrgueres', price: 34.90, is_available: true, is_visible_to_consumer: true, description: 'Hambúrguer 250g, bacon, cheddar' },
+  { id: 'm-item-3', branch_id: 'branch-1', name: 'Batata Frita', category: 'Acompanhamentos', price: 12.90, is_available: true, is_visible_to_consumer: true, description: 'Batata frita crocante' },
+  { id: 'm-item-4', branch_id: 'branch-2', name: 'X-Burger Clássico', category: 'Hambúrgueres', price: 29.90, is_available: true, is_visible_to_consumer: true, description: 'Hambúrguer 180g, queijo, alface, tomate' },
+  { id: 'm-item-5', branch_id: 'branch-3', name: 'Sushi Combo 20 peças', category: 'Combinados', price: 54.90, is_available: true, is_visible_to_consumer: true, description: '20 peças variadas' },
+  { id: 'm-item-6', branch_id: 'branch-3', name: 'Temaki Salmão', category: 'Temakis', price: 18.90, is_available: true, is_visible_to_consumer: true, description: 'Temaki de salmão fresco' },
+  { id: 'm-item-7', branch_id: 'branch-4', name: 'Prato Feito', category: 'Executivos', price: 24.90, is_available: true, is_visible_to_consumer: true, description: 'Arroz, feijão, bife acebolado, fritas' },
+  { id: 'm-item-8', branch_id: 'branch-4', name: 'Strogonoff de Frango', category: 'Executivos', price: 28.90, is_available: false, is_visible_to_consumer: true, description: 'Strogonoff de frango com arroz e batata palha' },
 ]
 
 export const mockBranchSettings: BranchSettingsDTO[] = [

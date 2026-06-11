@@ -45,14 +45,16 @@ export function loadFixture(
   return Promise.resolve().then(() => {
     if (registry.provider !== 'memory') return 0;
 
-    const repos = registry.repos as Partial<Record<
+    const repos = registry.repos as unknown as Partial<Record<
       string,
       { restore?: (items: Record<string, unknown>[]) => void; reset?: () => void }
     >>;
 
     if (opts.clearBefore) {
       for (const repo of Object.values(repos)) {
-        repo.reset?.();
+        if (repo) {
+          repo.reset?.();
+        }
       }
     }
 

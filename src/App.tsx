@@ -9,7 +9,8 @@ import { PublicLayout } from './layouts/PublicLayout';
 import { DashboardLayout } from './layouts/DashboardLayout';
 import type { DashboardNavItem } from './layouts/DashboardLayout';
 import { FeatureRoute, useFeatureAccess } from './modules/saas';
-import { ProtectedRoute, LoginPage } from './modules/auth';
+import type { FeatureKey } from './modules/saas/types';
+import { ProtectedRoute, LoginPage, useAuthSession } from './modules/auth';
 import { SuperadminLoginPage } from './modules/superadmin';
 import { ROUTES, getRouteArea } from './lib/routes';
 import { useMyTheme } from './hooks/useThemeData';
@@ -282,13 +283,24 @@ const merchantNavItems: MerchantNavItem[] = [
   { to: ROUTES.MERCHANT_LOYALTY, label: 'Fidelidade', icon: 'Gift' },
 ];
 
+function useCompanyId(): string {
+  const { currentUser } = useAuthSession();
+  return currentUser?.companyId ?? '';
+}
+
+function MerchantFeatureRoute({ featureKey, children }: { featureKey: FeatureKey; children: ReactNode }) {
+  const companyId = useCompanyId();
+  return <FeatureRoute companyId={companyId} featureKey={featureKey}>{children}</FeatureRoute>;
+}
+
 function MerchantDashboardLayout() {
-  const multiUsers = useFeatureAccess('company-1', 'multi_users');
-  const campaigns = useFeatureAccess('company-1', 'campaigns');
-  const analytics = useFeatureAccess('company-1', 'analytics');
-  const couponAutomation = useFeatureAccess('company-1', 'coupon_automation');
-  const financialSuite = useFeatureAccess('company-1', 'financial_suite');
-  const kitchenDisplay = useFeatureAccess('company-1', 'kitchen_display');
+  const companyId = useCompanyId();
+  const multiUsers = useFeatureAccess(companyId, 'multi_users');
+  const campaigns = useFeatureAccess(companyId, 'campaigns');
+  const analytics = useFeatureAccess(companyId, 'analytics');
+  const couponAutomation = useFeatureAccess(companyId, 'coupon_automation');
+  const financialSuite = useFeatureAccess(companyId, 'financial_suite');
+  const kitchenDisplay = useFeatureAccess(companyId, 'kitchen_display');
 
   const items = useMemo(() => {
     const flags: Record<string, boolean> = {
@@ -396,15 +408,15 @@ function App() {
             <Route path="orders" element={<ProtectedRoute permission="orders.manage"><Suspense fallback={routeFallback}><MerchantOrdersPage /></Suspense></ProtectedRoute>} />
             <Route path="catalog" element={<ProtectedRoute roles={["superadmin", "company_owner", "branch_manager"]}><Suspense fallback={routeFallback}><MerchantCatalogPage /></Suspense></ProtectedRoute>} />
             <Route path="branches" element={<ProtectedRoute roles={["superadmin", "company_owner"]}><Suspense fallback={routeFallback}><MerchantBranchesPage /></Suspense></ProtectedRoute>} />
-            <Route path="team" element={<ProtectedRoute permission="users.manage"><FeatureRoute companyId="company-1" featureKey="multi_users"><Suspense fallback={routeFallback}><MerchantTeamPage /></Suspense></FeatureRoute></ProtectedRoute>} />
-            <Route path="campaigns" element={<ProtectedRoute roles={["superadmin", "company_owner", "branch_manager"]}><FeatureRoute companyId="company-1" featureKey="campaigns"><Suspense fallback={routeFallback}><MerchantCampaignsPage /></Suspense></FeatureRoute></ProtectedRoute>} />
-            <Route path="analytics" element={<ProtectedRoute roles={["superadmin", "company_owner", "branch_manager"]}><FeatureRoute companyId="company-1" featureKey="analytics"><Suspense fallback={routeFallback}><MerchantAnalyticsPage /></Suspense></FeatureRoute></ProtectedRoute>} />
-            <Route path="finance" element={<ProtectedRoute permission="finance.view"><FeatureRoute companyId="company-1" featureKey="financial_suite"><Suspense fallback={routeFallback}><MerchantFinancePage /></Suspense></FeatureRoute></ProtectedRoute>} />
-            <Route path="coupons" element={<ProtectedRoute roles={["superadmin", "company_owner", "branch_manager"]}><FeatureRoute companyId="company-1" featureKey="coupon_automation"><Suspense fallback={routeFallback}><MerchantCouponsPage /></Suspense></FeatureRoute></ProtectedRoute>} />
+            <Route path="team" element={<ProtectedRoute permission="users.manage"><MerchantFeatureRoute featureKey="multi_users"><Suspense fallback={routeFallback}><MerchantTeamPage /></Suspense></MerchantFeatureRoute></ProtectedRoute>} />
+            <Route path="campaigns" element={<ProtectedRoute roles={["superadmin", "company_owner", "branch_manager"]}><MerchantFeatureRoute featureKey="campaigns"><Suspense fallback={routeFallback}><MerchantCampaignsPage /></Suspense></MerchantFeatureRoute></ProtectedRoute>} />
+            <Route path="analytics" element={<ProtectedRoute roles={["superadmin", "company_owner", "branch_manager"]}><MerchantFeatureRoute featureKey="analytics"><Suspense fallback={routeFallback}><MerchantAnalyticsPage /></Suspense></MerchantFeatureRoute></ProtectedRoute>} />
+            <Route path="finance" element={<ProtectedRoute permission="finance.view"><MerchantFeatureRoute featureKey="financial_suite"><Suspense fallback={routeFallback}><MerchantFinancePage /></Suspense></MerchantFeatureRoute></ProtectedRoute>} />
+            <Route path="coupons" element={<ProtectedRoute roles={["superadmin", "company_owner", "branch_manager"]}><MerchantFeatureRoute featureKey="coupon_automation"><Suspense fallback={routeFallback}><MerchantCouponsPage /></Suspense></MerchantFeatureRoute></ProtectedRoute>} />
             <Route path="subscription" element={<ProtectedRoute><Suspense fallback={routeFallback}><MerchantSubscriptionPage /></Suspense></ProtectedRoute>} />
             <Route path="settings" element={<ProtectedRoute><Suspense fallback={routeFallback}><MerchantSettingsPage /></Suspense></ProtectedRoute>} />
             <Route path="kitchen-auto-print" element={<ProtectedRoute><Suspense fallback={routeFallback}><MerchantKitchenAutoPrintPage /></Suspense></ProtectedRoute>} />
-            <Route path="kds" element={<ProtectedRoute permission="kitchen.manage"><FeatureRoute companyId="company-1" featureKey="kitchen_display"><Suspense fallback={routeFallback}><MerchantKDSPage /></Suspense></FeatureRoute></ProtectedRoute>} />
+            <Route path="kds" element={<ProtectedRoute permission="kitchen.manage"><MerchantFeatureRoute featureKey="kitchen_display"><Suspense fallback={routeFallback}><MerchantKDSPage /></Suspense></MerchantFeatureRoute></ProtectedRoute>} />
             <Route path="loyalty" element={<ProtectedRoute><Suspense fallback={routeFallback}><MerchantLoyaltyRewardsPage /></Suspense></ProtectedRoute>} />
             <Route path="hours" element={<ProtectedRoute><Suspense fallback={routeFallback}><MerchantHoursPage /></Suspense></ProtectedRoute>} />
             <Route path="holidays" element={<ProtectedRoute><Suspense fallback={routeFallback}><MerchantHolidaysPage /></Suspense></ProtectedRoute>} />

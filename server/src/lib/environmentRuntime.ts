@@ -48,7 +48,7 @@ export async function initRuntime(env: EnvConfig): Promise<RuntimeResult> {
     // Já inicializado — retorna estado atual
     const provider: DbProvider = getProvider();
     const capabilities: RuntimeCapabilities = getCapabilities();
-    const registry = (globalThis as { __flux_registry__: RuntimeResult['registry'] }).__flux_registry__;
+    const registry = (globalThis as unknown as { __flux_registry__: RuntimeResult['registry'] }).__flux_registry__;
     return {
       provider,
       capabilities,

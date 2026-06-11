@@ -24,7 +24,7 @@ const NEXT_STATUS_MAP: Record<'delivery' | 'pickup', Partial<Record<MerchantOrde
 };
 
 function getNextStatus(order: MerchantOrder): MerchantOrderStatus | undefined {
-  return NEXT_STATUS_MAP[order.deliveryType]?.[order.status];
+  return NEXT_STATUS_MAP[order.deliveryType][order.status];
 }
 
 export function MerchantOrdersPage() {

@@ -200,7 +200,7 @@ route.post('/', zValidator('json', createOrderSchema), async (c) => {
     } catch {
       const pollResult = await pollIdempotencyResult(idempotencyKey);
       if (pollResult && pollResult.status === 'completed' && pollResult.response_status !== null) {
-        return c.json(pollResult.response_body as Record<string, unknown>, pollResult.response_status);
+        return c.json(pollResult.response_body as Record<string, unknown>, pollResult.response_status as 200 | 201 | 400 | 401 | 403 | 404 | 409 | 422 | 429 | 500);
       }
       return c.json({ error: 'Requisição duplicada processada com falha', idempotency_key: idempotencyKey }, 409);
     }

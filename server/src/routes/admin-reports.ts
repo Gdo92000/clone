@@ -3,10 +3,11 @@ import { sql } from 'drizzle-orm';
 import { db } from '../db';
 import { orders } from '../db/schema';
 import { requirePermission } from '../middleware/permission';
- 
+import { authMiddleware } from '../middleware/auth';
+
 const route = new Hono();
- 
-route.use('*', requirePermission({ roles: ['superadmin'] }));
+
+route.use('*', authMiddleware, requirePermission({ roles: ['superadmin'] }));
  
 route.get('/platform-metrics', async (c) => {
   const metrics = await db.select({

@@ -3,7 +3,7 @@ import { Button } from '../../../components/ui/Button';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { formatCurrency } from '../format';
 import { useMenuItems, useBranches } from '../../../hooks/useMerchantData';
-import { useCreateMenuItem, useToggleMenuItemAvailability } from '../../../hooks/useMerchantCatalog';
+import { useCreateMenuItem, useToggleMenuItemAvailability, useToggleMenuItemVisibility } from '../../../hooks/useMerchantCatalog';
 import { usePlanLimits } from '../../enterprise';
 import { useAuthSession } from '../../auth';
 import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
@@ -34,6 +34,7 @@ export function MerchantCatalogPage() {
 
   const { mutate: createItem, isPending: isCreating } = useCreateMenuItem();
   const { mutate: toggleAvailability } = useToggleMenuItemAvailability();
+  const { mutate: toggleVisibility } = useToggleMenuItemVisibility();
 
   const addItem = () => {
     const price = Number(form.price.replace(',', '.'));
@@ -52,6 +53,12 @@ export function MerchantCatalogPage() {
     const item = items.find((i) => i.id === itemId);
     if (!item) return;
     toggleAvailability({ branchId, itemId, is_available: !item.isAvailable });
+  };
+
+  const onToggleVisibility = (itemId: string) => {
+    const item = items.find((i) => i.id === itemId);
+    if (!item) return;
+    toggleVisibility({ branchId, itemId, is_visible_to_consumer: !item.isVisibleToConsumer });
   };
 
   // Handle loading states
@@ -170,13 +177,22 @@ export function MerchantCatalogPage() {
                       {formatCurrency(item.price)}
                     </p>
                   </div>
-                  <Button
-                    size="sm"
-                    variant={item.isAvailable ? 'outline' : 'solid'}
-                    intent={item.isAvailable ? 'danger' : 'success'}
-                    onClick={() => { onToggleAvailability(item.id); }}>
-                    {item.isAvailable ? 'Pausar' : 'Ativar'}
-                  </Button>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      size="sm"
+                      variant={item.isVisibleToConsumer ? 'outline' : 'solid'}
+                      intent={item.isVisibleToConsumer ? 'secondary' : 'primary'}
+                      onClick={() => { onToggleVisibility(item.id); }}>
+                      {item.isVisibleToConsumer ? 'Visível' : 'Oculto'}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={item.isAvailable ? 'outline' : 'solid'}
+                      intent={item.isAvailable ? 'danger' : 'success'}
+                      onClick={() => { onToggleAvailability(item.id); }}>
+                      {item.isAvailable ? 'Pausar' : 'Ativar'}
+                    </Button>
+                  </div>
                 </div>
               </article>
             ))}

@@ -30,7 +30,7 @@ export const db = new Proxy({} as ReturnType<typeof drizzle>, {
       return undefined;
     }
     const instance = getOrCreateDatabase();
-    return (instance as Record<string, unknown>)[prop];
+    return (instance as unknown as Record<string, unknown>)[prop];
   },
 });
 

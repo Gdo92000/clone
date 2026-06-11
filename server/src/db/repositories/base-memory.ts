@@ -188,7 +188,7 @@ export class BaseMemoryRepository<
   }
 
   findMany(filter?: TFilter, tenantId?: string): Promise<TEntity[]> {
-    const f = tenantId ? this.tenantFilter(filter, tenantId) : filter;
+    const f = tenantId ? this.tenantFilter(filter as TFilter, tenantId) : filter;
     return Promise.resolve(this.store.getAll(f as Filter<EntityRecord>) as TEntity[]);
   }
 
@@ -218,7 +218,7 @@ export class BaseMemoryRepository<
       ...(tenantId ? { [this.tenantKey]: tenantId } : {}),
       [this.createdAtKey]: now,
       [this.updatedAtKey]: now,
-    } as TEntity;
+    } as unknown as TEntity;
     this.store.upsert(record);
     return Promise.resolve(record);
   }
@@ -241,7 +241,7 @@ export class BaseMemoryRepository<
   }
 
   count(filter?: TFilter, tenantId?: string): Promise<number> {
-    const f = tenantId ? this.tenantFilter(filter, tenantId) : filter;
+    const f = tenantId ? this.tenantFilter(filter as TFilter, tenantId) : filter;
     return Promise.resolve(this.store.count(f as Filter<EntityRecord>));
   }
 

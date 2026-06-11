@@ -20,6 +20,8 @@ export const merchantApi = {
     put<Record<string, never>>(`/branches/${branchId}/menu-items/${itemId}`, data),
   toggleMenuItemAvailability: (branchId: string, itemId: string, is_available: boolean) =>
     patch<{ success: boolean; is_available: boolean }>(`/branches/${branchId}/menu-items/${itemId}/availability`, { is_available }),
+  toggleMenuItemVisibility: (branchId: string, itemId: string, is_visible_to_consumer: boolean) =>
+    patch<{ success: boolean; is_visible_to_consumer: boolean }>(`/branches/${branchId}/menu-items/${itemId}/visibility`, { is_visible_to_consumer }),
   deleteMenuItem: (branchId: string, itemId: string) =>
     del<Record<string, never>>(`/branches/${branchId}/menu-items/${itemId}`),
   getOrders: () => get<MerchantOrderDTO[]>('/orders'),

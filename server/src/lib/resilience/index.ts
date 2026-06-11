@@ -6,7 +6,7 @@
  * Delay provider para atrasos determinísticos em modo memory/test.
  */
 
-import type { AppError } from '../errors';
+import { AppError } from '../errors';
 
 // ─── delay ──────────────────────────────────────────────────────────────────────
 

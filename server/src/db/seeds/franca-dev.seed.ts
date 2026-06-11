@@ -381,7 +381,7 @@ export async function seedFrancaDev(force = false): Promise<SeedFrancaDevResult>
 if (import.meta.url === `file://${process.argv[1]}`) {
   seedFrancaDev(true)
     .then((result) => {
-      logger.info('Seed result', result);
+      logger.info('Seed result', result as unknown as Record<string, unknown>);
       process.exit(0);
     })
     .catch((err: unknown) => {

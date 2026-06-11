@@ -38,8 +38,8 @@ export type RegistryShot = {
  */
 export function snapshotRegistry(
   registry: Registry,
-): Promise<RegistryShot> {
-  const repos = registry.repos as Record<string, Record<string, unknown>[]>;
+): RegistryShot {
+  const repos = registry.repos as unknown as Record<string, Record<string, unknown>[]>;
 
   const shots: RepoSnapshot[] = Object.entries(repos)
 .map(([entityName, repo]) => {
@@ -71,12 +71,12 @@ export function snapshotRegistry(
 export function restoreRegistry(
   registry: Registry,
   shot: RegistryShot,
-): Promise<number> {
+): number {
   if (registry.provider !== 'memory') {
     return 0;
   }
 
-  const repos = registry.repos as Record<
+  const repos = registry.repos as unknown as Record<
     string,
     {
       restore?: (items: Record<string, unknown>[]) => void;

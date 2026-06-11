@@ -221,7 +221,7 @@ export function MerchantLoyaltyRewardsPage() {
             />
           </div>
         ) : (
-          <div className="rounded-xl border border-border-default bg-surface-elevated overflow-hidden">
+          <div className="rounded-xl border border-border-default bg-surface-elevated overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead className="bg-surface-background border-b border-border-default">
                 <tr>

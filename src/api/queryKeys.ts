@@ -100,6 +100,12 @@ export const consumerKeys = {
   addresses: ['consumer', 'addresses'] as const,
 } as const;
 
+export const teamKeys = {
+  all: ['team'] as const,
+  list: ['team', 'list'] as const,
+  detail: (id: string) => ['team', id] as const,
+} as const;
+
 export const themeKeys = {
   all: ['theme'] as const,
   myTheme: (area: string) => ['theme', 'my-theme', area] as const,

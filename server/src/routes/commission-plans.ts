@@ -5,10 +5,11 @@ import { eq } from 'drizzle-orm';
 import { db } from '../db';
 import { commissionPlans } from '../db/schema';
 import { requirePermission } from '../middleware/permission';
+import { authMiddleware } from '../middleware/auth';
 
 const route = new Hono();
 
-route.use('*', requirePermission({ roles: ['superadmin'] }));
+route.use('*', authMiddleware, requirePermission({ roles: ['superadmin'] }));
 
 const PLAN_IDS = ['basic', 'pro', 'premium'] as const;
 
