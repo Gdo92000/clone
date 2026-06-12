@@ -7,10 +7,10 @@ aliases:
 - Memoria Operacional
 - Session Memory
 created_at: 2026-05-23
-updated_at: 2026-06-11
+updated_at: 2026-06-12
 related:
 - CURRENT_STATE.md
-- LOOP 3 — Testes Backend Faltantes
+- LOOP 7 — Migração TypeScript 5 → 6
 tags:
 - type/memory
 ---
@@ -19,9 +19,11 @@ tags:
 
 ## Estado atual
 
-**LOOP 5 — Otimização Build/SEO CONCLUÍDO** (2026-06-12). Meta tags, JSON-LD, react-helmet-async, chunk splitting, web-vitals.
-**LOOP 4 — Auditoria Arquitetural CONCLUÍDO** (2026-06-12). 4 rotas extraídas, ADR-008 aprovado.
-**LOOP 3 — Testes Backend CONCLUÍDO** (2026-06-11). 87 server test files, 650 testes. Full suite: 108 files, 851 testes. Lint 0 erros, 0 warnings. Build limpo.
+**LOOP 7 — Migração TS5→TS6 CONCLUÍDO** (2026-06-12). moduleResolution, strict flags, ~14 type errors corrigidos.
+**LOOP 6 — Documentação/Memória CONCLUÍDO** (2026-06-12).
+**LOOP 5 — Otimização Build/SEO CONCLUÍDO** (2026-06-12).
+**LOOP 4 — Auditoria Arquitetural CONCLUÍDO** (2026-06-12).
+**LOOP 3 — Testes Backend CONCLUÍDO** (2026-06-11).
 **LOOP 2 — Pipeline CI/CD CONCLUÍDO** (2026-06-10).
 **LOOP 1 — TypeScript Backend Cleanup CONCLUÍDO** (2026-06-10).
 Percentual Merchant: ~90%. Qualidade do código restaurada.
@@ -38,10 +40,11 @@ Percentual Merchant: ~90%. Qualidade do código restaurada.
 | **Fase B** | SSE no KDS + Push Merchant | ✅ completo |
 | **LOOP 1** | TypeScript Backend Cleanup | ✅ **100% (0 err TS, 0 err lint)** |
 | **LOOP 2** | Pipeline CI/CD | ✅ **Concluído** |
-| **LOOP 3** | Testes Backend | ✅ **100% (87 files, 650 tests, lint 0/0)** |
+| **LOOP 3** | Testes Backend | ✅ **100% (86 files, 624 tests)** |
 | **LOOP 4** | Auditoria Arquitetural (System Contract) | ✅ **Concluído** |
 | **LOOP 5** | Otimização Build/SEO | ✅ **Concluído** |
 | **LOOP 6** | Documentação/Memória | ✅ **Concluído (2026-06-12)** |
+| **LOOP 7** | Migração TypeScript 5→6 | ✅ **Concluído (2026-06-12)** |
 
 ## LOOP 1 — TypeScript Backend Cleanup
 

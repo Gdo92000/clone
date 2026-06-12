@@ -33,4 +33,5 @@ Notas temporárias — tarefas, sessões, checkpoints, bugs.
 | [[2026-05-23-fase5-performance]] | Performance (leaflet code-split, chunks) | ✅ concluído |
 | [[MOBILE_FIRST_AUDIT_2026-06-06]] | Auditoria Mobile First (5 critical, 17 high) | ⏳ pendente |
 | [[final-audit-merchant-module]] | Auditoria final do módulo Merchant | ✅ concluído |
+| [[2026-06-12-loop7-migracao-ts6]] | LOOP 7 — Migração TS5→TS6 (moduleResolution, strict flags, ~14 type errors) | ✅ concluído |
 | [[Session Memory]] | Memória de sessão anterior (arquivada) | 📦 archived |
