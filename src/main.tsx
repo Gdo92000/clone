@@ -2,7 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import { SEOProvider } from './components/SEO'
-import App from './App.tsx'
+import App from './App'
 
 async function bootstrap() {
   if (__USE_MOCK__) {

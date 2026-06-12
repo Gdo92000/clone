@@ -2,9 +2,10 @@
   "compilerOptions": {
     "strict": true,
     "jsx": "react-jsx",
-    "moduleResolution": "Bundler",
+    "moduleResolution": "node",
     "module": "ESNext",
-    "target": "ES2023",
+    "target": "ESNext",
+    "ignoreDeprecations": "6.0",
     "skipLibCheck": true
   },
   "files": [],

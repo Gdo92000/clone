@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { Button } from '../../../components/ui/Button';
 import { FxImage } from '../../../components/ui/FxImage';
 import { FxQueryBoundary } from '../../../components/ui/FxQueryBoundary';
+import { Modal } from '../../../components/ui/Modal';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { roleLabels, useAuthSession } from '../../auth';
 import { useBranches } from '../../../hooks/useMerchantData';
@@ -35,29 +36,30 @@ function EditMemberModal({
   };
 
   return (
-    <>
-      <div className="fixed inset-0 z-40 bg-black/50" onClick={onClose} />
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-md rounded-xl border border-border-default bg-surface-elevated p-6 shadow-xl">
-          <h3 className="font-semibold text-text-primary">Editar funcionario</h3>
-          <div className="mt-4 space-y-3">
-            <input value={name} onChange={(e) => { setName(e.target.value); }} placeholder="Nome" className="h-10 w-full rounded-lg border border-border-default bg-surface-background px-3 text-sm" />
-            <input value={email} onChange={(e) => { setEmail(e.target.value); }} placeholder="Email" className="h-10 w-full rounded-lg border border-border-default bg-surface-background px-3 text-sm" />
-            <select value={role} onChange={(e) => { setRole(e.target.value); }} className="h-10 w-full rounded-lg border border-border-default bg-surface-background px-3 text-sm">
-              {employeeRoles.map((r) => <option key={r} value={r}>{roleLabels[r]}</option>)}
-            </select>
-            <select value={branchId} onChange={(e) => { setBranchId(e.target.value); }} className="h-10 w-full rounded-lg border border-border-default bg-surface-background px-3 text-sm">
-              <option value="">Selecione uma filial</option>
-              {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.name}</option>)}
-            </select>
-          </div>
-          <div className="mt-4 flex gap-2">
-            <Button fullWidth variant="outline" onClick={onClose}>Cancelar</Button>
-            <Button fullWidth onClick={handleSave} loading={updateMember.isPending}>Salvar</Button>
-          </div>
+    <Modal
+      isOpen
+      onClose={onClose}
+      title="Editar funcionario"
+      size="sm"
+      footer={
+        <div className="flex gap-2">
+          <Button fullWidth variant="outline" onClick={onClose}>Cancelar</Button>
+          <Button fullWidth onClick={handleSave} loading={updateMember.isPending}>Salvar</Button>
         </div>
+      }
+    >
+      <div className="space-y-3">
+        <input value={name} onChange={(e) => { setName(e.target.value); }} placeholder="Nome" className="h-11 min-h-[44px] w-full rounded-lg border border-border-default bg-surface-background px-3 text-sm" />
+        <input value={email} onChange={(e) => { setEmail(e.target.value); }} placeholder="Email" className="h-11 min-h-[44px] w-full rounded-lg border border-border-default bg-surface-background px-3 text-sm" />
+        <select value={role} onChange={(e) => { setRole(e.target.value); }} className="h-11 min-h-[44px] w-full rounded-lg border border-border-default bg-surface-background px-3 text-sm">
+          {employeeRoles.map((r) => <option key={r} value={r}>{roleLabels[r]}</option>)}
+        </select>
+        <select value={branchId} onChange={(e) => { setBranchId(e.target.value); }} className="h-11 min-h-[44px] w-full rounded-lg border border-border-default bg-surface-background px-3 text-sm">
+          <option value="">Selecione uma filial</option>
+          {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.name}</option>)}
+        </select>
       </div>
-    </>
+    </Modal>
   );
 }
 

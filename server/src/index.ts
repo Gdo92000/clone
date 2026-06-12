@@ -8,7 +8,7 @@ import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { eq, and, lte, sql } from 'drizzle-orm';
 import { db, createDatabase } from './db';
-import { restaurants, menuItems, reviews, idempotencyKeys } from './db/schema';
+import { restaurants, menuItems, reviews, additives, idempotencyKeys } from './db/schema';
 import operationsRoutes from './routes/operations';
 import holidaysRoutes from './routes/holidays';
 import authRoutes from './routes/auth';

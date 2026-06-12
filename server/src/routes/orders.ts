@@ -38,7 +38,7 @@ route.post('/:id/status', zValidator('param', idParam), zValidator('json', statu
     status,
     userId: payload.sub,
     role: payload.role,
-    companyId: payload.company_id,
+    companyId: payload.company_id ?? undefined,
   });
 
   if (!result.success) {

@@ -151,7 +151,7 @@ export function ItemDetailPage() {
         </div>
       </main>
 
-      <div className="fixed bottom-20 left-0 right-0 z-40 bg-surface-elevated border-t border-border-default p-4 md:bottom-0">
+      <div className="fixed bottom-[72px] left-0 right-0 z-40 bg-surface-elevated border-t border-border-default p-4 md:bottom-0">
         <div className="fx-container">
           <div className="flex items-center justify-between gap-4">
             <FxQuantitySelector

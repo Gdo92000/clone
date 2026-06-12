@@ -24,7 +24,7 @@ route.post('/validate', zValidator('json', z.object({
     return c.json(result);
   } catch (err) {
     if (err instanceof CouponError) {
-      return c.json({ error: err.message }, err.statusCode);
+      return c.json({ error: err.message }, err.statusCode as 400 | 401 | 403 | 404);
     }
     throw err;
   }

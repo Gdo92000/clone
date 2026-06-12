@@ -18,9 +18,22 @@ interface DashboardLayoutProps {
   navItems: DashboardNavItem[];
 }
 
+function SidebarBackdrop({ show, onClose }: { show: boolean; onClose: () => void }) {
+  if (!show) return null;
+  return (
+    <div
+      className="fixed inset-0 z-20 bg-black/20 lg:hidden"
+      onClick={onClose}
+      aria-hidden="true"
+    />
+  );
+}
+
 export function DashboardLayout({ logo, title, navItems }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const closeSidebar = () => { setSidebarOpen(false); };
 
   return (
     <div className="min-h-screen bg-surface-background">
@@ -44,6 +57,8 @@ export function DashboardLayout({ logo, title, navItems }: DashboardLayoutProps)
           <ThemeToggle />
         </div>
       </header>
+
+      <SidebarBackdrop show={sidebarOpen} onClose={closeSidebar} />
 
       <div className="mx-auto max-w-7xl px-4 flex gap-6">
         <aside
@@ -80,13 +95,6 @@ export function DashboardLayout({ logo, title, navItems }: DashboardLayoutProps)
               ))}
             </nav>
           </div>
-
-          {sidebarOpen && (
-            <div
-              className="fixed inset-0 -z-10 bg-black/20 lg:hidden"
-              onClick={() => { setSidebarOpen(false); }}
-            />
-          )}
         </aside>
 
         <main className="flex-1 min-w-0 py-4">

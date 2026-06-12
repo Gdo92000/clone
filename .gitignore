@@ -27,6 +27,9 @@ dist-ssr
 # ESLint cache
 .eslintcache
 
+# TypeScript incremental build info
+*.tsbuildinfo
+
 # Dev certs (alternate location)
 /.certs/
 

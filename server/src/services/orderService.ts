@@ -16,12 +16,7 @@ const MERCHANT_TO_CUSTOMER_STATUS: Record<string, string> = {
   rejected: 'cancelled',
 };
 
-interface TokenPayload {
-  sub: string;
-  role: string;
-  company_id?: string;
-  branch_id?: string;
-}
+import type { TokenPayload } from '../auth/types';
 
 export interface UpdateOrderStatusInput {
   orderId: string;
@@ -135,7 +130,7 @@ export async function updateOrderStatus(input: UpdateOrderStatusInput): Promise<
   }
 
   await db.transaction(async (tx) => {
-    await tx.update(merchantOrders).set({ status }).where(eq(merchantOrders.id, orderId));
+    await tx.update(merchantOrders).set({ status: status as 'new' | 'accepted' | 'preparing' | 'ready' | 'dispatched' | 'delivered' | 'rejected' }).where(eq(merchantOrders.id, orderId));
 
     const customerStatus = MERCHANT_TO_CUSTOMER_STATUS[status];
     if (customerStatus) {

@@ -309,7 +309,7 @@ export function RestaurantDetailPage() {
         )}
       </main>
 
-      <div className="fixed bottom-20 left-0 right-0 z-40 bg-surface-elevated border-t border-border-default px-4 py-3 md:bottom-0">
+      <div className="fixed bottom-[72px] left-0 right-0 z-40 bg-surface-elevated border-t border-border-default px-4 py-3 md:bottom-0">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div>
             <p className="text-xs text-text-secondary">Sacola</p>

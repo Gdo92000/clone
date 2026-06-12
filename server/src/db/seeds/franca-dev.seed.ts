@@ -161,6 +161,7 @@ const SEED_MENU_ITEMS: SeedMenuItem[] = [
 ];
 
 export interface SeedFrancaDevResult {
+  [key: string]: unknown;
   restaurantsInserted: number;
   categoriesInserted: number;
   coverageCityInserted: boolean;
@@ -381,7 +382,7 @@ export async function seedFrancaDev(force = false): Promise<SeedFrancaDevResult>
 if (import.meta.url === `file://${process.argv[1]}`) {
   seedFrancaDev(true)
     .then((result) => {
-      logger.info('Seed result', result as unknown as Record<string, unknown>);
+      logger.info('Seed result', result);
       process.exit(0);
     })
     .catch((err: unknown) => {

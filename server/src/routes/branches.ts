@@ -7,8 +7,9 @@ import { branches, menuItems, additives, merchantOrders } from '../db/schema';
 import { requirePermission } from '../middleware/permission';
 import { requireTenantOwnership } from '../middleware/tenant';
 import { requirePlanLimit } from '../middleware/planLimits';
+import type { AppVariables } from '../types/hono';
 
-const route = new Hono();
+const route = new Hono<{ Variables: AppVariables }>();
 
 const idParam = z.object({ id: z.string().min(1).max(64) });
 
@@ -56,7 +57,7 @@ route.get(
 requirePermission({ roles: ['merchant', 'admin', 'superadmin'] }),
 requireTenantOwnership('companyId'),
 async (c) => {
-const companyId = c.get('userCompanyId') as string;
+const companyId = c.get('userCompanyId');
 const all = await db.select().from(branches).where(eq(branches.company_id, companyId));
 return c.json(all);
 },
@@ -102,7 +103,7 @@ zValidator('param', idParam),
       is_visible_to_consumer: true,
     };
     await db.insert(menuItems).values(values);
-    return c.json({ id: newId, ...values }, 201);
+    return c.json(values, 201);
   },
 );
 

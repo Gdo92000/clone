@@ -36,7 +36,7 @@ export function requirePlanLimit(resourceType: ResourceType): MiddlewareHandler 
     const plan = planRows[0];
     const resource = resourceMap[resourceType];
     const limitField = resource.limitField as keyof typeof plans;
-    const limit = Number(plan[limitField] ?? 0);
+    const limit = Number((plan as Record<string, unknown>)[limitField] ?? 0);
 
     if (limit <= 0) {
       return c.json({ error: 'Recurso não disponível no plano atual', limit: 0 }, 403);

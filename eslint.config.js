@@ -164,9 +164,10 @@ export default tseslint.config(
     },
   },
 
-  // BACKEND
+  // BACKEND — source files
   {
     files: ['server/src/**/*.ts'],
+    ignores: ['server/src/**/*.test.{ts,tsx}', 'server/src/test/**/*'],
 
     extends: [
       js.configs.recommended,
@@ -191,6 +192,43 @@ export default tseslint.config(
         typescript: {
           project: [
             './server/tsconfig.json',
+          ],
+        },
+      },
+    },
+
+    rules: {
+      ...sharedRules,
+    },
+  },
+
+  // BACKEND — test files
+  {
+    files: ['server/src/**/*.test.{ts,tsx}', 'server/src/test/**/*'],
+
+    extends: [
+      js.configs.recommended,
+
+      ...tseslint.configs.strictTypeChecked,
+    ],
+
+    languageOptions: {
+      parserOptions: {
+        project: ['./server/tsconfig.test.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+
+    plugins: {
+      'unused-imports': unusedImportsPlugin,
+      import: importPlugin,
+    },
+
+    settings: {
+      'import/resolver': {
+        typescript: {
+          project: [
+            './server/tsconfig.test.json',
           ],
         },
       },

@@ -4,22 +4,21 @@
      * BUILD / CACHE
      * ========================================================= */
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "incremental": true,
     "noEmit": true,
 
     /* =========================================================
      * TARGET / RUNTIME
      * ========================================================= */
-    "target": "ES2023",
-    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "target": "ESNext",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
 
     /* =========================================================
      * MODULE SYSTEM
      * ========================================================= */
     "module": "ESNext",
-    "moduleResolution": "Bundler",
+    "moduleResolution": "node",
     "moduleDetection": "force",
-    "verbatimModuleSyntax": true,
-    "allowImportingTsExtensions": true,
     "isolatedModules": true,
 
     /* =========================================================
@@ -66,7 +65,6 @@
     "strictFunctionTypes": true,
     "strictBindCallApply": true,
     "strictPropertyInitialization": true,
-    "strictBuiltinIteratorReturn": true,
 
     /* =========================================================
      * SAFETY / API CONTRACTS
