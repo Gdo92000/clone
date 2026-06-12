@@ -41,7 +41,7 @@ Percentual Merchant: ~90%. Qualidade do código restaurada.
 | **LOOP 3** | Testes Backend | ✅ **100% (87 files, 650 tests, lint 0/0)** |
 | **LOOP 4** | Auditoria Arquitetural (System Contract) | ✅ **Concluído** |
 | **LOOP 5** | Otimização Build/SEO | ✅ **Concluído** |
-| **LOOP 6** | Documentação/Memória | ⏳ Pendente |
+| **LOOP 6** | Documentação/Memória | ✅ **Concluído (2026-06-12)** |
 
 ## LOOP 1 — TypeScript Backend Cleanup
 
@@ -173,7 +173,8 @@ Extrair lógica de negócio de rotas para serviços dedicados, seguindo sequênc
 - **87 server test files, 650 testes — 0 falhas, 0 lint, 0 build**
 
 ## Pendente (prioridade)
-1. **LOOP 6 — Documentação/Memória**: ADRs, knowledge base
+Nenhum — todos os LOOPs planejados (1-6) foram concluídos.
+Próximo passo: definir novo ciclo de features ou refinamentos.
 
 > [!tip] Navegacao
 > [[CURRENT_STATE]] · [[MOC — Historico do Projeto]] · [[LOOP 3 — Testes Backend]]

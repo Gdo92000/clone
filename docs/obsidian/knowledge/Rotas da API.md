@@ -21,12 +21,22 @@ server/src/routes/
   ├── plans.ts             /api/plans lista + filtros
   ├── global-coupons.ts    /api/global-coupons (GET lista, POST criar)
   ├── currencies.ts        /api/currencies lista de moedas
-  ├── enterprise.ts        /api/enterprise/config | health
   ├── sse.ts               /api/events SSE stream
-  ├── orders.ts            /api/orders (criação, listagem, atualização de status)
+  ├── orders.ts            /api/orders (rotas enxugadas — 296→37 linhas, lógica em orderService)
   ├── merchants/           rotas por merchant (branch-settings, coupons, holidays, operations)
   ├── admin/               rotas de admin (users, reports, coverage)
   └── ...
+
+## Serviços extraídos das rotas (LOOP 4)
+
+| Rota (antes) | Linhas antes | Serviço | Linhas depois |
+|-------------|:-----------:|---------|:------------:|
+| orders.ts | 296 | orderService.ts | 37 |
+| merchant-finance.ts | 115 | financeService.ts | 25 |
+| merchant-analytics.ts | 85 | analyticsService.ts | 21 |
+| coupons-engine.ts | 58 | couponService.ts | 20 |
+
+Total: ~112 queries DB diretas removidas das rotas. Serviços recebem registry por constructor.
 ```
 
 ## Padrão de rota

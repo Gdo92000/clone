@@ -1,7 +1,7 @@
 ---
 title: ADR-006 PostgreSQL Concrete vs Generic Schema
 type: adr
-status: proposed
+status: approved
 created_at: 2026-06-11
 updated_at: 2026-06-11
 tags:

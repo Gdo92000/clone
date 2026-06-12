@@ -18,6 +18,8 @@ TanStack Router v7 → roteamento por arquivo (lazy loading)
 TanStack Query v5 → cache, invalidation, optimistic updates
 Tailwind CSS 4 → @tailwindcss/postcss — CSS-first
 Sonner        → toasts (<Toaster/> em ToastProvider)
+react-helmet-async → SEO per-page (meta, OG, Twitter Cards, JSON-LD)
+web-vitals    → Core Web Vitals monitoring (LCP, CLS, INP, TTFB)
 ```
 
 ## Carregamento de rotas (lazy)
@@ -42,6 +44,18 @@ cada hook → usa useQuery / useMutation de @tanstack/react-query
 query keys → centralizadas em src/services/queryKeys.ts
 invalidations → explícitas: queryClient.invalidateQueries({ queryKey: ['restaurants'] })
 ```
+
+## SEO
+
+- **SEOProvider** (`src/main.tsx`) — wrappa a app com `HelmetProvider` do react-helmet-async
+- **SEO component** (`src/components/SEO.tsx`) — injeta `<title>`, meta description, OG tags, Twitter Cards, canonical URL, e JSON-LD (Organization schema) em qualquer página
+- `<SEO />` no topo de cada rota em `App.tsx` com fallback global
+- `robots.txt` + `sitemap.xml` em `public/`
+
+## Core Web Vitals
+
+- **WebVitalsReporter** (`src/components/WebVitalsReporter.tsx`) — registra LCP, CLS, INP, TTFB via `web-vitals`
+- Loggado para console em dev, pronto para conectar a analytics em produção
 
 ## Rede — camada api/
 ```

@@ -82,5 +82,17 @@ Pedidos consumer e merchant são criados em 2 schemas do banco (`customer.orders
 
 → Ver também: [[ADR-005 Mirror Service Atomicidade e Integridade]]
 
+## 13. Tipos Concretos > Genéricos no Schema DB (ADR-006)
+
+`RepositoryPort` e `BasePostgresRepository` usam `PgTable` concreto (não `TTable extends PgTable`) + `Record<string, unknown>` para dados. Trade-off: perde inferência de tipo de entidade, mas elimina `any` interno forçado pelo Drizzle v0.45+.
+
+→ Ver também: [[ADR-006 PostgreSQL Concrete vs Generic Schema]]
+
+## 14. Repository Pattern Obrigatório para Novos Módulos (ADR-008)
+
+Novos módulos DEVEM usar `RepositoryPort` + `BasePostgresRepository` + `BaseMemoryRepository`. Serviços legados (11 arquivos) que importam `db` diretamente permanecem sem refatoração retroativa — apenas sob gatilho (troca de ORM, bug, feature request).
+
+→ Ver também: [[ADR-008 Repository Pattern para novos módulos]]
+
 > [!tip] Navegação
 > [[MOC — Arquitetura do Sistema]] · [[ARCHITECTURE]]

@@ -40,6 +40,10 @@ printing/                 auto-impressão de pedidos de cozinha
 redisRateLimitStore.ts    store de rate limit com Redis (fallback memória)
 rateLimitStore.ts         stub rate limit
 sse.ts                    multi-room SSE stream
+orderService.ts           FSM de pedidos, transação, loyalty, print, SSE, push (285 linhas)
+analyticsService.ts       Métricas de vendas por período, ticket médio (71 linhas)
+couponService.ts          Validação e listagem de cupons (56 linhas)
+financeService.ts         Extrato, indicadores, comissões (121 linhas)
 ```
 
 ## Padrão de Services

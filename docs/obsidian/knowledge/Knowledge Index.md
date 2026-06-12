@@ -7,7 +7,7 @@ tags:
 - type/index
 - type/knowledge
 created_at: 2026-05-23
-updated_at: 2026-06-08
+updated_at: 2026-06-12
 ---
 
 # Conhecimento Permanente

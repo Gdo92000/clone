@@ -43,11 +43,13 @@ Error
 
 ## Performance Optimizations
 
-- **Code splitting**: Every page is lazy-loaded
-- **Bundle chunking**: Vite configured with `manualChunks` for React, lucide-react icons, and other vendor code
+- **Code splitting**: Every page is lazy-loaded via `React.lazy()`
+- **Bundle chunking**: Vite `manualChunks` — vendor-react (420 KB), vendor-charts/recharts (432 KB), vendor-leaflet (148 KB), vendor-ui/sonner (65 KB), vendor-tanstack (37 KB), vendor-icons (17 KB). vendor-other reduzido de 869 KB para 418 KB (-51%)
+- **Google Fonts**: carregado via `<link>` com `preconnect` (mais rápido que `@import` CSS)
 - **React Query caching**: 2-min stale time, 5-min GC, prevents redundant API calls
 - **DB indexes**: Comprehensive index strategy defined per domain
 - **Rate limiting**: Configurable per-route, Redis support for multi-instance deployments
+- **Core Web Vitals**: monitoramento via `web-vitals` (LCP, CLS, INP, TTFB) — `WebVitalsReporter` em `App.tsx`
 
 ## Prometheus Metrics
 

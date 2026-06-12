@@ -1,6 +1,7 @@
 ---
 type: worklog
-status: active
+status: idle
+superseded_by: LOOP 6 — Documentação/Memória
 created_at: 2026-06-06
 updated_at: 2026-06-06
 related:
