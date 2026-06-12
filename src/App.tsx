@@ -16,6 +16,8 @@ import { ROUTES, getRouteArea } from './lib/routes';
 import { useMyTheme } from './hooks/useThemeData';
 import { initAuthSync } from './services/authService';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { SEO } from './components/SEO';
+import { WebVitalsReporter } from './components/WebVitalsReporter';
 
 
 // ── Public pages (lazy) ──
@@ -343,6 +345,8 @@ function App() {
         <BrowserRouter>
           <ThemeAwareProvider>
             <ToastProvider>
+              <SEO />
+              <WebVitalsReporter />
               <Routes>
                 <Route element={<PublicLayout />}>
                   <Route path={ROUTES.HOME} element={<HomePage />} />

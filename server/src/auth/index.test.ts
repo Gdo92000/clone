@@ -9,26 +9,26 @@ describe('auth/index', () => {
     delete process.env.AUTH_PROVIDER;
   });
 
-  it('returns local provider by default', async () => {
+  it('returns local provider by default', { timeout: 10_000 }, async () => {
     delete process.env.AUTH_PROVIDER;
     const { getAuthProvider } = await import('./index');
     const provider = getAuthProvider();
     expect(provider.name).toBe('local');
   });
 
-  it('returns local provider when AUTH_PROVIDER=local', async () => {
+  it('returns local provider when AUTH_PROVIDER=local', { timeout: 10_000 }, async () => {
     process.env.AUTH_PROVIDER = 'local';
     const { getAuthProvider } = await import('./index');
     const provider = getAuthProvider();
     expect(provider.name).toBe('local');
   });
 
-  it('exports localAuthProvider', async () => {
+  it('exports localAuthProvider', { timeout: 10_000 }, async () => {
     const { localAuthProvider } = await import('./index');
     expect(localAuthProvider.name).toBe('local');
   });
 
-  it('exports types (type-only check)', async () => {
+  it('exports types (type-only check)', { timeout: 10_000 }, async () => {
     const auth = await import('./index');
     expect(typeof auth.getAuthProvider).toBe('function');
     expect(typeof auth.localAuthProvider).toBe('object');

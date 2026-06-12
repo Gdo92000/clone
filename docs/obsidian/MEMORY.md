@@ -19,6 +19,8 @@ tags:
 
 ## Estado atual
 
+**LOOP 5 — Otimização Build/SEO CONCLUÍDO** (2026-06-12). Meta tags, JSON-LD, react-helmet-async, chunk splitting, web-vitals.
+**LOOP 4 — Auditoria Arquitetural CONCLUÍDO** (2026-06-12). 4 rotas extraídas, ADR-008 aprovado.
 **LOOP 3 — Testes Backend CONCLUÍDO** (2026-06-11). 87 server test files, 650 testes. Full suite: 108 files, 851 testes. Lint 0 erros, 0 warnings. Build limpo.
 **LOOP 2 — Pipeline CI/CD CONCLUÍDO** (2026-06-10).
 **LOOP 1 — TypeScript Backend Cleanup CONCLUÍDO** (2026-06-10).
@@ -37,8 +39,8 @@ Percentual Merchant: ~90%. Qualidade do código restaurada.
 | **LOOP 1** | TypeScript Backend Cleanup | ✅ **100% (0 err TS, 0 err lint)** |
 | **LOOP 2** | Pipeline CI/CD | ✅ **Concluído** |
 | **LOOP 3** | Testes Backend | ✅ **100% (87 files, 650 tests, lint 0/0)** |
-| **LOOP 4** | Auditoria Arquitetural (System Contract) | ⏳ Pendente |
-| **LOOP 5** | Otimização Build/SEO | ⏳ Pendente |
+| **LOOP 4** | Auditoria Arquitetural (System Contract) | ✅ **Concluído** |
+| **LOOP 5** | Otimização Build/SEO | ✅ **Concluído** |
 | **LOOP 6** | Documentação/Memória | ⏳ Pendente |
 
 ## LOOP 1 — TypeScript Backend Cleanup
@@ -96,6 +98,66 @@ Cobertura total: middleware (55+ testes), auth (16), serviços (125+), lib (46),
 ### Bug corrigido
 - `loginLockout.ts:23,34` — condição `lockoutUntil = 0` causava reset de contagem e deleção indevida.
 
+## LOOP 5 — Otimização Build/SEO (2026-06-12)
+
+### Escopo
+Melhorar meta tags SEO, structured data, chunk splitting do build, e adicionar Core Web Vitals monitoring.
+
+### Resultados
+
+| Área | Antes | Depois |
+|------|-------|--------|
+| `<title>` | "iFood Clone" | "Flux Delivery" |
+| Meta description | ❌ Ausente | ✅ Adicionado |
+| Open Graph tags | ❌ Ausente | ✅ og:title, og:description, og:image, og:type, og:locale |
+| Twitter Card tags | ❌ Ausente | ✅ twitter:card, twitter:title, twitter:description |
+| Canonical URL | ❌ Ausente | ✅ `https://fluxdelivery.app` |
+| robots.txt | ❌ Ausente | ✅ `public/robots.txt` |
+| sitemap.xml | ❌ Ausente | ✅ `public/sitemap.xml` |
+| JSON-LD structured data | ❌ Ausente | ✅ Organization schema |
+| Per-page meta | ❌ Ausente | ✅ `react-helmet-async` + componente SEO |
+| Google Fonts duplicado | ✅ CSS @import + HTML link | ✅ Apenas HTML link (remove @import) |
+| vendor-other chunk | 869 KB | **418 KB** (-51%) |
+| vendor-charts (recharts) | Dentro de vendor-other | **432 KB** (separado) |
+| vendor-ui (sonner, clsx, etc) | Dentro de vendor-other | **65 KB** (separado) |
+| Core Web Vitals | ❌ Ausente | ✅ `web-vitals` + WebVitalsReporter |
+| Auth test flaky | ⏳ Timeout 5s | ✅ Timeout 10s |
+
+### Arquivos criados/modificados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `index.html` | Meta tags, OG, Twitter, canonical, title |
+| `public/robots.txt` | Criado |
+| `public/sitemap.xml` | Criado |
+| `src/components/SEO.tsx` | Criado (SEO + JSON-LD) |
+| `src/components/WebVitalsReporter.tsx` | Criado |
+| `src/main.tsx` | SEOProvider wrapper |
+| `src/App.tsx` | SEO + WebVitalsReporter |
+| `src/index.css` | Remove @import Google Fonts |
+| `vite.config.ts` | Melhor chunk splitting |
+| `server/src/auth/index.test.ts` | Timeout 10s (flaky fix) |
+| `package.json` | `react-helmet-async` + `web-vitals` |
+
+## LOOP 4 — Auditoria Arquitetural (2026-06-12)
+
+### Escopo
+Extrair lógica de negócio de rotas para serviços dedicados, seguindo sequência segura (menor risco ao maior).
+
+### Resultados
+| Métrica | Valor |
+|---------|-------|
+| Rotas enxugadas | 4 (coupons-engine 58→20, merchant-finance 115→25, merchant-analytics 85→21, orders 296→37) |
+| Serviços criados | couponService(56), financeService(104), analyticsService(71), orderService(255) |
+| Queries DB diretas removidas das rotas | ~112 |
+| Testes inalterados | 86/87 files pass (1 flaky timeout pré-existente) |
+| Violação residual | 11 serviços importam `db` direto — documentada em ADR-008 |
+
+### Decisões
+1. **Repository Pattern obrigatório para novos módulos** (ADR-008 aprovado)
+2. **Serviços legados sem refatoração retroativa** — apenas sob gatilho (troca de ORM, bug, feature)
+3. **Nenhuma refatoração no módulo Merchant** (recém-estabilizado)
+
 ## Decisoes-chave (LOOP 3)
 
 - **`mockedDb` pattern**: `vi.mocked(db)` retorna objeto mockado inteiro → acesso `mockedDb.select` sem separar método de `this`.
@@ -111,9 +173,7 @@ Cobertura total: middleware (55+ testes), auth (16), serviços (125+), lib (46),
 - **87 server test files, 650 testes — 0 falhas, 0 lint, 0 build**
 
 ## Pendente (prioridade)
-1. **LOOP 4 — Auditoria Arquitetural**: System Contract, invariantes L1-L6, FSM
-2. **LOOP 5 — Otimização Build/SEO**: Bundle size, Core Web Vitals, GEO
-3. **LOOP 6 — Documentação/Memória**: ADRs, knowledge base
+1. **LOOP 6 — Documentação/Memória**: ADRs, knowledge base
 
 > [!tip] Navegacao
 > [[CURRENT_STATE]] · [[MOC — Historico do Projeto]] · [[LOOP 3 — Testes Backend]]

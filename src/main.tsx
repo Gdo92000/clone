@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
+import { SEOProvider } from './components/SEO'
 import App from './App.tsx'
 
 async function bootstrap() {
@@ -13,7 +14,9 @@ async function bootstrap() {
   if (!root) throw new Error('Root element not found')
   createRoot(root).render(
     <StrictMode>
-      <App />
+      <SEOProvider>
+        <App />
+      </SEOProvider>
     </StrictMode>,
   )
 }

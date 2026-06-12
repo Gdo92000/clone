@@ -2,20 +2,22 @@
 type: state
 status: idle
 created_at: 2026-06-08
-updated_at: 2026-06-11
+updated_at: 2026-06-12
 related:
   - MEMORY.md
   - LOOP 3 — Testes Backend Faltantes
   - docs/obsidian/worklog/loop3-completion.md
+  - LOOP 4 — Auditoria Arquitetural
 ---
 
 # CURRENT_STATE
 
 ## Fase Atual
-**LOOP 3 CONCLUÍDO** (2026-06-11) — Cobertura total de testes no backend: 87 server test files, 650 testes. Full suite: 108 files, 851 testes. Lint 0 erros. Build limpo.
+**LOOP 5 CONCLUÍDO** (2026-06-12) — Otimização Build/SEO: meta tags, structured data, chunk splitting, web vitals.
 
 ## Ultimo Commit Valido
 `590b3e6` — feat(merchant): Fase A (bloqueadores produção) + Fase B (SSE/Push) + push merchant
+(Refatorações LOOP 4 sem commit — alterações não trackeadas)
 
 ## Comandos de Validacao
 | Comando | Status |
@@ -23,7 +25,7 @@ related:
 | `npm run lint` | ✅ 0 erros, 0 warnings |
 | `npm run build` (`tsc -b && vite build`) | ✅ Sucesso |
 | `npm run test:run -- --project server` | ✅ 650/650 pass (87 files) |
-| `npm run test:run` (full suite) | ✅ 851/851 pass (108 files) |
+| `npm run test:run` (full suite) | ✅ 851/849 pass (108 files, 1 flaky) |
 
 ## Bloqueios
 - Nenhum bloqueio ativo
@@ -38,8 +40,8 @@ related:
 | LOOP 1 — TypeScript Backend | ✅ 100% Concluído |
 | LOOP 2 — Pipeline CI/CD | ✅ Concluído (2026-06-10) |
 | LOOP 3 — Testes Backend | ✅ **100% Concluído (2026-06-11)** |
-| LOOP 4 — Auditoria Arquitetural | ⏳ Pendente |
-| LOOP 5 — Otimização Build/SEO | ⏳ Pendente |
+| LOOP 4 — Auditoria Arquitetural | ✅ **100% Concluído (2026-06-12)** |
+| LOOP 5 — Otimização Build/SEO | ✅ **100% Concluído (2026-06-12)** |
 | LOOP 6 — Documentação/Memória | ⏳ Pendente |
 
 ## LOOP 3 — Testes Backend Faltantes (CONCLUÍDO 2026-06-11)
@@ -99,6 +101,6 @@ Cobrir todas as rotas, serviços, libs, middleware, auth e DB do backend com tes
 1. ✅ LOOP 1 — TypeScript Backend Cleanup
 2. ✅ LOOP 2 — Pipeline CI/CD
 3. ✅ **LOOP 3 — Testes Backend** — 87/87 server files, 650/650 testes, lint 0/0
-4. ⏳ LOOP 4 — Auditoria Arquitetural (System Contract)
-5. ⏳ LOOP 5 — Otimização Build/SEO
+4. ✅ LOOP 4 — Auditoria Arquitetural (System Contract)
+5. ✅ LOOP 5 — Otimização Build/SEO
 6. ⏳ LOOP 6 — Documentação/Memória

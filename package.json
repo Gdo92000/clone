@@ -7,7 +7,7 @@
     "dev": "concurrently -n client,server -c cyan,green \"vite --host\" \"tsx watch --env-file .env server/src/index.ts\"",
     "dev:client": "vite --host",
     "dev:server": "tsx watch server/src/index.ts",
-    "build": "tsc -b && vite build",
+    "build": "tsc -p server/tsconfig.json --noEmit 2>&1 && tsc -b && vite build",
     "lint": "eslint . --cache --cache-strategy content",
     "lint:full": "eslint . --cache --cache-strategy content --cache-location node_modules/.cache/eslint",
     "lint:no-cache": "eslint .",
@@ -40,6 +40,7 @@
     "prom-client": "^15.1.3",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
+    "react-helmet-async": "^3.0.0",
     "react-router-dom": "^7.15.0",
     "recharts": "^3.8.1",
     "sonner": "^2.0.7",
@@ -47,6 +48,7 @@
     "tailwind-variants": "^3.2.2",
     "vite-plugin-pwa": "^1.3.0",
     "web-push": "^3.6.7",
+    "web-vitals": "^5.3.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {

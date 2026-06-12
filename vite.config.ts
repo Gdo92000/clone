@@ -107,6 +107,15 @@ export default defineConfig(({ mode }) => {
             if (id.includes('node_modules/react-router') || id.includes('node_modules/@remix-run')) {
               return 'vendor-router';
             }
+            if (id.includes('node_modules/recharts')) {
+              return 'vendor-charts';
+            }
+            if (id.includes('node_modules/sonner') || id.includes('node_modules/clsx') || id.includes('node_modules/tailwind-merge') || id.includes('node_modules/tailwind-variants')) {
+              return 'vendor-ui';
+            }
+            if (id.includes('node_modules/zod')) {
+              return 'vendor-validation';
+            }
             if (id.includes('node_modules/')) {
               return 'vendor-other';
             }
