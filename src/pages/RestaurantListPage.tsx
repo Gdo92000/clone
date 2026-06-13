@@ -7,7 +7,7 @@ import { FxRestaurantCard } from '../components/commerce/FxRestaurantCard';
 import { useRestaurants, useCategories } from '../hooks/useRestaurants';
 import { useNearbyRestaurants } from '../hooks/useNearbyRestaurants';
 import { useLocationContext } from '../context/LocationContext';
-import { normalizeCityName } from '../services/cityCoverageFallback';
+import { normalizeCityName } from '../domain/coverage/CityCoverage';
 import { ROUTES, restaurantsSearchHref, restaurantDetailHref } from '../lib/routes';
 import type { Restaurant } from '../types';
 
