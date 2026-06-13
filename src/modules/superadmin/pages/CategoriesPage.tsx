@@ -120,8 +120,8 @@ export function CategoriesPage() {
             </div>
             <div className="flex items-center gap-1 shrink-0">
               <button onClick={() => { openEdit(cat); }} className="p-2 rounded-lg hover:bg-surface-background transition-colors" title="Editar"><Icon name="Pencil" size={16} className="text-text-tertiary" /></button>
-              <button onClick={() => { toggleActive(cat.id); }} className={clsx('w-10 h-5 rounded-full transition-colors relative', cat.isActive ? 'bg-brand-primary' : 'bg-border-default')}>
-                <span className={clsx('absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform', cat.isActive ? 'translate-x-5' : 'translate-x-0.5')} />
+              <button onClick={() => { toggleActive(cat.id); }} className={clsx('w-12 h-6 rounded-full transition-colors relative min-w-[44px] min-h-[44px] flex items-center', cat.isActive ? 'bg-brand-primary' : 'bg-border-default')}>
+                <span className={clsx('ml-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform', cat.isActive ? 'translate-x-6' : 'translate-x-0')} />
               </button>
               <button onClick={() => { remove(cat.id); }} className="p-2 rounded-lg hover:bg-surface-background transition-colors" title="Excluir"><Icon name="Trash2" size={16} className="text-text-tertiary hover:text-feedback-error" /></button>
             </div>

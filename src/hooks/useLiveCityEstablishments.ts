@@ -1,8 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useLocationContext } from '../context/LocationContext';
 import { getRestaurants } from '../repositories/restaurantRepository';
-import { findRegisteredCityCoverage } from '../services/cityCoverageFallback';
-import type { RegisteredCityCoverage } from '../services/cityCoverageFallback';
 import { useCityCoverage } from './useActiveCities';
 import { calculateDistance } from '../domain/geospatial/geodesy';
 
@@ -45,16 +43,11 @@ export function useLiveCityEstablishments(
   const {
      coordinates,
      city,
-     distanceToCityCenter,
    } = useLocationContext();
    const userNeighborhood = city?.neighborhood;
 
   const cityCoverageQuery = useCityCoverage(city?.name, city?.state);
-  const supportedCity = useMemo<RegisteredCityCoverage | null>(
-    () => findRegisteredCityCoverage(city?.name ?? ''),
-    [city],
-  );
-  const hasCityCoverage = cityCoverageQuery.data === true || (supportedCity?.isActive ?? false);
+  const hasCityCoverage = cityCoverageQuery.data === true;
 
   const [establishments, setEstablishments] = useState<LocalEstablishment[]>([]);
   const [loading, setLoading] = useState(false);
@@ -70,12 +63,10 @@ export function useLiveCityEstablishments(
       };
     }
 
-    if (!city || !supportedCity) {
+    if (!city) {
       return {
         canSearch: false,
-        reason: city
-          ? `Nao temos estabelecimento cadastrado em "${city.name}".`
-          : 'Ative a localizacao para identificar sua cidade.',
+        reason: 'Ative a localizacao para identificar sua cidade.',
         activeRadiusKm: radiusKm,
       };
     }
@@ -83,45 +74,26 @@ export function useLiveCityEstablishments(
     if (!hasCityCoverage) {
       return {
         canSearch: false,
-        reason: `A localizacao detectada esta fora do limite de ${supportedCity.name}.`,
+        reason: `Nao temos estabelecimento cadastrado em "${city.name}".`,
         activeRadiusKm: radiusKm,
-      };
-    }
-
-    const centerDistance = distanceToCityCenter ?? calculateDistance(
-      coordinates.latitude,
-      coordinates.longitude,
-      supportedCity.latitude,
-      supportedCity.longitude
-    );
-    const remainingCityRadius = Math.max(0, supportedCity.radiusKm - centerDistance);
-    const activeRadiusKm = Math.max(1, Math.min(radiusKm, remainingCityRadius));
-
-    if (activeRadiusKm <= 0) {
-      return {
-        canSearch: false,
-        reason: 'Sua localizacao esta no limite da cidade validada.',
-        activeRadiusKm: 0,
       };
     }
 
     return {
       canSearch: true,
       reason: null,
-      activeRadiusKm,
+      activeRadiusKm: radiusKm,
     };
   }, [
     city,
     coordinates,
-    distanceToCityCenter,
     hasCityCoverage,
     radiusKm,
-    supportedCity,
   ]);
 
   const search = useCallback(async () => {
     if (inFlightRef.current) return;
-    if (!coordinates || !supportedCity || !protection.canSearch) {
+    if (!coordinates || !city || !protection.canSearch) {
       setError(protection.reason);
       return;
     }
@@ -130,13 +102,15 @@ export function useLiveCityEstablishments(
     setLoading(true);
     setError(null);
 
+    const cityName = city.name.toLowerCase();
+
     try {
       const all = await getRestaurants();
 
       const localResults: LocalEstablishment[] = all
         .filter((r) => {
           if (!r.coordinates) return false;
-          if (r.city?.toLowerCase() !== supportedCity.name.toLowerCase()) return false;
+          if (r.city?.toLowerCase() !== cityName) return false;
           const dist = calculateDistance(
             coordinates.latitude,
             coordinates.longitude,
@@ -192,7 +166,7 @@ export function useLiveCityEstablishments(
       setLoading(false);
       inFlightRef.current = false;
     }
-  }, [coordinates, limit, protection, supportedCity, userNeighborhood]);
+  }, [city, coordinates, limit, protection, userNeighborhood]);
 
   const clear = useCallback(() => {
     setEstablishments([]);

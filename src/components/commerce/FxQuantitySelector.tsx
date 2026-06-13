@@ -19,15 +19,15 @@ export function FxQuantitySelector({
   className,
 }: FxQuantitySelectorProps) {
   const sizeClasses = {
-    sm: 'w-20 h-8 text-sm',
-    md: 'w-28 h-10 text-base',
-    lg: 'w-36 h-12 text-lg',
+    sm: 'w-32 h-11 text-sm',
+    md: 'w-36 h-11 text-base',
+    lg: 'w-40 h-12 text-lg',
   };
 
   const buttonSizeClasses = {
-    sm: 'w-7 h-7 text-sm',
-    md: 'w-9 h-9 text-base',
-    lg: 'w-11 h-11 text-lg',
+    sm: 'w-11 h-11 min-w-[44px] min-h-[44px] text-sm',
+    md: 'w-11 h-11 min-w-[44px] min-h-[44px] text-base',
+    lg: 'w-12 h-12 min-w-[44px] min-h-[44px] text-lg',
   };
 
   const decrease = () => {

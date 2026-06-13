@@ -184,7 +184,7 @@ export function MerchantHolidaysPage() {
                           const periods = overrideForm.periods.map((pp, i) => i === idx ? { ...pp, openTime: e.target.value } : pp);
                           setOverrideForm({ ...overrideForm, periods });
                         }}
-                        className="h-9 rounded-lg border border-border-default bg-surface-background px-2 text-sm"
+                        className="h-11 min-h-[44px] rounded-lg border border-border-default bg-surface-background px-2 text-sm"
                       />
                       <span className="text-sm text-text-secondary">até</span>
                       <input
@@ -194,7 +194,7 @@ export function MerchantHolidaysPage() {
                           const periods = overrideForm.periods.map((pp, i) => i === idx ? { ...pp, closeTime: e.target.value } : pp);
                           setOverrideForm({ ...overrideForm, periods });
                         }}
-                        className="h-9 rounded-lg border border-border-default bg-surface-background px-2 text-sm"
+                        className="h-11 min-h-[44px] rounded-lg border border-border-default bg-surface-background px-2 text-sm"
                       />
                     </div>
                   ))}

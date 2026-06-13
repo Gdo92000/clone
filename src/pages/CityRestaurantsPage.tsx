@@ -91,7 +91,7 @@ export function CityRestaurantsPage() {
                 type="button"
                 onClick={() => { handleRadiusChange(option); }}
                 className={`
-                  h-9 rounded-full px-4 text-sm font-medium transition-colors
+                  h-11 min-h-[44px] rounded-full px-4 text-sm font-medium transition-colors
                   ${radiusKm === option
                     ? 'bg-brand-primary text-text-inverse'
                     : 'border border-border-default bg-surface-elevated text-text-secondary hover:border-brand-primary'

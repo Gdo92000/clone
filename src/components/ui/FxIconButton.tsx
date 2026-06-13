@@ -36,7 +36,7 @@ const variantClasses = {
 };
 
 const sizeClasses = {
-  sm: 'h-9 w-9 min-h-[36px] min-w-[36px]',
+  sm: 'h-11 w-11 min-h-[44px] min-w-[44px]',
   md: 'h-11 w-11 min-h-[44px] min-w-[44px]',
   lg: 'h-14 w-14 min-h-[56px] min-w-[56px]',
 };

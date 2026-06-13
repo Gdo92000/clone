@@ -1,16 +1,17 @@
 ﻿---
 type: memory
-status: active
+status: frozen
 aliases:
 - Memoria
 - Obsidian MEMORY
 - Memoria Operacional
 - Session Memory
 created_at: 2026-05-23
-updated_at: 2026-06-12
+updated_at: 2026-06-14
 related:
 - CURRENT_STATE.md
-- LOOP 7 — Migração TypeScript 5 → 6
+- LOOP 8 — Zod + OpenAPI Single Source of Truth
+- Correções Mobile First (D1-D6)
 tags:
 - type/memory
 ---
@@ -19,165 +20,122 @@ tags:
 
 ## Estado atual
 
-**LOOP 7 — Migração TS5→TS6 CONCLUÍDO** (2026-06-12). moduleResolution, strict flags, ~14 type errors corrigidos.
+**LOOP 8 — Zod + OpenAPI Single Source of Truth CONCLUÍDO** (2026-06-13). Build ✅, Lint ✅ 0 erros, Testes ✅ 852/852 (108 files), OpenAPI gen ✅.
+**LOOP 7 — Migração TS5→TS6 CONCLUÍDO** (2026-06-12).
 **LOOP 6 — Documentação/Memória CONCLUÍDO** (2026-06-12).
 **LOOP 5 — Otimização Build/SEO CONCLUÍDO** (2026-06-12).
 **LOOP 4 — Auditoria Arquitetural CONCLUÍDO** (2026-06-12).
 **LOOP 3 — Testes Backend CONCLUÍDO** (2026-06-11).
 **LOOP 2 — Pipeline CI/CD CONCLUÍDO** (2026-06-10).
 **LOOP 1 — TypeScript Backend Cleanup CONCLUÍDO** (2026-06-10).
-Percentual Merchant: ~90%. Qualidade do código restaurada.
 
 | Fase | Descricao | Status |
 |------|-----------|--------|
-| **38** | Unificar menu_items + merchant_menu_items | ✅ schema + rotas + seeds + migration |
+| **38** | Unificar menu_items + merchant_menu_items | ✅ Schema unificado. Legacy `merchant_menu_items` mantida para compatibilidade. |
 | **39** | CRUD additives + fix findAdditives + JOIN rotas publicas | ✅ repos + rotas + carrinho |
 | **40** | Push Notifications (Web Push API + service worker) | ✅ implementado |
 | **41** | Analytics e Financeiro (recharts, endpoints, hooks, MSW) | ✅ completo |
-| **42** | Remocao modulo Enterprise orfao (14 arquivos deletados) | ✅ auditoria + cleanup |
+| **42** | Remocao modulo Enterprise orfao | ✅ Enxugado (3 arquivos ativos mantidos, 14 mortos removidos) |
 | **43** | Fluxo condicional delivery/pickup (backend + frontend + testes) | ✅ implementado |
 | **Fase A** | Bloqueadores produção (multi-tenant, plan limits, taxas) | ✅ completo |
 | **Fase B** | SSE no KDS + Push Merchant | ✅ completo |
 | **LOOP 1** | TypeScript Backend Cleanup | ✅ **100% (0 err TS, 0 err lint)** |
 | **LOOP 2** | Pipeline CI/CD | ✅ **Concluído** |
-| **LOOP 3** | Testes Backend | ✅ **100% (86 files, 624 tests)** |
+| **LOOP 3** | Testes Backend | ✅ **100% (108 files, 852 tests)** |
 | **LOOP 4** | Auditoria Arquitetural (System Contract) | ✅ **Concluído** |
 | **LOOP 5** | Otimização Build/SEO | ✅ **Concluído** |
 | **LOOP 6** | Documentação/Memória | ✅ **Concluído (2026-06-12)** |
 | **LOOP 7** | Migração TypeScript 5→6 | ✅ **Concluído (2026-06-12)** |
+| **LOOP 8** | Zod + OpenAPI Single Source of Truth | ✅ **Concluído (2026-06-13)** |
 
-## LOOP 1 — TypeScript Backend Cleanup
+## LOOP 8 — Zod + OpenAPI Single Source of Truth (CONCLUÍDO 2026-06-13)
 
-### Problema
-- `@typescript-eslint/no-explicit-any: error` com tolerância zero
-- `base-postgres.ts` usava `any` internamente (tipagem genérica `TTable extends PgTable`)
-- `registry.ts` acumulou tipos mortos (`TTablesSelect`, `TablesSelect`, `_TPostgresRow`)
-- Rotas usavam `as string` redundante em `c.get('userBranchId')`
-- `orders.ts` usava `as any` para cast de enum de status
-- `orders.test.ts` com 14 erros de tipo nos mocks Hono
-- TS6307 em `tsconfig.json` (arquivos fora do include)
+### O que foi feito
 
-### Solução
-1. **base-postgres.ts** — reescrito sem `any`. `PgTable` concreto (não genérico) + `PostgresJsDatabase<Record<string, unknown>>`. `Db` type exportado. `withTransaction` removido (não está na `RepositoryPort`).
-2. **registry.ts** — `Repositories` simplificado: `RepositoryPort` sem genérico. Imports limpos.
-3. **registry-memory.ts** — `T extends Record<string, unknown>`.
-4. **fixtures/loader.ts** — `as unknown as` para cast de Repositories. Guard `repo?.reset?.()`.
-5. **fixtures/registry-shots.ts** — funções síncronas.
-6. **Rotas** — `as string` removido de `c.get()`.
-7. **orders.ts** — `customerStatus as any` → `as 'confirmed' | ... | 'cancelled'`.
-8. **orders.test.ts** — 14 fixes de mock.
-9. **tsconfig.json** — `"../shared"` adicionado ao include.
+1. **Schemas Zod + OpenAPI**: merchantWorkspace, superadmin, merchant (Zod v4 + @hono/zod-openapi)
+2. **Migração de 15 rotas** para OpenAPIHono: plans, addons, subscriptions, feature-flags, invoices, companies, branches, orders, merchant-coupons, campaigns, merchant-analytics, merchant-finance, menu-items (público), merchant-workspace
+3. **Schema paths corrigidos**: 13 paths em merchant.ts, 5 em superadmin.ts, 1 em merchantWorkspace.ts → relativos ao mount point
+4. **41 test failures zerados**: 4 causas raiz (schema paths, Date mocks, auth mock, middleware order) + 2 field name mismatches (revenue→totalRevenue, grossRevenue→revenue)
+5. **Rotas additives readicionadas**: POST/PUT/DELETE /:id/menu-items/:itemId/additives (perdidas na migração)
+6. **Public route fix**: GET /api/push/vapid-public-key movido para sub-router público (estava atrás de authMiddleware causando 401)
+7. **OpenAPI generation**: `npm run openapi:generate` funcional, `src/types/api.d.ts` atualizado
+8. **Build/Lint/Testes**: ✅ todos passando
 
-### Trade-off arquitetural
-`Repositories` perdeu o genérico de entidade. Dados retornados são `Record<string, unknown>`. Decisão forçada pelo Drizzle v0.45+ — impossibilitando abstração genérica sobre `PgTable`.
-
-## LOOP 2 — Pipeline CI/CD
-1. **`.github/workflows/ci.yml`** — Node 22, `npm ci`, lint → build → test
-2. **`.gitignore`** restaurado
-
-## LOOP 3 — Testes Backend Faltantes
-
-### Escopo
-Cobrir todas as rotas, serviços, libs, middleware, auth e DB do backend.
-
-### Resultados
-| Métrica | Antes | Depois |
-|---------|-------|--------|
-| Server test files | 34 | **87** |
-| Server tests | 393 | **650** |
-| Full suite tests | 393 | **851** |
-| Lint errors | 0 (3 warnings) | **0 erros, 0 warnings** |
-| DB test lint errors | 149 | **0** |
-
-### Principais patches de lint
-- **`unbound-method`**: `vi.mocked(db.select)` → `const mockedDb = vi.mocked(db)` em 16 arquivos
-- **`no-unsafe-call`**: `next: () => Promise<void>` anotado em mocks de middleware (11 arquivos)
-- **`require-await`**: `async` removido de 5 callbacks
-- **DB tests**: `base-memory.test.ts` (139 err) — tipagem com `import type` + `Record<string, unknown>`. `provider.test.ts` (6 err) — `EnvConfig` tipado. `provider-selector.test.ts` (4 err) — `getCapabilities()`.
-
-### 44 Rotas + serviços + lib + middleware + auth + DB
-Cobertura total: middleware (55+ testes), auth (16), serviços (125+), lib (46), DB (35), rotas (370+), outros (67).
-
-### Bug corrigido
-- `loginLockout.ts:23,34` — condição `lockoutUntil = 0` causava reset de contagem e deleção indevida.
-
-## LOOP 5 — Otimização Build/SEO (2026-06-12)
-
-### Escopo
-Melhorar meta tags SEO, structured data, chunk splitting do build, e adicionar Core Web Vitals monitoring.
-
-### Resultados
-
-| Área | Antes | Depois |
-|------|-------|--------|
-| `<title>` | "iFood Clone" | "Flux Delivery" |
-| Meta description | ❌ Ausente | ✅ Adicionado |
-| Open Graph tags | ❌ Ausente | ✅ og:title, og:description, og:image, og:type, og:locale |
-| Twitter Card tags | ❌ Ausente | ✅ twitter:card, twitter:title, twitter:description |
-| Canonical URL | ❌ Ausente | ✅ `https://fluxdelivery.app` |
-| robots.txt | ❌ Ausente | ✅ `public/robots.txt` |
-| sitemap.xml | ❌ Ausente | ✅ `public/sitemap.xml` |
-| JSON-LD structured data | ❌ Ausente | ✅ Organization schema |
-| Per-page meta | ❌ Ausente | ✅ `react-helmet-async` + componente SEO |
-| Google Fonts duplicado | ✅ CSS @import + HTML link | ✅ Apenas HTML link (remove @import) |
-| vendor-other chunk | 869 KB | **418 KB** (-51%) |
-| vendor-charts (recharts) | Dentro de vendor-other | **432 KB** (separado) |
-| vendor-ui (sonner, clsx, etc) | Dentro de vendor-other | **65 KB** (separado) |
-| Core Web Vitals | ❌ Ausente | ✅ `web-vitals` + WebVitalsReporter |
-| Auth test flaky | ⏳ Timeout 5s | ✅ Timeout 10s |
+### Decisões-chave
+- **Schema paths relativos**: Rotas OpenAPI usam paths relativos ao mount point (ex: `/merchant/branches` → `/`)
+- **Middlewares separados**: push.ts usa sub-routers `publicRoute` + `protectedRoute` (padrão auth.ts)
+- **Rotas híbridas**: branches.ts mantém rotas additives como Hono puro (não OpenAPI) por serem CRUD simples
+- **Desserialização Date**: handlers convertem `Date | null` → `string` via `.toISOString()` para compatibilidade JSON
 
 ### Arquivos criados/modificados
 
 | Arquivo | Mudança |
 |---------|---------|
-| `index.html` | Meta tags, OG, Twitter, canonical, title |
-| `public/robots.txt` | Criado |
-| `public/sitemap.xml` | Criado |
-| `src/components/SEO.tsx` | Criado (SEO + JSON-LD) |
-| `src/components/WebVitalsReporter.tsx` | Criado |
-| `src/main.tsx` | SEOProvider wrapper |
-| `src/App.tsx` | SEO + WebVitalsReporter |
-| `src/index.css` | Remove @import Google Fonts |
-| `vite.config.ts` | Melhor chunk splitting |
-| `server/src/auth/index.test.ts` | Timeout 10s (flaky fix) |
-| `package.json` | `react-helmet-async` + `web-vitals` |
+| `server/src/schemas/merchant.ts` | 13 paths corrigidos (absolutos → relativos ao mount point) |
+| `server/src/schemas/superadmin.ts` | 5 paths corrigidos |
+| `server/src/schemas/merchantWorkspace.ts` | 1 path corrigido |
+| `server/src/routes/branches.ts` | Rotas additives readicionadas (perdidas na migração) |
+| `server/src/routes/companies.ts` | `getAuthPayload` → `getTokenPayload` |
+| `server/src/routes/plans.ts` | Rotas GET públicas movidas antes do middleware |
+| `server/src/routes/push.ts` | Sub-routers público/protegido (fix 401 vapid-key) |
+| `server/src/routes/*.test.ts` | 6 arquivos de teste corrigidos |
+| `server/src/schemas/merchantWorkspace.ts` | Schema consolidado workspace |
+| `docs/obsidian/CURRENT_STATE.md` | Atualizado (852/852) |
 
-## LOOP 4 — Auditoria Arquitetural (2026-06-12)
+## LOOP 4 — Auditoria Arquitetural (2026-06-12) — CONCLUÍDO
 
-### Escopo
-Extrair lógica de negócio de rotas para serviços dedicados, seguindo sequência segura (menor risco ao maior).
-
-### Resultados
-| Métrica | Valor |
-|---------|-------|
-| Rotas enxugadas | 4 (coupons-engine 58→20, merchant-finance 115→25, merchant-analytics 85→21, orders 296→37) |
-| Serviços criados | couponService(56), financeService(104), analyticsService(71), orderService(255) |
-| Queries DB diretas removidas das rotas | ~112 |
-| Testes inalterados | 86/87 files pass (1 flaky timeout pré-existente) |
-| Violação residual | 11 serviços importam `db` direto — documentada em ADR-008 |
-
-### Decisões
-1. **Repository Pattern obrigatório para novos módulos** (ADR-008 aprovado)
-2. **Serviços legados sem refatoração retroativa** — apenas sob gatilho (troca de ORM, bug, feature)
-3. **Nenhuma refatoração no módulo Merchant** (recém-estabilizado)
+4 rotas enxugadas (~112 queries DB removidas). 4 serviços criados: couponService, financeService, analyticsService, orderService.
+**Decisões**: ADR-006 (tipos concretos > genéricos), ADR-007 (Test Pattern), ADR-008 (Repository Pattern p/ novos módulos).
+11 serviços legados ainda importam `db` direto — violação residual documentada (ADR-008).
 
 ## Decisoes-chave (LOOP 3)
 
-- **`mockedDb` pattern**: `vi.mocked(db)` retorna objeto mockado inteiro → acesso `mockedDb.select` sem separar método de `this`.
-- **Middleware mock tipagem**: `mockAuthMiddleware.mockImplementation(async (_c, next: () => Promise<void>) => ...)` — sem `async function` sem tipo, `next` vira `Function` e dispara `no-unsafe-call`.
-- **`holidays.test.ts` sem `as unknown as`**: `const mockMiddleware: MiddlewareHandler = async (c, next) => ...` em vez de cast.
-- **DB test types**: `EntityStore`/`BaseMemoryRepository` tipados com `import type` + construtores `new (namespace: string) => EntityStore` — elimina 139 erros de `any`.
+Padrões de teste formalizados no ADR-007: `mockedDb` pattern, middleware mock typing, fixture-based testing, dual-project Vitest config.
 
-## Progresso consolidado
-- Fases 1-24, 25-43, Fase A, Fase B concluídas
-- LOOP 1 (TypeScript cleanup) ✅
-- LOOP 2 (CI/CD) ✅
-- LOOP 3 (Testes backend) ✅
-- **87 server test files, 650 testes — 0 falhas, 0 lint, 0 build**
+~~Todas as 7 pendências (D1-D7) corrigidas.~~ Nenhuma pendência ativa no momento.
 
-## Pendente (prioridade)
-Nenhum — todos os LOOPs planejados (1-6) foram concluídos.
-Próximo passo: definir novo ciclo de features ou refinamentos.
+## Bloqueadores críticos corrigidos (pós-auditorias)
+
+| Item | Documentado como | Código atual | Correção confirmada em |
+|------|-----------------|--------------|:----------------------:|
+| Mobile nav (D3) | 🔴 13 nav items em `overflow-x-auto scrollbar-hide`, sem drawer | `DashboardLayout` com hamburger + sidebar + Outlet — `MerchantLayout` removido | **Código** |
+| Modais sem scroll (D4) | 🟡 5 modais inline sem `max-h-[90vh]` | Componentes `Modal` e `BottomSheet` já possuem `max-h-[90vh]` + `overflow-y-auto` no content. Todas as 5 páginas usam `Modal` compartilhado. | **Código** — Pronto p/ correção |
+| mirrorService sem transação (ADR-005) | 🔴 4 inserts fora de transação | `db.transaction()` na linha 123 de `mirrorService.ts` | **Código** |
+| SSE sem isolamento tenant (C1) | 🔴 Qualquer user via qualquer branch | Validação por role em `sse.ts:30-48` + teste 403 | **Código** + **Teste** |
+| Push sem authMiddleware (C3) | 🔴 subscribe sem guard consistente | `protectedRoute.use('*', authMiddleware)` em `push.ts:33` | **Código** |
+| Botão voltar consumer (D6) | 🟡 4 páginas sem back navigation | `FxPageNavbar` com `backTo={ROUTES.HOME}` em OrderHistoryPage, ProfilePage, SearchPage, CityRestaurantsPage | **Código** |
+| SSE reconexão (D1) | 🟡 Consumer SSE sem reconnect | `useSSE.ts` — exponential backoff com jitter (±50%), até 20 tentativas (~5 min) | **Código** |
+| Touch targets (D5) | 🟡 6 componentes com < 44px | Todos atualizados: FxIconButton, FxQuantitySelector, CategoriesPage toggle, CityRestaurantsPage buttons, MerchantHolidaysPage inputs, ItemDetailPage checkbox | **Código** |
+| cityCoverageFallback (D2) | 🟢 Fallback hardcoded de Franca | Substituído por `citiesApi.hasCityCoverage()` + `useActiveCities`. Arquivo deletado, 4 consumidores migrados | **Código** |
+| ConsumerOrderDTO (D7) | 🟢 NUMERIC string sem coerção | `GET /me/orders` e `GET /me/orders/:id` — `Number()` em subtotal, total, delivery_fee, discount, items.price | **Código** + **5 testes** |
+| Migration 0017 fora do journal (C7) | 🔴 Nunca aplicada em ambiente novo | `idx:14, tag:"0017_team_sub_role"` em `_journal.json` | **Código** |
+
+## Decisões arquiteturais ativas
+
+| ID | Título | Status | Impacto |
+|----|--------|:------:|---------|
+| ADR-001 | **ViaCEP como fonte oficial de bairro** — Priorização: ViaCEP > Nominatim neighbourhood > quarter > suburb. Preservar `originalNeighborhood` para auditoria. | ✅ Ativo | Geocoding |
+| ADR-002 | **Proveniência e Confidence** — `coord_source`/`coord_confidence` no LocationState. Threshold 0.6 para cidade suportada. | ✅ Ativo | Location |
+| ADR-003 | **Cobertura Geofencing-Ready** — `restaurants.is_active` como fonte única. 3 níveis: cidade, bairro, raio/polígono. | ✅ Ativo | Cobertura |
+| ADR-004 | **DB Seed como Single Source of Truth para Dev** — Seed Franca auto-popula Postgres no boot. MSW agora é test-only + dev PC. | ✅ Ativo | Dev workflow |
+| ADR-005 | **Mirror Service Atomicidade e Integridade** — `db.transaction` com 4 inserts, idempotency-key, validação menu items. | ✅ Implementado | Orders |
+| ADR-006 | **Tipos concretos > genéricos no schema DB** — `RepositoryPort<Record<string, unknown>>` em vez de genéricos. | ✅ Ativo | DB layer |
+| ADR-007 | **Test Pattern** — `mockedDb`, middleware typing, fixtures, dual-project Vitest. | ✅ Ativo | Testing |
+| ADR-008 | **Repository Pattern para novos módulos** — Todo novo módulo DEVE usar interface + PostgresRepository + injeção. | ✅ Ativo | Architecture |
+| ADR-009 | **Zod + OpenAPI Single Source of Truth** — Schemas Zod geram OpenAPI spec. Tipos frontend gerados via `openapi-typescript`. | ✅ Ativo | API contract |
+
+## Restrições conhecidas do sistema
+
+- **Postgres NUMERIC → string**: Drizzle serializa `numeric(10,2)` como string. `coerceNumeric()` nos mappers é obrigatório. 9 entidades afetadas, 16+ colunas. Mappers corrigidos: `restaurantMapper`, `addressMapper`, `merchantMapper`. Pendente: `consumerOrderMapper`.
+- **Normalização de UF**: Nominatim retorna nome completo (ex: "São Paulo"), fixtures usam código ("SP"). `normalizeStateBR()` mapeia 27 UFs. Usado em `locationMachine.ts`, `LocationContext.tsx`, handlers MSW.
+
+## Histórico arquitetural importante
+
+- **Auth Architecture**: `IAuthProvider` pattern com `DevAuthProvider` (auto-login, 10 mock users, 8 roles) e `ProductionAuthProvider`. 17 permissions mapeadas. 20 cenários E2E validados. Documentação completa em `docs/architecture/auth-architecture.md`.
+- **Chunk Splitting + SEO (LOOP 5)**: vendor-other 869KB→418KB. 5 vendor chunks. SEO: JSON-LD, OG/Twitter tags, sitemap, robots.txt, Core Web Vitals reporter.
+- **Fase 28 — Migração Cobertura**: 12 arquivos deletados (whitelist `coverage_cities`). Cobertura agora derivada de `restaurants.is_active`.
+- **Fase 29 — Coordenadas Reais**: 8 restaurantes com coordenadas Google Maps validadas. Rest-9 Bahia Lanches adicionado. ViaCEP enricher para bairro.
+- **Fase 30 — Mock Cleanup**: 5 flags mortas removidas, 5 funções órfãs deletadas (~120 LOC). MSW mantido para testes + dev PC.
 
 > [!tip] Navegacao
-> [[CURRENT_STATE]] · [[MOC — Historico do Projeto]] · [[LOOP 3 — Testes Backend]]
+> [[CURRENT_STATE]] · [[ADR Index]] · [[MOC — Historico do Projeto]]

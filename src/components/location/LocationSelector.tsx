@@ -4,7 +4,7 @@ import { Icon } from '../ui/Icon';
 import { Modal } from '../ui/Modal';
 import { useLocationContext } from '../../context/LocationContext';
 import { useActiveCities } from '../../hooks/useActiveCities';
-import { getRegisteredCityCoverages } from '../../services/cityCoverageFallback';
+
 import { formatDistance } from '../../domain/geospatial/geodesy';
 
 interface LocationSelectorProps {
@@ -290,10 +290,7 @@ export function LocationSelector({ className }: LocationSelectorProps) {
   const activeCitiesQuery = useActiveCities();
   const activeCities = activeCitiesQuery.data ?? [];
 
-  const fallbackCities = getRegisteredCityCoverages();
-  const sourceList = activeCities.length > 0
-    ? activeCities.map((c) => ({ name: c.city, state: c.state }))
-    : fallbackCities.map((c) => ({ name: c.name, state: c.state }));
+  const sourceList = activeCities.map((c) => ({ name: c.city, state: c.state }));
 
   const filteredCities = sourceList.filter(
     (c: { name: string; state: string }) =>

@@ -3,8 +3,8 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState, ty
 import type { Coordinates } from '../types/location';
 
 import { progressiveGeolocation, ipFallback, readCache, writeCache, getCachedCoords, isGeolocationUsable, isCacheStaleForCoords } from '../services/geolocationService';
-import { findRegisteredCityCoverage, getRegisteredCityCoverages } from '../services/cityCoverageFallback';
-import { initialLocationState, locateCity, processSupportedCity, calculateCoordConfidence, type CoordSource, type LocationState, type City } from '../providers/locationMachine';
+import { citiesApi } from '../api/citiesApi';
+import { initialLocationState, locateCity, calculateCoordConfidence, type CoordSource, type LocationState, type City } from '../providers/locationMachine';
 import { logger } from '../lib/logger';
 import { normalizeStateBR } from '../utils/states';
 
@@ -39,14 +39,14 @@ const hydrateFromCache = useCallback(() => {
   try {
     const detectedCity = cityFromCache(cache);
     const cachedConfidence = calculateCoordConfidence(cache.coordinates.accuracy);
-    const supported = processSupportedCity(detectedCity, cache.coordinates, cachedConfidence);
     setState({
       city: detectedCity,
       coordinates: cache.coordinates,
       source: cache.source,
       coord_source: 'cache',
       coord_confidence: cachedConfidence,
-      ...supported,
+      isWithinSupportedCity: false,
+      distanceToCityCenter: null,
       status: 'SUCCESS',
       loading: false,
     });
@@ -69,14 +69,14 @@ const tryIpFallback = useCallback(async () => {
         country: 'Brasil',
         displayName: `${ipData.city} - ${displayState}`,
       };
-      const supported = processSupportedCity(detectedCity, null, 0.20);
       setState({
         city: detectedCity,
         coordinates: null,
         source: 'ip',
         coord_source: 'ip_fallback',
         coord_confidence: 0.20,
-        ...supported,
+        isWithinSupportedCity: false,
+        distanceToCityCenter: null,
         status: 'FALLBACK_IP',
         loading: false,
         error: null,
@@ -95,7 +95,6 @@ const tryIpFallback = useCallback(async () => {
       const { city: detectedCity, source: citySource } = await locateCity(coords);
       const coordSource: CoordSource = citySource;
       const coordConfidence = calculateCoordConfidence(coords.accuracy);
-      const supported = processSupportedCity(detectedCity, coords, coordConfidence);
       writeCache({
           city: {
             name: detectedCity.name,
@@ -113,7 +112,8 @@ const tryIpFallback = useCallback(async () => {
         source: citySource,
         coord_source: coordSource,
         coord_confidence: coordConfidence,
-        ...supported,
+        isWithinSupportedCity: false,
+        distanceToCityCenter: null,
         status: 'SUCCESS',
         loading: false,
       });
@@ -167,29 +167,38 @@ const tryIpFallback = useCallback(async () => {
   }, [requestLocation]);
 
   const setManualCity = useCallback((cityName: string) => {
-    const supported = findRegisteredCityCoverage(cityName);
-    if (supported) {
+    /* Try to look up city via API; fall back to marking as unsupported */
+    void citiesApi.hasCityCoverage(cityName, '').then((covered) => {
       setState({
-          city: {
-            name: supported.name,
-            state: supported.state,
-            stateCode: '',
-            country: 'Brasil',
-            displayName: `${supported.name} - ${supported.state}`,
-          },
-          coordinates: null,
-          source: 'manual',
-          coord_source: 'manual',
-          coord_confidence: 1.0,
-          isWithinSupportedCity: true,
-          distanceToCityCenter: null,
-          error: null,
-          status: 'SUCCESS',
-        });
-    } else {
-      const all = getRegisteredCityCoverages();
-      setState({ error: `Não temos estabelecimento em "${cityName}". Cidades: ${all.map((c) => c.name).join(', ')}` });
-    }
+        city: {
+          name: cityName,
+          state: '',
+          stateCode: '',
+          country: 'Brasil',
+          displayName: cityName,
+        },
+        coordinates: null,
+        source: 'manual',
+        coord_source: 'manual',
+        coord_confidence: 1.0,
+        isWithinSupportedCity: covered,
+        distanceToCityCenter: null,
+        error: covered ? null : `Não temos estabelecimento em "${cityName}".`,
+        status: 'SUCCESS',
+      });
+    }).catch(() => {
+      setState({
+        city: { name: cityName, state: '', stateCode: '', country: 'Brasil', displayName: cityName },
+        coordinates: null,
+        source: 'manual',
+        coord_source: 'manual',
+        coord_confidence: 1.0,
+        isWithinSupportedCity: false,
+        distanceToCityCenter: null,
+        error: `Não temos estabelecimento em "${cityName}".`,
+        status: 'ERROR',
+      });
+    });
   }, []);
 
   const clearLocation = useCallback(() => { activeRef.current = false; setState(initialLocationState()); }, []);

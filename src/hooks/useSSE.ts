@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { getToken } from '../services/authService';
 import type { OrderStatusType, OrderStatusStep } from '../types';
 
@@ -9,6 +9,31 @@ interface SSEOrderEvent {
   timestamp: string;
 }
 
+/* ------------------------------------------------------------------ */
+/*  Reconnect helpers                                                  */
+/* ------------------------------------------------------------------ */
+
+const RECONNECT_BASE_MS = 1_000;
+const RECONNECT_MAX_MS = 30_000;
+const RECONNECT_MAX_RETRIES = 20;
+
+/**
+ * Exponential backoff with ±50% jitter so multiple clients don't
+ * reconnect simultaneously after a server restart.
+ */
+function calculateBackoff(attempt: number): number {
+  const exponential = Math.min(
+    RECONNECT_BASE_MS * 2 ** attempt,
+    RECONNECT_MAX_MS,
+  );
+  const jitter = exponential * (0.5 + Math.random());
+  return Math.round(jitter);
+}
+
+/* ------------------------------------------------------------------ */
+/*  useSSEOrderTracking                                                */
+/* ------------------------------------------------------------------ */
+
 export function useSSEOrderTracking({ steps, estimatedTime, branchId }: {
   steps: OrderStatusStep[];
   estimatedTime?: string;
@@ -17,8 +42,6 @@ export function useSSEOrderTracking({ steps, estimatedTime, branchId }: {
   const [currentStatus, setCurrentStatus] = useState<OrderStatusType>(steps[0]?.status ?? 'confirmed');
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [connected, setConnected] = useState(false);
-  const eventSourceRef = useRef<EventSource | null>(null);
-  const retryCountRef = useRef(0);
 
   const handleOrderEvent = useCallback((event: SSEOrderEvent) => {
     const idx = steps.findIndex((s) => s.status === event.status);
@@ -36,36 +59,59 @@ export function useSSEOrderTracking({ steps, estimatedTime, branchId }: {
     if (branchId) params.set('branch_id', branchId);
 
     const url = `/api/realtime/orders${params.toString() ? `?${params.toString()}` : ''}`;
-    const es = new EventSource(url, { withCredentials: true });
 
-    es.addEventListener('connected', () => {
-      setConnected(true);
-      retryCountRef.current = 0;
-    });
+    let retryCount = 0;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+    let currentEs: EventSource | null = null;
+    let isCancelled = false;
 
-    es.addEventListener('order_update', (event: MessageEvent) => {
-      try {
-        const raw = event.data as string;
-        const data = JSON.parse(raw) as SSEOrderEvent;
-        handleOrderEvent(data);
-      } catch {
-        /* ignore malformed events */
-      }
-    });
+    function connect() {
+      if (isCancelled) return;
 
-    es.addEventListener('heartbeat', () => {
-      /* keep-alive */
-    });
+      const es = new EventSource(url, { withCredentials: true });
+      currentEs = es;
 
-    es.onerror = () => {
-      setConnected(false);
-      es.close();
-    };
+      es.addEventListener('connected', () => {
+        setConnected(true);
+        retryCount = 0;
+      });
 
-    eventSourceRef.current = es;
+      es.addEventListener('order_update', (event: MessageEvent) => {
+        try {
+          const raw = event.data as string;
+          const data = JSON.parse(raw) as SSEOrderEvent;
+          handleOrderEvent(data);
+        } catch {
+          /* ignore malformed events */
+        }
+      });
+
+      es.addEventListener('heartbeat', () => {
+        /* keep-alive — server sends every 25 s */
+      });
+
+      es.onerror = () => {
+        setConnected(false);
+        es.close();
+        currentEs = null;
+
+        if (isCancelled) return;
+
+        if (retryCount < RECONNECT_MAX_RETRIES) {
+          const delay = calculateBackoff(retryCount);
+          retryCount++;
+          reconnectTimer = setTimeout(connect, delay);
+        }
+      };
+    }
+
+    connect();
 
     return () => {
-      es.close();
+      isCancelled = true;
+      if (reconnectTimer) clearTimeout(reconnectTimer);
+      currentEs?.close();
+      currentEs = null;
       setConnected(false);
     };
   }, [branchId, handleOrderEvent]);
@@ -79,6 +125,10 @@ export function useSSEOrderTracking({ steps, estimatedTime, branchId }: {
   };
 }
 
+/* ------------------------------------------------------------------ */
+/*  useSSEStatus                                                       */
+/* ------------------------------------------------------------------ */
+
 export function useSSEStatus() {
   const [connected, setConnected] = useState(false);
 
@@ -86,17 +136,55 @@ export function useSSEStatus() {
     const token = getToken();
     if (!token) return;
 
-    const es = new EventSource('/api/realtime/orders', { withCredentials: true });
+    const url = '/api/realtime/orders';
 
-    es.addEventListener('connected', () => { setConnected(true); });
-    es.addEventListener('heartbeat', () => { /* keep-alive */ });
-    es.onerror = () => {
+    let retryCount = 0;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+    let currentEs: EventSource | null = null;
+    let isCancelled = false;
+
+    function connect() {
+      if (isCancelled) return;
+
+      const es = new EventSource(url, { withCredentials: true });
+      currentEs = es;
+
+      es.addEventListener('connected', () => {
+        setConnected(true);
+        retryCount = 0;
+      });
+
+      es.addEventListener('heartbeat', () => {
+        /* keep-alive */
+      });
+
+      es.onerror = () => {
+        setConnected(false);
+        es.close();
+        currentEs = null;
+
+        if (isCancelled) return;
+
+        if (retryCount < RECONNECT_MAX_RETRIES) {
+          const delay = calculateBackoff(retryCount);
+          retryCount++;
+          reconnectTimer = setTimeout(connect, delay);
+        }
+      };
+    }
+
+    connect();
+
+    return () => {
+      isCancelled = true;
+      if (reconnectTimer) clearTimeout(reconnectTimer);
+      currentEs?.close();
+      currentEs = null;
       setConnected(false);
-      es.close();
     };
-
-    return () => { es.close(); setConnected(false); };
   }, []);
 
   return { connected };
 }
+
+export default useSSEOrderTracking;

@@ -1,8 +1,7 @@
 import type { Coordinates } from '../domain/geospatial/geodesy';
-import { findRegisteredCityCoverage } from '../services/cityCoverageFallback';
-import { calculateDistance } from '../domain/geospatial/geodesy';
+
 import { getGeocodingService } from '../services/geocoding/GeocodingService';
-import { logger } from '../lib/logger';
+
 
 export type LocationStatus = 'IDLE' | 'REQUESTING' | 'SUCCESS' | 'FALLBACK_IP' | 'DENIED' | 'ERROR';
 
@@ -69,22 +68,15 @@ export async function locateCity(coords: Coordinates): Promise<{ city: City; sou
   return { city, source };
 }
 
-export function processSupportedCity(
-  detectedCity: City,
-  coords: Coordinates | null,
-  coordConfidence: number | null,
-) {
-  if (!coords || coordConfidence == null || coordConfidence < 0.6) {
-    return { isWithinSupportedCity: false, distanceToCityCenter: null };
-  }
-  try {
-    const supported = findRegisteredCityCoverage(detectedCity.name);
-    if (supported) {
-      const distance = calculateDistance(coords.latitude, coords.longitude, supported.latitude, supported.longitude);
-      return { isWithinSupportedCity: distance <= supported.radiusKm, distanceToCityCenter: distance };
-    }
-  } catch (error) {
-    logger.warn('Location', 'Erro ao verificar cidade suportada', { error: String(error) });
-  }
+/**
+ * Placeholder — coverage determination moved to LocationContext
+ * which queries the backend API via useCityCoverage / citiesApi.
+ * This function now always returns unsupported; the real check
+ * happens at the component / hook level.
+ */
+export function processSupportedCity(): {
+  isWithinSupportedCity: boolean;
+  distanceToCityCenter: null;
+} {
   return { isWithinSupportedCity: false, distanceToCityCenter: null };
 }

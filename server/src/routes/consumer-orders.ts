@@ -103,7 +103,7 @@ route.get('/', async (c) => {
   const payload = getTokenPayload(c);
   if (!payload) return c.json({ error: 'Unauthorized' }, 401);
 
-  const result = await db.select({
+  const rows = await db.select({
     id: orders.id,
     user_id: orders.user_id,
     restaurant_id: orders.restaurant_id,
@@ -124,7 +124,18 @@ route.get('/', async (c) => {
     .leftJoin(restaurants, eq(orders.restaurant_id, restaurants.id))
     .where(eq(orders.user_id, payload.sub))
     .orderBy(desc(orders.created_at));
-  return c.json(result);
+
+  /* Coerce Postgres numeric(string) → number so frontend doesn't
+     need to handle string-precision values on every consumer page */
+  const coerced = rows.map((r) => ({
+    ...r,
+    subtotal: Number(r.subtotal),
+    delivery_fee: r.delivery_fee !== null ? Number(r.delivery_fee) : null,
+    discount: r.discount !== null ? Number(r.discount) : null,
+    total: Number(r.total),
+  }));
+
+  return c.json(coerced);
 });
 
 route.get('/:id', zValidator('param', idParam), async (c) => {
@@ -156,13 +167,13 @@ route.get('/:id', zValidator('param', idParam), async (c) => {
     .limit(1);
 
   if (!orderRows.length) return c.json({ error: 'Pedido não encontrado' }, 404);
-  const order = orderRows[0];
-  if (order.user_id !== payload.sub) return c.json({ error: 'Acesso negado' }, 403);
+  const rawOrder = orderRows[0];
+  if (rawOrder.user_id !== payload.sub) return c.json({ error: 'Acesso negado' }, 403);
 
-  const items = await db.select().from(orderItems).where(eq(orderItems.order_id, id));
+  const rawItems = await db.select().from(orderItems).where(eq(orderItems.order_id, id));
 
   let address: { street: string; number: string; neighborhood: string | null; city: string; state: string; zip_code: string | null } | null = null;
-  if (order.address_id) {
+  if (rawOrder.address_id) {
     const addrRows = await db.select({
       street: addresses.street,
       number: addresses.number,
@@ -170,13 +181,26 @@ route.get('/:id', zValidator('param', idParam), async (c) => {
       city: addresses.city,
       state: addresses.state,
       zip_code: addresses.zip_code,
-    }).from(addresses).where(eq(addresses.id, order.address_id)).limit(1);
+    }).from(addresses).where(eq(addresses.id, rawOrder.address_id)).limit(1);
     if (addrRows.length) address = addrRows[0];
   }
 
   const userRows = await db.select({ name: users.name, phone: users.phone })
-    .from(users).where(eq(users.id, order.user_id)).limit(1);
+    .from(users).where(eq(users.id, rawOrder.user_id)).limit(1);
   const customer = userRows[0] ?? null;
+
+  /* Coerce Postgres numeric(string) → number */
+  const order = {
+    ...rawOrder,
+    subtotal: Number(rawOrder.subtotal),
+    delivery_fee: rawOrder.delivery_fee !== null ? Number(rawOrder.delivery_fee) : null,
+    discount: rawOrder.discount !== null ? Number(rawOrder.discount) : null,
+    total: Number(rawOrder.total),
+  };
+  const items = rawItems.map((it) => ({
+    ...it,
+    price: Number(it.price),
+  }));
 
   return c.json({ order, items, address, customer });
 });
